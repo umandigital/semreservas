@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://semreservas.example.invalid/schemas/event-v1.json",
+  "title": "SEMRESERVAS - Evento de interação v1 (proposta)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "tenant_id", "name", "occurred_at", "anonymous_session_id", "source"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "event_id": {"type": "string", "format": "uuid"},
+    "tenant_id": {"type": "string", "format": "uuid"},
+    "location_id": {"type": ["string", "null"], "format": "uuid"},
+    "name": {
+      "type": "string",
+      "enum": [
+        "access_opened", "app_opened", "home_action_clicked", "menu_opened", "product_viewed",
+        "media_started", "media_completed", "product_ingredients_opened", "product_liked", "product_saved",
+        "comment_submitted", "comment_published", "product_share_initiated", "product_added",
+        "order_summary_opened", "order_intent_prepared", "service_requested", "service_acknowledged",
+        "service_resolved", "instagram_outbound_click", "google_review_outbound_click",
+        "wifi_help_opened", "wifi_password_copied", "frame_opened", "frame_selected",
+        "photo_rendered", "photo_downloaded", "photo_share_initiated", "club_joined",
+        "purchase_validated", "points_credited", "reward_redeemed", "survey_submitted",
+        "suggestion_submitted", "campaign_viewed", "campaign_clicked", "report_generated",
+        "report_approved", "report_delivered"
+      ]
+    },
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "anonymous_session_id": {"type": "string", "minLength": 16, "maxLength": 128},
+    "member_id": {"type": ["string", "null"], "format": "uuid"},
+    "source": {"type": "string", "enum": ["nfc", "qr", "link", "website", "delivery", "unknown"]},
+    "access_point_id": {"type": ["string", "null"], "format": "uuid"},
+    "product_id": {"type": ["string", "null"], "format": "uuid"},
+    "campaign_id": {"type": ["string", "null"], "format": "uuid"},
+    "context": {"type": "string", "enum": ["table", "home", "public_site", "unknown"]},
+    "properties": {"type": "object", "additionalProperties": true, "maxProperties": 18},
+    "client_generated": {"type": "boolean", "default": true}
+  },
+  "description": "O backend resolve e valida tenant/canal, deduplica event_id e elimina campos não permitidos. O schema não autoriza enviar PII livre em properties."
+}

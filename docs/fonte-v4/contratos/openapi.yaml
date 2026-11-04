@@ -1,0 +1,589 @@
+openapi: 3.1.0
+info:
+  title: SEMRESERVAS - Contrato inicial de API MVP (RASCUNHO)
+  version: 0.1.0
+  description: >-
+    Proposta para revisão no Claude Code. Não representa API já implementada.
+    Todas as operações de escrita exigem validação server-side, limite de taxa,
+    idempotência quando aplicável e isolamento multi-tenant.
+servers:
+  - url: https://api.exemplo.invalid
+    description: URL ilustrativa; definir ambiente real após aprovação.
+tags:
+  - {name: Public, description: Acesso anônimo publicado}
+  - {name: Identity, description: Login e sessões}
+  - {name: Member, description: Benefícios pessoais}
+  - {name: Staff, description: Atendimento operacional}
+  - {name: Owner, description: Gestão do estabelecimento}
+  - {name: Master, description: Administração SEMRESERVAS}
+  - {name: Jobs, description: Processos internos}
+paths:
+  /r/{publicToken}:
+    get:
+      tags: [Public]
+      summary: Resolver NFC/QR público para um estabelecimento ativo
+      parameters:
+        - {name: publicToken, in: path, required: true, schema: {type: string, minLength: 10, maxLength: 160}}
+      responses:
+        '302': {description: Redireciona à Home pública após validar o destino}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '410': {description: Ponto desativado}
+  /v1/public/tenants/{slug}/home:
+    get:
+      tags: [Public]
+      summary: Home publicada e módulos habilitados de uma unidade
+      parameters:
+        - {$ref: '#/components/parameters/Slug'}
+      responses:
+        '200':
+          description: Conteúdo somente publicado
+          content:
+            application/json: {schema: {$ref: '#/components/schemas/PublicHome'}}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v1/public/tenants/{slug}/products:
+    get:
+      tags: [Public]
+      summary: Feed de produtos publicados, com filtro por categoria
+      parameters:
+        - {$ref: '#/components/parameters/Slug'}
+        - {name: category, in: query, schema: {type: string}}
+        - {name: cursor, in: query, schema: {type: string}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 50, default: 20}}
+      responses:
+        '200':
+          description: Página do feed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Product'}}
+                  next_cursor: {type: [string, 'null']}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v1/public/events/batch:
+    post:
+      tags: [Public]
+      summary: Telemetria anônima em lote, schema versionado e validação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [schema_version, events]
+              properties:
+                schema_version: {type: string, const: '1.0'}
+                events: {type: array, minItems: 1, maxItems: 40, items: {$ref: '#/components/schemas/PublicEvent'}}
+      responses:
+        '202': {description: Eventos aceitos para processamento, não necessariamente persistidos}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '429': {$ref: '#/components/responses/RateLimited'}
+  /v1/public/order-intents:
+    post:
+      tags: [Public]
+      summary: Preparar seleção para mostrar ao garçom; não é pedido aceito
+      parameters:
+        - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/OrderIntentInput'}}
+      responses:
+        '201':
+          description: Resumo preparado sem confirmação de venda
+          content:
+            application/json: {schema: {$ref: '#/components/schemas/OrderIntentOutput'}}
+        '422': {$ref: '#/components/responses/BadRequest'}
+        '429': {$ref: '#/components/responses/RateLimited'}
+  /v1/public/service-requests:
+    post:
+      tags: [Public]
+      summary: Criar chamado público com zona opcional, sem número de mesa
+      parameters:
+        - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/ServiceRequestInput'}}
+      responses:
+        '201':
+          description: Solicitação persistida e disponível para a equipe
+          content:
+            application/json: {schema: {$ref: '#/components/schemas/ServiceRequestCreated'}}
+        '409': {description: Chamada ativa duplicada para mesma sessão/tipo/tenant}
+        '429': {$ref: '#/components/responses/RateLimited'}
+        '503': {description: Canal de atendimento desligado ou indisponível; informar fallback}
+  /v1/public/service-requests/{requestId}/status:
+    get:
+      tags: [Public]
+      summary: Consultar apenas status do próprio chamado por capability token
+      parameters:
+        - {$ref: '#/components/parameters/RequestId'}
+        - {name: X-Status-Token, in: header, required: true, schema: {type: string, minLength: 32}, description: Token secreto; código público curto nunca autoriza leitura}
+      responses:
+        '200':
+          description: Status público restrito
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status]
+                properties:
+                  id: {type: string, format: uuid}
+                  status: {$ref: '#/components/schemas/ServiceStatus'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v1/public/surveys:
+    post:
+      tags: [Public]
+      summary: Enviar pesquisa ou sugestão interna; sem pontos automaticamente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tenant_slug, rating]
+              properties:
+                tenant_slug: {type: string}
+                rating: {type: integer, minimum: 1, maximum: 5}
+                text: {type: string, maxLength: 1000}
+      responses:
+        '201': {description: Resposta interna recebida}
+        '429': {$ref: '#/components/responses/RateLimited'}
+  /v1/auth/start:
+    post:
+      tags: [Identity]
+      summary: Solicitar autenticação por canal escolhido para member/staff/gestor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [login_hint, purpose]
+              properties:
+                login_hint: {type: string}
+                purpose: {type: string, enum: [member, staff, owner, master]}
+      responses:
+        '202': {description: Caso elegível, instruções de autenticação foram enviadas}
+        '429': {$ref: '#/components/responses/RateLimited'}
+  /v1/auth/verify:
+    post:
+      tags: [Identity]
+      summary: Verificar desafio de login e iniciar sessão protegida
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [challenge_id, code]
+              properties:
+                challenge_id: {type: string}
+                code: {type: string, minLength: 4, maxLength: 12}
+      responses:
+        '200': {description: Sessão autenticada criada com cookie HTTP-only}
+        '401': {description: Código inválido ou vencido}
+  /v1/auth/logout:
+    post:
+      tags: [Identity]
+      security: [{SessionCookie: []}]
+      summary: Encerrar sessão
+      responses:
+        '204': {description: Sessão revogada}
+  /v1/member/wallet:
+    get:
+      tags: [Member]
+      security: [{SessionCookie: []}]
+      summary: Consultar carteira individual por estabelecimento autorizado
+      parameters:
+        - {name: tenant_id, in: query, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Saldo confirmado e histórico autorizado
+          content:
+            application/json: {schema: {$ref: '#/components/schemas/Wallet'}}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/member/rewards/{rewardId}/redeem:
+    post:
+      tags: [Member]
+      security: [{SessionCookie: []}]
+      parameters:
+        - {name: rewardId, in: path, required: true, schema: {type: string, format: uuid}}
+        - {$ref: '#/components/parameters/IdempotencyKey'}
+      summary: Solicitar resgate de recompensa garantida por regra
+      responses:
+        '201': {description: Resgate criado após validação transacional}
+        '409': {description: Saldo insuficiente, limite ou conflito concorrente}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/staff/tenants/{tenantId}/service-requests:
+    get:
+      tags: [Staff]
+      security: [{SessionCookie: []}]
+      summary: Fila autorizada por unidade; fonte de verdade após SSE
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/ServiceStatus'}}
+      responses:
+        '200':
+          description: Lista por tenant/unidade
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/ServiceRequestStaff'}}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/staff/tenants/{tenantId}/service-events/stream:
+    get:
+      tags: [Staff]
+      security: [{SessionCookie: []}]
+      summary: Canal SSE unidirecional autenticado, com replay e heartbeat
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+        - {name: Last-Event-ID, in: header, schema: {type: string}}
+      responses:
+        '200':
+          description: text/event-stream com service.requested/service.acknowledged/service.resolved
+          content:
+            text/event-stream: {schema: {type: string}}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/staff/tenants/{tenantId}/service-requests/{requestId}:
+    patch:
+      tags: [Staff]
+      security: [{SessionCookie: []}]
+      summary: Assumir/concluir com controle de concorrência/idempotência
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+        - {$ref: '#/components/parameters/RequestId'}
+        - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status, expected_version]
+              properties:
+                status: {type: string, enum: [ACKNOWLEDGED, RESOLVED, CANCELLED]}
+                expected_version: {type: integer, minimum: 0}
+      responses:
+        '200': {description: Estado atualizado com versão incrementada}
+        '409': {description: Versão/estado mudou, cliente deve recarregar}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/staff/tenants/{tenantId}/purchases/{purchaseId}/validate:
+    post:
+      tags: [Staff]
+      security: [{SessionCookie: []}]
+      summary: Validar compra comprovada e acionar crédito de pontos idempotente
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+        - {name: purchaseId, in: path, required: true, schema: {type: string, format: uuid}}
+        - {$ref: '#/components/parameters/IdempotencyKey'}
+      responses:
+        '201': {description: Verificação e ledger concluídos em transação}
+        '409': {description: Compra já validada ou regra não elegível}
+  /v1/owner/tenants/{tenantId}/metrics:
+    get:
+      tags: [Owner]
+      security: [{SessionCookie: []}]
+      summary: Indicadores agregados, nunca vendas presumidas
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+        - {name: from, in: query, required: true, schema: {type: string, format: date}}
+        - {name: to, in: query, required: true, schema: {type: string, format: date}}
+      responses:
+        '200':
+          description: Agregações com denominadores, fontes e limitações
+          content:
+            application/json: {schema: {$ref: '#/components/schemas/MetricsResponse'}}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/owner/tenants/{tenantId}/reports:
+    get:
+      tags: [Owner]
+      security: [{SessionCookie: []}]
+      summary: Apenas relatórios aprovados e autorizados
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+      responses:
+        '200': {description: Lista de relatórios aprovados}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/master/tenants:
+    get:
+      tags: [Master]
+      security: [{SessionCookie: []}]
+      summary: Listagem de estabelecimentos conforme permissão global
+      responses:
+        '200': {description: Tenants autorizados}
+    post:
+      tags: [Master]
+      security: [{SessionCookie: []}]
+      summary: Criar tenant inicialmente em estado DRAFT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, slug]
+              properties:
+                name: {type: string, minLength: 2, maxLength: 140}
+                slug: {type: string, pattern: '^[a-z0-9-]+$'}
+      responses:
+        '201': {description: Tenant criado em rascunho}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/master/tenants/{tenantId}/branding:
+    patch:
+      tags: [Master]
+      security: [{SessionCookie: []}]
+      summary: Atualizar rascunho da Home e tokens visuais
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/BrandingInput'}}
+      responses:
+        '200': {description: Novo draft versionado}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/master/tenants/{tenantId}/branding/publish:
+    post:
+      tags: [Master]
+      security: [{SessionCookie: []}]
+      summary: Publicar versão após validação de contraste, links e schema
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+      responses:
+        '200': {description: Publicação concluída, cache invalidado}
+        '409': {description: Draft inválido ou conflito de versão}
+  /v1/master/tenants/{tenantId}/features:
+    patch:
+      tags: [Master]
+      security: [{SessionCookie: []}]
+      summary: Habilitar/desabilitar feature flags com auditoria
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [feature_key, enabled]
+              properties:
+                feature_key: {type: string}
+                enabled: {type: boolean}
+                reason: {type: string, maxLength: 240}
+      responses:
+        '200': {description: Flag atualizada no servidor}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/master/tenants/{tenantId}/access-points:
+    post:
+      tags: [Master]
+      security: [{SessionCookie: []}]
+      summary: Registrar TAG/QR de URL curta, sem gravar hardware remotamente
+      parameters:
+        - {$ref: '#/components/parameters/TenantId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kind: {type: string, enum: [NFC, QR, MAGNET]}
+                hardware_type: {type: string, enum: [NTAG213, NTAG215, OTHER]}
+                write_locked_verified: {type: boolean, default: false}
+      responses:
+        '201': {description: Identificador e URL emitidos para provisionamento físico}
+  /v1/master/reports/{reportId}/approve:
+    post:
+      tags: [Master]
+      security: [{SessionCookie: []}]
+      summary: Aprovar relatório validado para publicação ao proprietário
+      parameters:
+        - {name: reportId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200': {description: Relatório aprovado com auditoria}
+        '409': {description: Relatório não está em estado revisável}
+  /v1/jobs/reports/monthly:
+    post:
+      tags: [Jobs]
+      security: [{ServiceToken: []}]
+      summary: Disparar processamento idempotente de um mês por tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tenant_id, period_start, period_end]
+              properties:
+                tenant_id: {type: string, format: uuid}
+                period_start: {type: string, format: date}
+                period_end: {type: string, format: date}
+      responses:
+        '202': {description: Job enfileirado ou reutilizado por chave idempotente}
+        '401': {description: Service token inválido}
+components:
+  securitySchemes:
+    SessionCookie: {type: apiKey, in: cookie, name: sr_session}
+    ServiceToken: {type: http, scheme: bearer}
+  parameters:
+    Slug: {name: slug, in: path, required: true, schema: {type: string, pattern: '^[a-z0-9-]+$'}}
+    TenantId: {name: tenantId, in: path, required: true, schema: {type: string, format: uuid}}
+    RequestId: {name: requestId, in: path, required: true, schema: {type: string, format: uuid}}
+    IdempotencyKey: {name: Idempotency-Key, in: header, required: true, schema: {type: string, minLength: 12, maxLength: 120}}
+  responses:
+    BadRequest:
+      description: Validação falhou
+      content:
+        application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}
+    Forbidden:
+      description: Operação não permitida
+      content:
+        application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}
+    NotFound:
+      description: Registro público não encontrado
+      content:
+        application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}
+    RateLimited:
+      description: Limite de requisições atingido
+      content:
+        application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            request_id: {type: string}
+    PublicHome:
+      type: object
+      required: [name, slug, theme, features, sections]
+      properties:
+        name: {type: string}
+        slug: {type: string}
+        theme: {$ref: '#/components/schemas/Theme'}
+        features: {type: object, additionalProperties: {type: boolean}}
+        sections: {type: array, items: {type: object}}
+        published_version: {type: integer}
+    Theme:
+      type: object
+      required: [primary, accent]
+      properties:
+        primary: {type: string, pattern: '^#[0-9A-Fa-f]{6}$'}
+        accent: {type: string, pattern: '^#[0-9A-Fa-f]{6}$'}
+        logo_url: {type: [string, 'null'], format: uri}
+        hero_url: {type: [string, 'null'], format: uri}
+    Product:
+      type: object
+      required: [id, name, category_id, price, published]
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        category_id: {type: string, format: uuid}
+        price: {type: number, minimum: 0}
+        published: {type: boolean}
+        description: {type: string}
+        media: {type: array, items: {type: object}}
+    PublicEvent:
+      type: object
+      required: [event_id, event_name, occurred_at, session_id]
+      properties:
+        event_id: {type: string, format: uuid}
+        event_name: {type: string}
+        occurred_at: {type: string, format: date-time}
+        session_id: {type: string, minLength: 16}
+        source: {type: string}
+        product_id: {type: [string, 'null'], format: uuid}
+        properties: {type: object, additionalProperties: true}
+    OrderIntentInput:
+      type: object
+      required: [tenant_slug, items]
+      properties:
+        tenant_slug: {type: string}
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [product_id, quantity]
+            properties:
+              product_id: {type: string, format: uuid}
+              quantity: {type: integer, minimum: 1, maximum: 99}
+              notes: {type: string, maxLength: 250}
+    OrderIntentOutput:
+      type: object
+      required: [id, presentation_code, status, items]
+      properties:
+        id: {type: string, format: uuid}
+        presentation_code: {type: string}
+        status: {type: string, const: PREPARED_NOT_ACCEPTED}
+        items: {type: array, items: {type: object}}
+        expires_at: {type: string, format: date-time}
+    ServiceRequestInput:
+      type: object
+      required: [tenant_slug, type]
+      properties:
+        tenant_slug: {type: string}
+        type: {type: string, enum: [WAITER, BILL, HELP]}
+        service_zone_id: {type: [string, 'null'], format: uuid}
+        locator_note: {type: string, maxLength: 100}
+    ServiceRequestCreated:
+      type: object
+      required: [id, public_code, status, status_token, created_at]
+      properties:
+        id: {type: string, format: uuid}
+        public_code: {type: string, minLength: 4, maxLength: 10}
+        status: {$ref: '#/components/schemas/ServiceStatus'}
+        status_token: {type: string, minLength: 32}
+        created_at: {type: string, format: date-time}
+    ServiceStatus:
+      type: string
+      enum: [PENDING, ACKNOWLEDGED, RESOLVED, CANCELLED, EXPIRED]
+    ServiceRequestStaff:
+      type: object
+      required: [id, public_code, status, type, created_at, version]
+      properties:
+        id: {type: string, format: uuid}
+        public_code: {type: string}
+        status: {$ref: '#/components/schemas/ServiceStatus'}
+        type: {type: string, enum: [WAITER, BILL, HELP]}
+        zone_label: {type: [string, 'null']}
+        locator_note: {type: [string, 'null']}
+        created_at: {type: string, format: date-time}
+        acknowledged_at: {type: [string, 'null'], format: date-time}
+        resolved_at: {type: [string, 'null'], format: date-time}
+        version: {type: integer, minimum: 0}
+    Wallet:
+      type: object
+      required: [tenant_id, available_points, ledger_version]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        available_points: {type: integer, minimum: 0}
+        ledger_version: {type: integer}
+    MetricsResponse:
+      type: object
+      required: [period, metrics, warnings]
+      properties:
+        period:
+          type: object
+          properties:
+            from: {type: string, format: date}
+            to: {type: string, format: date}
+        metrics: {type: object, additionalProperties: true}
+        warnings: {type: array, items: {type: string}}
+    BrandingInput:
+      type: object
+      properties:
+        heading: {type: string, maxLength: 100}
+        subtitle: {type: string, maxLength: 220}
+        theme: {$ref: '#/components/schemas/Theme'}
+        sections: {type: array, items: {type: object}}

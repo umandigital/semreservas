@@ -1,0 +1,22 @@
+JS sintaxe OK: shared.js
+JS sintaxe OK: consumer.js
+JS sintaxe OK: master.js
+JS sintaxe OK: owner.js
+Arquivo presente: index.html
+Arquivo presente: cliente.html
+Arquivo presente: master.html
+Arquivo presente: proprietario.html
+Arquivo presente: styles.css
+Mídia presente: logo-oficial-horizontal.png (74,987 bytes)
+Mídia presente: burger.webp (58,398 bytes)
+Mídia presente: pizza.webp (51,942 bytes)
+Mídia presente: gelato.webp (48,054 bytes)
+Mídia presente: fries.webp (48,652 bytes)
+Mídia presente: dessert.webp (56,746 bytes)
+Mídia presente: drink.webp (36,052 bytes)
+Mídia presente: burger-demo.mp4 (519,368 bytes)
+OpenAPI YAML OK (26 caminhos)
+JSON event schema OK (39 eventos)
+SQL schema presente (38 tabelas conceituais)
+
+RESULTADO: APROVADO ESTATICAMENTE

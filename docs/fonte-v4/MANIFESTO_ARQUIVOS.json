@@ -1,0 +1,222 @@
+[
+  {
+    "path": "00_LEIA_PRIMEIRO.md",
+    "size": 5309,
+    "sha256": "a8914bc3d04eaed8cfb304d5647cb62ef9a46035e2511497392a1c6772650bd6"
+  },
+  {
+    "path": "DOCUMENTO_TECNICO_INTEGRAL_PARA_CLAUDE_CODE.md",
+    "size": 99791,
+    "sha256": "87975b8b710eb3fa02f4e035a5b9ef0841a182b2d79bfe729d5c9c3429ea4838"
+  },
+  {
+    "path": "INICIAR_PROTOTIPO_WINDOWS.bat",
+    "size": 109,
+    "sha256": "5d243f82903b01026c4935537530ddb27212fd0d019e659d95f0cef0456851f8"
+  },
+  {
+    "path": "INSTRUCOES_PARA_CLAUDE_CODE.md",
+    "size": 2407,
+    "sha256": "33baca273cdcbe7d95d4e7b2e9ff7c092dea01890cd9c72673198cb8dacc3e1b"
+  },
+  {
+    "path": "SEMRESERVAS_DOCUMENTO_MESTRE_CONSOLIDADO_v4_0.docx",
+    "size": 158507,
+    "sha256": "1878a87cb1ce796323ed137d90bbc225380d2ea41889650aaab97b4d7982be88"
+  },
+  {
+    "path": "SEMRESERVAS_DOCUMENTO_MESTRE_CONSOLIDADO_v4_0.md",
+    "size": 103800,
+    "sha256": "6eccf3dd6bf360e4f3aa3707195377d03ee1e1670c04db2c5e47a959fa14b182"
+  },
+  {
+    "path": "SEMRESERVAS_Handoff_Executivo_v2_0.docx",
+    "size": 119647,
+    "sha256": "b7335f3c6b99825a0b125446bd3d75e819cd5e7993ec91cb6aeee9131d6241c8"
+  },
+  {
+    "path": "arquitetura/diagrams.md",
+    "size": 2678,
+    "sha256": "a3bbc3ae562a581bb277b3b8275d833e78b5ec31f5efc00c72c9431c2a3108d4"
+  },
+  {
+    "path": "arquitetura/schema.sql",
+    "size": 16462,
+    "sha256": "2908aa97d70d64739f67516a74c017b361f646f666755c8d00e637882c79666c"
+  },
+  {
+    "path": "contratos/events.schema.json",
+    "size": 2479,
+    "sha256": "08e4b9ffe0c69f12c6cd8496ecab5ff81ca4457f6cd95dded0a7cf77e7bca326"
+  },
+  {
+    "path": "contratos/openapi.yaml",
+    "size": 23488,
+    "sha256": "9b887da37f3b4eef47921541feabe103e8acaaa662d7a28ea4ad1aaaf8a4c2df"
+  },
+  {
+    "path": "documentacao/00_IDENTIDADE_OFICIAL_APROVADA.md",
+    "size": 1782,
+    "sha256": "2430621070fcfcf49c4944c5915bce0d969aa4a0569ee431f988217b3ffd8943"
+  },
+  {
+    "path": "documentacao/01_ESCOPO_PRODUTO_E_DECISOES.md",
+    "size": 13825,
+    "sha256": "7aefc58b25361e38de6ed4693f9943c47bcc914f1dd4757a498b0625fa840e44"
+  },
+  {
+    "path": "documentacao/02_REQUISITOS_TECNICOS_E_REGRAS.md",
+    "size": 16867,
+    "sha256": "99e791194f0e4b1034dcfbbfe495a1cb78dc5840437636861808293385cb802d"
+  },
+  {
+    "path": "documentacao/03_ARQUITETURA_COMUNICACAO_INTEGRACOES.md",
+    "size": 14641,
+    "sha256": "f7f8193a27d3854c7cb309561a69f723fc96b144d5d680f4484d6d0506948acb"
+  },
+  {
+    "path": "documentacao/04_PERMISSOES_PRIVACIDADE_SEGURANCA.md",
+    "size": 10484,
+    "sha256": "e9c3096c92b28a7d77c5ffb6040e5f1a1376befbdc249753990e6c553f21cea0"
+  },
+  {
+    "path": "documentacao/05_JORNADAS_E_UX.md",
+    "size": 9815,
+    "sha256": "4392f3e5b2380e61518b4b9bd1f1eb07e5dba664a64506c92ff9a961408aa6d0"
+  },
+  {
+    "path": "documentacao/06_METRICAS_RELATORIOS_SKILLS_IA.md",
+    "size": 10986,
+    "sha256": "fd9b7d94c24c7984a9b2c3f39a4ece95a4030fd904b3cecbc5418e2844e1caac"
+  },
+  {
+    "path": "documentacao/07_BACKLOG_CRITERIOS_ACEITE.md",
+    "size": 7774,
+    "sha256": "20947eca8458bf966f541575e475d3c5e65523027ff04c3bfff520ed9c42c586"
+  },
+  {
+    "path": "documentacao/08_HANDoFF_CLAUDE_CODE.md",
+    "size": 7371,
+    "sha256": "b787ff181ebb754c8d60fa780723ca8a6a53a1acd0925fd29c0540d469d8bc83"
+  },
+  {
+    "path": "documentacao/09_CUSTOS_OPERACAO_E_DECISOES_PENDENTES.md",
+    "size": 7367,
+    "sha256": "03f061074f3573d49b3a45f517e16e1bb01d9dc98efd1717372d54cfb992ad2e"
+  },
+  {
+    "path": "prototipos/assets/burger-demo.mp4",
+    "size": 519368,
+    "sha256": "301ad76d9f491f3ecf4cc3862a73e250afc9f75e1bf7ff2410c95e3fbd8a808d"
+  },
+  {
+    "path": "prototipos/assets/burger-thumb.webp",
+    "size": 10054,
+    "sha256": "0a10b1daa6a67c1561c39d0e5bddb5b63062339ddb7507344ea46ac9afc5f317"
+  },
+  {
+    "path": "prototipos/assets/burger.webp",
+    "size": 58398,
+    "sha256": "40c9e7335c02d5ddca6777d84e25b73105be03afd45e0a1dc3a1b3d6e014fb61"
+  },
+  {
+    "path": "prototipos/assets/dessert.webp",
+    "size": 56746,
+    "sha256": "c7c9a2d437dd047783622221fb709a85d326ac390e4b382c795b87ff608fa0e2"
+  },
+  {
+    "path": "prototipos/assets/drink.webp",
+    "size": 36052,
+    "sha256": "055fccca668a980ee88a22601d233f066bfe997c9c264a2e223c6cccc1547e5d"
+  },
+  {
+    "path": "prototipos/assets/fries.webp",
+    "size": 48652,
+    "sha256": "98c386f0994ada7be0e4135037d9b43538d3c26c99ba27ba8fc690da2a923b78"
+  },
+  {
+    "path": "prototipos/assets/gelato.webp",
+    "size": 48054,
+    "sha256": "3393458dd66676f433ad97ae93fafba4f953b8a312d395c6d3ba9706fb44df90"
+  },
+  {
+    "path": "prototipos/assets/logo-oficial-horizontal.png",
+    "size": 74987,
+    "sha256": "cd0a8d8eb4003e86505eb3ea08fb87b006f3642c0c44e3764c8b99047b7f9b95"
+  },
+  {
+    "path": "prototipos/assets/pizza.webp",
+    "size": 51942,
+    "sha256": "7afbaec8d628380f5d7a9a3cf284705140edc99dc6c98b415ebf73070b296d23"
+  },
+  {
+    "path": "prototipos/cliente.html",
+    "size": 3189,
+    "sha256": "d2052a58ea3157f88741d1f05577e2a5719a32a22bcf678f6a2acdfd2ac0a757"
+  },
+  {
+    "path": "prototipos/consumer.js",
+    "size": 21613,
+    "sha256": "80f492a340b949582dff4194e5d930c48d1ac48ccfcb50f79382e832a578565f"
+  },
+  {
+    "path": "prototipos/index.html",
+    "size": 2044,
+    "sha256": "fc8cffdf5c71dc1a00d09ba99b0468c4194742315066e15b73c499f94a07d5cd"
+  },
+  {
+    "path": "prototipos/master.html",
+    "size": 2750,
+    "sha256": "4a8eded0fdd7092595fdb2e83ba377fcf1bfbc0611e910125c89239e2bc20b56"
+  },
+  {
+    "path": "prototipos/master.js",
+    "size": 12490,
+    "sha256": "7a1485ee9dbc454d7af57ecc08499c87a0325798d3b84aac6d05f10075ce926a"
+  },
+  {
+    "path": "prototipos/owner.js",
+    "size": 12114,
+    "sha256": "a0691bae6d595fb35957618559cad93be3af8e8dc8a04478cba02d1d398ef7dc"
+  },
+  {
+    "path": "prototipos/proprietario.html",
+    "size": 2741,
+    "sha256": "1127f43ccac997ce4defaac5337241e4480c31bb34064d0f6483a3c17344fb0a"
+  },
+  {
+    "path": "prototipos/shared.js",
+    "size": 7787,
+    "sha256": "91b1259ce06fba32a2c7fc72160411fd5f381c75b2f6454f4228fa6d8055462a"
+  },
+  {
+    "path": "prototipos/styles.css",
+    "size": 18522,
+    "sha256": "7ceb54a4ab15823f370b57973dbf4684337d36e5f94c7be8d84accd5772639ad"
+  },
+  {
+    "path": "qa/TESTES_E_ACEITE.md",
+    "size": 5850,
+    "sha256": "e72819576835d2390518febebbb64cc782c2c4ee9d562757aaf52d33afbe90af"
+  },
+  {
+    "path": "qa/VALIDACAO_ESTATICA.txt",
+    "size": 771,
+    "sha256": "a1aa74fa98e71e510279556f06c60cc48a8fcd34a547e4db0cee7a733bb77e72"
+  },
+  {
+    "path": "qa/gerar_word.py",
+    "size": 15295,
+    "sha256": "c9f5c7e7f464ee5c7c419d3e3574a6e43f732e537cb94afad907b0e056e39c48"
+  },
+  {
+    "path": "qa/validar_pacote.py",
+    "size": 2710,
+    "sha256": "f4a5ebfa4a549281310caa44a7dac08ef6eba4ea1a9265b86e204a01115e36d8"
+  },
+  {
+    "path": "referencias_historicas/Documento_Mestre_v2_0_ORIGINAL_HISTORICO.docx",
+    "size": 79830,
+    "sha256": "bc953c78256ab82dfd4486dfbedc3d8c94dcde69882bf219c31f4d13af78328c"
+  }
+]
