@@ -12,7 +12,7 @@ SaaS com três interfaces conectadas:
 | API e banco | todas as anteriores | `apps/api/` |
 
 ## Estado
-Fase 0 (preparação). Nenhum código de produto ainda: a stack aguarda a decisão do ADR-0001.
+Fase 0 (preparação). Repositório criado e estrutura pronta. Nenhum código de produto ainda: faltam as decisões 1, 3 e 4 de `docs/02-PERGUNTAS-EM-ABERTO.md` (stack, domínio da tag, identificação da mesa).
 
 ## Fases
 1. **Interno**: SemReservas GastroPub
