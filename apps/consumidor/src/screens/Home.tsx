@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from 'react'
 import { CONFIG } from '../data/cardapio'
-import { avisar, criarChamado, sair, useMembro } from '../lib/mockStore'
-import { getMesa } from '../lib/router'
+import { avisar, sair, useMembro } from '../lib/mockStore'
+import { ApiError, MENSAGEM_ERRO } from '../lib/api'
+import { pedirAtendimento } from '../lib/atendimento'
+import { getMesa, getToken } from '../lib/router'
 import { IconCamera, IconCardapio, IconCompartilhar, IconConta, IconEstrela, IconInfo, IconInsta, IconPesquisa, IconPrancheta, IconPresente, IconSino, IconWifi } from '../ui/Icons'
 
 const Atalho = ({ icone, t, onClick, forte }: { icone: ReactNode; t: string; onClick: () => void; forte?: boolean }) =>
@@ -11,9 +13,9 @@ const Atalho = ({ icone, t, onClick, forte }: { icone: ReactNode; t: string; onC
 export function Acoes({ ir }: { ir: (r: string) => void }) {
   const [wifi, setWifi] = useState(false); const [copiado, setCopiado] = useState(false)
   const copiar = async () => { try { await navigator.clipboard.writeText(CONFIG.wifi.senha); setCopiado(true); avisar('Senha copiada. Abra os Ajustes de Wi-Fi do aparelho.') } catch { avisar('Copie a senha manualmente.') } }
-  const conta = () => {
-    const mesa = getMesa(); if (!mesa) return ir('/chamar')
-    const c = criarChamado(mesa, 'Conta'); ir('/chamado/' + c.id)
+  const conta = async () => {
+    if (!getMesa() || !getToken()) return ir('/chamar')
+    try { ir('/chamado/' + await pedirAtendimento('bill')) } catch (e) { avisar(MENSAGEM_ERRO[e instanceof ApiError ? e.code : 'rede']) }
   }
   const externo = (o: string) => avisar(`Simulação: abriria o ${o} do estabelecimento. O link real ainda não foi configurado. Clicar não comprova curtida nem avaliação.`)
   const compartilhar = async () => {

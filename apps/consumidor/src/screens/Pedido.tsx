@@ -1,8 +1,9 @@
+import { useEsgotados } from '../lib/hooks'
 import { brl, ITENS } from '../data/cardapio'
-import { limparSelecao, setObs, setQtd, useSelecao, useShared } from '../lib/mockStore'
+import { limparSelecao, setObs, setQtd, useSelecao } from '../lib/mockStore'
 
 export function Pedido({ ir }: { ir: (r: string) => void }) {
-  const sel = useSelecao(); const { soldOut } = useShared()
+  const sel = useSelecao(); const soldOut = useEsgotados()
   const linhas = ITENS.filter(i => sel.qtd[i.id])
   const subtotal = linhas.reduce((s, i) => s + i.preco * sel.qtd[i.id], 0)
   if (!linhas.length) return <section className="tela-int"><h1>Minha seleção</h1><p className="vazio">Você ainda não escolheu nada.</p><button className="primario grande" onClick={() => ir('/cardapio')}>Ver cardápio</button></section>

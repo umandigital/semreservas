@@ -97,3 +97,8 @@ button:disabled { opacity:.45; cursor:not-allowed; }
 .notas { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:12px 0 4px; } .tela-foto { width:100%; border-radius:12px; margin:12px 0; background:#120722; }
 .icone { background:var(--bg2); border:1px solid var(--bg3); width:44px; height:44px; padding:0; display:grid; place-items:center; color:var(--txt); border-radius:var(--r); }
 .banner-login p { margin:0; } .acao.forte { grid-column:auto; }
+
+.splash { min-height:100dvh; display:grid; place-content:center; gap:12px; text-align:center; padding:24px; max-width:420px; margin:0 auto; } .splash p { margin:0; color:var(--mut); }
+.estado { padding:4px 12px; border-radius:99px; font-weight:700; font-size:.85rem; } .estado.ok { background:var(--ok); color:#06210f; } .estado.off { background:var(--verm); color:#fff; }
+.oque { font-size:1.25rem; }
+.equipe { max-width:520px; margin:0 auto; }

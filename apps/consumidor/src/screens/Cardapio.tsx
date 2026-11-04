@@ -1,13 +1,14 @@
+import { useEsgotados } from '../lib/hooks'
 import { useMemo, useRef, useState } from 'react'
 import { brl, CATEGORIAS, ITENS, type Item } from '../data/cardapio'
-import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useShared, useSocial } from '../lib/mockStore'
+import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
 import { baseCurtidas } from '../lib/util'
 import { IconBalao, IconBusca, IconCardapio, IconCoracao, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
 
 const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
 
 export function Cardapio({ ir }: { ir: (r: string) => void }) {
-  const { soldOut } = useShared(); const sel = useSelecao()
+  const soldOut = useEsgotados(); const sel = useSelecao()
   const [cat, setCat] = useState<string>('Todos'); const [q, setQ] = useState(''); const [lista, setLista] = useState(false)
   const base = import.meta.env.BASE_URL
   const itens = useMemo(() => ITENS.filter(i => (cat === 'Todos' || i.cat === cat) && (!q || norm(i.nome + ' ' + i.desc + ' ' + i.ingredientes.join(' ')).includes(norm(q)))), [cat, q])

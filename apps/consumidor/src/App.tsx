@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useRota, setMesa } from './lib/router'
+import { useRota, setMesa, setToken, setSlug } from './lib/router'
 import { parseRoute } from './lib/route'
 import { carregarTenant, resolverPlaca } from './lib/supabase'
 import { useMembro, useSelecao, useToast } from './lib/mockStore'
@@ -24,7 +24,7 @@ const NOME_PADRAO = 'SemReservas GastroPub'
 
 export function App() {
   const [hash, ir] = useRota(); const [rota, query = ''] = hash.split('?'); const membro = useMembro(); const [boot, setBoot] = useState<Boot>({ fase: 'carregando' }); const sel = useSelecao()
-  const equipe = rota.startsWith('/equipe')
+  const equipe = rota === '/equipe' || rota.startsWith('/equipe/')
 
   useEffect(() => {
     const r = parseRoute(location.pathname, import.meta.env.BASE_URL)
@@ -33,7 +33,7 @@ export function App() {
         if (r.kind === 'placa') {
           const p = await resolverPlaca(r.token)
           if (!p) return setBoot({ fase: 'placa-invalida' })
-          setMesa(p.table_label); history.replaceState(null, '', import.meta.env.BASE_URL + '#/')
+          setMesa(p.table_label); setToken(r.token); setSlug(p.tenant_slug); history.replaceState(null, '', import.meta.env.BASE_URL + '#/')
           return setBoot({ fase: 'ok', nome: p.tenant_name })
         }
         const t = await carregarTenant((import.meta.env.VITE_DEFAULT_TENANT as string) || 'gastropub')
@@ -42,7 +42,7 @@ export function App() {
     })()
   }, [])
 
-  if (equipe) return <Casca><Equipe /></Casca>
+  if (equipe) return <Equipe tokenUrl={rota.slice(8) || undefined} />
   if (boot.fase === 'carregando') return <main className="centro"><p>Carregando…</p></main>
   if (boot.fase === 'placa-invalida') return <main className="centro"><h1>Placa indisponível</h1><p>Esta placa foi desativada. Chame um atendente.</p></main>
   const total = Object.values(sel.qtd).reduce((a, b) => a + b, 0)
