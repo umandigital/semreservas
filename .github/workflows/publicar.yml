@@ -52,7 +52,9 @@ jobs:
           npm test
           npm run build
       - name: Nenhuma chave secreta no pacote publicado
-        run: "! grep -rEl 'service_role|sb_secret_' apps/consumidor/dist"
+        run: |
+          node --test tools/verificar-pacote.test.mjs
+          node tools/verificar-pacote.mjs apps/consumidor/dist
       - uses: actions/upload-artifact@v4
         with: { name: site, path: apps/consumidor/dist, include-hidden-files: true }
 
