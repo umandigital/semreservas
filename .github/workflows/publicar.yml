@@ -66,12 +66,25 @@ jobs:
       - uses: actions/download-artifact@v4
         with: { name: site, path: site }
       - name: Preparar a chave
+        env:
+          CHAVE: ${{ secrets.SSH_CHAVE_PRIVADA }}
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "${{ secrets.SSH_CHAVE_PRIVADA }}" | tr -d '\r' > ~/.ssh/id_ed25519
+          # Tolerante a colagem pelo Windows: tira BOM, CR e espaços nas pontas das linhas,
+          # descarta linhas vazias e garante a quebra final.
+          printf '%s\n' "$CHAVE" | sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' \
+            | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null \
-            || { echo "::error::SSH_CHAVE_PRIVADA não é uma chave privada válida (cole inteira, com BEGIN e END)."; exit 1; }
+          if ! ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null 2>&1; then
+            # Diagnóstico SEM o conteúdo da chave: só a estrutura.
+            echo "linhas: $(wc -l < ~/.ssh/id_ed25519)  bytes: $(wc -c < ~/.ssh/id_ed25519)"
+            echo "primeira linha: $(head -1 ~/.ssh/id_ed25519 | cut -c1-40)"
+            echo "última linha:   $(tail -1 ~/.ssh/id_ed25519 | cut -c1-40)"
+            echo "tamanhos das linhas: $(awk '{printf "%d ", length($0)}' ~/.ssh/id_ed25519)"
+            echo "caracteres não-ASCII: $(LC_ALL=C grep -c -P '[^\x00-\x7F]' ~/.ssh/id_ed25519 || true)"
+            echo "::error::SSH_CHAVE_PRIVADA não é uma chave privada válida. Veja a estrutura acima."
+            exit 1
+          fi
           ssh-keyscan -p "$PORTA" "$SERVIDOR" >> ~/.ssh/known_hosts 2>/dev/null
           test -s ~/.ssh/known_hosts || { echo "::error::servidor não respondeu ao ssh-keyscan."; exit 1; }
       - name: Testar o acesso e o destino
