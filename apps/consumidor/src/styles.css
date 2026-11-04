@@ -119,3 +119,7 @@ main.cheio { padding-bottom:0; }
 /* telas baixas (iPhone SE e parecidos): botões laterais descem ao lado do texto, sem sobrepor nada */
 .reel .lateral { bottom:80px; } .dica-deslize { top:178px; }
 @media (max-height:640px) { .contador, .dica-deslize { display:none; } .reel .sombra h2 { font-size:1.35rem; } .reel .sombra { padding-top:60px; } .reel .lateral button { width:44px; min-height:44px; } .reel .lateral { gap:6px; } }
+
+.boas-vindas { min-height:100dvh; display:grid; place-content:center; gap:14px; text-align:center; padding:24px; max-width:420px; margin:0 auto; background:radial-gradient(circle at 50% 20%, #4a2578, var(--bg) 70%); }
+.boas-vindas h1 { margin:0; font-size:1.9rem; } .boas-vindas p { margin:0; }
+.rodape { padding-bottom:env(safe-area-inset-bottom); } .topo { padding-top:calc(12px + env(safe-area-inset-top)); }

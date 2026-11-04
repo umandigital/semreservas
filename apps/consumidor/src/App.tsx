@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useRota, setMesa, setToken, setSlug } from './lib/router'
+import { useRota, setMesa, setToken, setSlug, getMesa } from './lib/router'
 import { parseRoute } from './lib/route'
 import { carregarTenant, resolverPlaca } from './lib/supabase'
 import { useMembro, useSelecao, useToast } from './lib/mockStore'
@@ -17,13 +17,14 @@ import { Fotos } from './screens/Fotos'
 import { Pesquisa } from './screens/Pesquisa'
 import { Servicos } from './screens/Servicos'
 import { Contato } from './screens/Contato'
+import { BoasVindas } from './screens/BoasVindas'
 import { IconCardapio, IconHome, IconPrancheta, IconPresente, IconSino, IconUsuario, IconWifi } from './ui/Icons'
 
 type Boot = { fase: 'carregando' } | { fase: 'ok'; nome: string } | { fase: 'placa-invalida' } | { fase: 'erro'; msg: string }
 const NOME_PADRAO = 'SemReservas GastroPub'
 
 export function App() {
-  const [hash, ir] = useRota(); const [rota, query = ''] = hash.split('?'); const membro = useMembro(); const [boot, setBoot] = useState<Boot>({ fase: 'carregando' }); const sel = useSelecao()
+  const [hash, ir] = useRota(); const [entrou, setEntrou] = useState(() => { try { return sessionStorage.getItem('sr-entrou') === '1' } catch { return false } }); const [rota, query = ''] = hash.split('?'); const membro = useMembro(); const [boot, setBoot] = useState<Boot>({ fase: 'carregando' }); const sel = useSelecao()
   const equipe = rota === '/equipe' || rota.startsWith('/equipe/')
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export function App() {
   if (equipe) return <Equipe tokenUrl={rota.slice(8) || undefined} />
   if (boot.fase === 'carregando') return <main className="centro"><p>Carregando…</p></main>
   if (boot.fase === 'placa-invalida') return <main className="centro"><h1>Placa indisponível</h1><p>Esta placa foi desativada. Chame um atendente.</p></main>
+  if (!entrou) return <BoasVindas nome={boot.fase === 'ok' ? boot.nome : NOME_PADRAO} mesa={getMesa()} entrar={() => { try { sessionStorage.setItem('sr-entrou', '1') } catch { /* ignora */ } setEntrou(true) }} />
   const total = Object.values(sel.qtd).reduce((a, b) => a + b, 0)
   const nome = boot.fase === 'ok' ? boot.nome : NOME_PADRAO
   const tela = (() => {
