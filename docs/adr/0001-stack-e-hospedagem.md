@@ -1,6 +1,6 @@
 # ADR-0001 — Stack e hospedagem
 
-**Status:** PROPOSTO — aguarda resposta da pergunta 1 em `../02-PERGUNTAS-EM-ABERTO.md`
+**Status:** ACEITO — opção B, aprovada pelo fundador em 04/11/2026
 
 ## Contexto
 - Teste interno e de campo rodam no servidor Hostinger do umandigital.com.br (hospedagem compartilhada: PHP + MySQL, SSH, sem processo permanente nem PostgreSQL).
@@ -34,3 +34,10 @@
 
 ## Consequências
 Escolhida a opção, este ADR passa a ACEITO e `apps/api/README.md` ganha as instruções reais de execução.
+
+## Decisão (04/11/2026)
+Opção **B**: telas estáticas no Hostinger + Supabase (PostgreSQL, Auth, Realtime, Storage).
+
+- **Endereço de teste:** `https://umandigital.com.br/semreservas/` é a raiz. O caminho base é **configuração** (`BASE_PATH`), nunca fixo no código, para trocar por `semreservas.com.br` sem mexer nas telas.
+- **Pendente de você:** criar o projeto Supabase (plano gratuito) e me passar a URL e a chave pública `anon`. A chave `service_role` nunca vai para o repositório.
+- **Deploy:** o repositório novo precisa do mesmo segredo SSH do site para publicar em `public_html/semreservas`. Nunca publicar fora dessa pasta.

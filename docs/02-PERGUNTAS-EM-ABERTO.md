@@ -4,10 +4,10 @@ Marcadas **[BLOQUEIA]** impedem o início do código. As demais podem ser respon
 
 ## Bloqueiam o início
 
-1. **[BLOQUEIA] Stack e onde ficam os dados.** Opções A/B/C em `adr/0001-stack-e-hospedagem.md`. Recomendação: B (telas estáticas no Hostinger + Supabase). Qual é o plano de hospedagem atual do umandigital.com.br (Premium/Business/Cloud)?
+1. ~~**Stack.**~~ **Resolvido:** opção B (ADR-0001). Pendente: criar o projeto Supabase.
 2. ~~**Onde mora o código.**~~ **Resolvido:** repositório próprio `umandigital/semreservas`, migrado com o histórico.
-3. **[BLOQUEIA] Endereço de teste.** Subdomínio (ex.: `teste.semreservas.com.br` ou `semreservas.umandigital.com.br`) é mais limpo que subpasta. O domínio `semreservas.com.br` já é seu? A URL gravada na tag é **permanente**: precisa ser um domínio que você manterá. Recomendo gravar na tag um **domínio curto e estável** que redireciona, nunca o endereço de teste.
-4. ~~**Como o sistema sabe a mesa.**~~ **Resolvido:** placa numerada por mesa (`adr/0003-placa-numerada-por-mesa.md`). Falta só informar **quantas mesas** tem o GastroPub, para calcular as tags.
+3. ~~**Endereço de teste.**~~ **Resolvido:** `umandigital.com.br/semreservas`; domínio `semreservas.com.br` só após a Pulpo (ADR-0004: não travar tags de teste).
+4. ~~**Como o sistema sabe a mesa.**~~ **Resolvido:** placa numerada por mesa (`adr/0003-placa-numerada-por-mesa.md`). GastroPub: **3 placas de teste** (mesas 1 a 3).
 
 ## Para responder na Fase 1
 

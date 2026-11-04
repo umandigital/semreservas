@@ -12,7 +12,7 @@ SaaS com três interfaces conectadas:
 | API e banco | todas as anteriores | `apps/api/` |
 
 ## Estado
-Fase 0 (preparação). Repositório criado e estrutura pronta. Nenhum código de produto ainda: faltam as decisões 1, 3 e 4 de `docs/02-PERGUNTAS-EM-ABERTO.md` (stack, domínio da tag, identificação da mesa).
+Fase 0 (preparação). Repositório criado e estrutura pronta. Nenhum código de produto ainda: decididos: stack (ADR-0001), placa numerada por mesa (ADR-0003), endereço de teste `umandigital.com.br/semreservas`. Próximo passo: projeto Supabase criado e marco 1.1 (fundação).
 
 ## Fases
 1. **Interno**: SemReservas GastroPub
