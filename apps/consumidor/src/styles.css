@@ -34,18 +34,13 @@ h1 { font-size:1.6rem; margin:0 0 8px; } h2 { margin:0; font-size:1.1rem; }
 .chips { display:flex; gap:8px; overflow-x:auto; padding:8px 16px; scrollbar-width:none; }
 .chip { background:var(--bg2); border:1px solid var(--bg3); white-space:nowrap; color:var(--txt); } .chip.on { background:var(--laranja); color:var(--bg); font-weight:700; border-color:var(--laranja); }
 .grade { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; } .grande-chip { min-height:64px; font-size:1.4rem; }
-.feed { display:grid; gap:16px; padding:8px 16px; }
-.cartao { position:relative; border-radius:var(--r); overflow:hidden; background:#000; min-height:420px; display:flex; flex-direction:column; justify-content:flex-end; }
-.cartao img,.cartao video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.sombra { position:relative; padding:60px 16px 14px; background:linear-gradient(to top,rgba(10,2,25,.95) 40%,rgba(10,2,25,0)); display:grid; gap:8px; }
-.sombra p { margin:0; color:#f0e8fa; } .linha { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.linha { display:flex; justify-content:space-between; align-items:center; gap:10px; }
 .preco { font-weight:800; color:var(--laranja); white-space:nowrap; font-size:1.1rem; }
 .ingr { margin:0; padding:0; list-style:none; display:flex; flex-wrap:wrap; gap:6px; } .ingr li { background:rgba(255,255,255,.14); padding:2px 10px; border-radius:99px; font-size:.85rem; } .ingr .tag { background:var(--ok); color:#06210f; font-weight:700; }
 .qtd { display:inline-flex; align-items:center; gap:4px; background:var(--bg2); border-radius:var(--r); } .qtd button { width:44px; height:44px; border:0; background:none; font-size:1.3rem; color:var(--txt); } .qtd b { min-width:24px; text-align:center; }
 .esgotado { background:#555; padding:10px 14px; border-radius:var(--r); font-weight:700; } .off img,.off video { filter:grayscale(1) brightness(.5); } .off .linha-item img { filter:grayscale(1); }
 .lista { padding:8px 16px; display:grid; gap:10px; } .linha-item { display:grid; grid-template-columns:72px 1fr auto; gap:10px; align-items:center; background:var(--bg2); border-radius:var(--r); padding:10px; }
 .linha-item img { width:72px; height:72px; object-fit:cover; border-radius:10px; } .linha-item p { margin:2px 0; color:var(--mut); font-size:.88rem; } .linha-item.off { opacity:.6 }
-.flutuante { position:fixed; bottom:76px; left:50%; transform:translateX(-50%); background:var(--laranja); color:var(--bg); font-weight:800; border:0; min-height:48px; border-radius:99px; padding:0 22px; box-shadow:0 4px 18px rgba(0,0,0,.5); z-index:5; }
 .vazio { text-align:center; color:var(--mut); padding:24px; }
 .tela-int { padding:16px; } .aviso { background:var(--bg2); border-left:4px solid var(--laranja); padding:10px 12px; border-radius:8px; }
 .alerta { background:#5a1a1a; border-left:4px solid var(--verm); padding:8px 12px; border-radius:8px; font-size:.92rem; }
@@ -64,7 +59,6 @@ h1 { font-size:1.6rem; margin:0 0 8px; } h2 { margin:0; font-size:1.1rem; }
 .mesa-xl { font-size:2.4rem; font-weight:900; line-height:1.1; } .esg h3 { margin:16px 0 4px; color:var(--mut); }
 .toggle { display:flex; align-items:center; gap:10px; min-height:48px; border-bottom:1px solid var(--bg3); } .toggle span { flex:1; } .toggle input { width:24px; height:24px; } .toggle i { width:52px; font-style:normal; font-weight:700; }
 .garcom .codigo { color:#111; }
-.flutuante { white-space:nowrap; }
 
 .topo { display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .topo-acoes { display:flex; gap:8px; align-items:center; }
@@ -76,17 +70,6 @@ h1 { font-size:1.6rem; margin:0 0 8px; } h2 { margin:0; font-size:1.1rem; }
 .acoes + .sub, .sub + .acoes { margin-top:0; }
 .rodape-sr { text-align:center; color:var(--mut); font-size:.8rem; padding:20px 16px 0; } .rodape-sr img,.logo-sr { display:block; width:120px; margin:0 auto 8px; background:#fff; padding:5px; border-radius:6px; }
 .toast { position:fixed; bottom:84px; left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:480px; background:#fff; color:#111; padding:12px 16px; border-radius:var(--r); box-shadow:0 6px 24px rgba(0,0,0,.5); z-index:20; font-weight:600; }
-.quadro { position:relative; aspect-ratio:4/5; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; background:#000; }
-.cartao { min-height:0; display:block; border:1px solid var(--bg3); background:var(--bg2); }
-.quadro img,.quadro video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.selo { position:absolute; top:10px; left:10px; background:rgba(20,5,40,.75); padding:3px 10px; border-radius:99px; font-size:.8rem; z-index:2; }
-.lateral { position:absolute; right:8px; top:38%; display:grid; gap:8px; z-index:2; }
-.lateral button { width:52px; min-height:52px; display:grid; place-items:center; align-content:center; gap:0; background:rgba(20,5,40,.7); border:1px solid rgba(255,255,255,.2); border-radius:12px; color:#fff; padding:4px 0; }
-.lateral small { font-size:.62rem; line-height:1.1; }
-.catag { align-self:flex-start; background:rgba(51,16,66,.85); padding:2px 10px; border-radius:99px; font-size:.8rem; }
-.sombra { padding:70px 64px 12px 16px; } .sombra h2 { font-size:1.5rem; }
-.rodacartao { padding:12px; } .primario.cheio { width:100%; min-height:52px; font-size:1.05rem; }
-.rodacartao .qtd { width:100%; justify-content:space-between; } .rodacartao .esgotado { display:block; text-align:center; }
 .cartao-i { background:var(--bg2); border-radius:var(--r); padding:14px; margin:12px 0; border:1px solid var(--bg3); display:grid; gap:8px; } .cartao-i h2,.cartao-i p { margin:0; }
 .saldo b { font-size:2.2rem; } .barra-p { height:8px; background:var(--bg); border-radius:99px; overflow:hidden; } .barra-p i { display:block; height:100%; background:var(--laranja); }
 .premios { list-style:none; padding:0; margin:0; display:grid; gap:8px; } .premios li { display:flex; justify-content:space-between; align-items:center; gap:8px; } .premios small { display:block; color:var(--mut); } .falta { color:var(--mut); font-size:.9rem; }
@@ -102,3 +85,37 @@ button:disabled { opacity:.45; cursor:not-allowed; }
 .estado { padding:4px 12px; border-radius:99px; font-weight:700; font-size:.85rem; } .estado.ok { background:var(--ok); color:#06210f; } .estado.off { background:var(--verm); color:#fff; }
 .oque { font-size:1.25rem; }
 .equipe { max-width:520px; margin:0 auto; }
+
+/* ── Cardápio estilo Reels: um prato por tela, deslize para o próximo ── */
+.reels-wrap { position:relative; overflow:hidden; background:#000; }
+.reels-topo { position:absolute; top:0; left:0; right:0; z-index:5; padding:8px 0 14px; background:linear-gradient(to bottom,rgba(10,2,25,.92) 55%,rgba(10,2,25,0)); }
+.reels-topo .barra { padding:0 12px 6px; } .reels-topo .chips { padding:4px 12px; }
+.reels-topo .busca,.reels-topo .icone,.reels-topo .chip { background:rgba(30,10,55,.85); backdrop-filter:blur(6px); }
+.reels-topo .chip.on { background:var(--laranja); }
+.pilula-sel { min-height:44px; padding:0 14px; border:0; border-radius:var(--r); background:var(--laranja); color:var(--bg); font-weight:800; white-space:nowrap; }
+.reels { position:absolute; inset:0; overflow-y:auto; scroll-snap-type:y mandatory; overscroll-behavior:contain; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.reels::-webkit-scrollbar { display:none; }
+.reel { position:relative; height:100%; scroll-snap-align:start; scroll-snap-stop:always; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; background:#000; }
+.reel img,.reel video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.reel.off img,.reel.off video { filter:grayscale(1) brightness(.45); }
+.reel .selo { position:absolute; left:12px; top:132px; z-index:2; background:rgba(20,5,40,.75); padding:3px 10px; border-radius:99px; font-size:.8rem; }
+.reel .lateral { position:absolute; right:8px; bottom:210px; display:grid; gap:10px; z-index:3; }
+.reel .lateral button { width:54px; min-height:54px; display:grid; place-items:center; align-content:center; background:rgba(20,5,40,.7); border:1px solid rgba(255,255,255,.2); border-radius:14px; color:#fff; padding:4px 0; }
+.reel .lateral small { font-size:.62rem; line-height:1.1; }
+.reel .sombra { position:relative; z-index:2; padding:90px 78px 10px 16px; background:linear-gradient(to top,rgba(10,2,25,.96) 55%,rgba(10,2,25,0)); display:grid; gap:6px; }
+.reel .sombra h2 { font-size:1.6rem; } .reel .sombra p { margin:0; color:#f0e8fa; }
+.reel .catag { align-self:flex-start; background:rgba(51,16,66,.85); padding:2px 10px; border-radius:99px; font-size:.8rem; }
+.reel .acao-reel { position:relative; z-index:3; padding:6px 12px 12px; background:rgba(10,2,25,.96); }
+.reel .acao-reel .primario { width:100%; min-height:52px; font-size:1.05rem; } .reel .acao-reel .qtd { width:100%; justify-content:space-between; } .reel .acao-reel .esgotado { display:block; text-align:center; }
+.dica-deslize { position:absolute; left:50%; bottom:150px; transform:translateX(-50%); z-index:6; background:rgba(255,255,255,.92); color:#111; padding:8px 14px; border-radius:99px; font-weight:700; font-size:.9rem; pointer-events:none; animation:sobe 1.4s ease-in-out infinite; }
+@keyframes sobe { 50% { transform:translate(-50%,-8px); } } @media (prefers-reduced-motion:reduce) { .dica-deslize { animation:none; } }
+.contador { position:absolute; left:12px; bottom:218px; z-index:3; background:rgba(20,5,40,.75); padding:2px 10px; border-radius:99px; font-size:.78rem; }
+.lista-wrap { overflow-y:auto; } .vazio-reel { position:absolute; inset:0; display:grid; place-content:center; text-align:center; padding:24px; color:var(--mut); }
+main.cheio { padding-bottom:0; }
+/* ajustes: nada sobrepõe título/descrição e todos os botões laterais ficam abaixo das categorias */
+.reel .lateral { bottom:150px; gap:8px; } .reel .lateral button { width:48px; min-height:48px; }
+.contador { bottom:auto; top:170px; left:12px; } .reel .selo { top:134px; }
+.dica-deslize { bottom:auto; top:44%; }
+/* telas baixas (iPhone SE e parecidos): botões laterais descem ao lado do texto, sem sobrepor nada */
+.reel .lateral { bottom:80px; } .dica-deslize { top:178px; }
+@media (max-height:640px) { .contador, .dica-deslize { display:none; } .reel .sombra h2 { font-size:1.35rem; } .reel .sombra { padding-top:60px; } .reel .lateral button { width:44px; min-height:44px; } .reel .lateral { gap:6px; } }

@@ -71,7 +71,7 @@ export function App() {
           <button className="icone" onClick={() => ir('/chamar')} aria-label="Chamar garçom"><IconSino /></button>
         </span>
       </header>
-      <main>{tela}</main>
+      <main className={rota === '/cardapio' ? 'cheio' : ''}>{tela}</main>
       <Toast />
       <nav className="rodape" aria-label="Principal">
         <Aba on={rota === '/'} onClick={() => ir('/')} icone={<IconHome />} t="Início" />
