@@ -16,3 +16,13 @@ q -f apps/api/tests/00_stub_supabase.sql
 for f in apps/api/migrations/*.sql; do echo "migração: $f"; q -f "$f"; done
 q -f seeds/gastropub/seed.sql
 q -f apps/api/tests/isolamento.sql
+
+# O SQL do gerador de placas aplica e as placas novas resolvem a mesa certa.
+GEN=$(mktemp -d)
+node tools/placas/gerar.mjs --slug gastropub --mesas "4..5" --base https://exemplo.test/x --out "$GEN" >/dev/null
+q -f "$GEN/placas.sql"
+TOKEN=$(sed -n '2p' "$GEN/placas.csv" | cut -d, -f2 | sed 's#.*/r/##')
+GOT=$(q -At -c "set role anon; select table_label from resolve_access_token('$TOKEN')")
+[ "$GOT" = "4" ] || { echo "FALHA: placa gerada deveria resolver mesa 4, veio '$GOT'"; exit 1; }
+rm -rf "$GEN"
+echo "GERADOR DE PLACAS: SQL aplicado e placa resolve a mesa certa"

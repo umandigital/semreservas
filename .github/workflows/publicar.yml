@@ -31,12 +31,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Testes de isolamento do banco
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Gerador de placas (testes)
+        working-directory: tools/placas
+        run: npm ci && npm test
+      - name: Testes de isolamento do banco e do gerador
         run: |
           command -v psql >/dev/null || sudo apt-get install -y postgresql
           apps/api/run-tests.sh
-      - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm, cache-dependency-path: apps/consumidor/package-lock.json }
       - name: Tipos, testes e build do consumidor
         working-directory: apps/consumidor
         env:
