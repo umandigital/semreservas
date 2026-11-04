@@ -1,0 +1,7 @@
+:root { --roxo:#2a1148; --laranja:#ff7a1a; --texto:#fff; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--roxo); color:var(--texto); font:16px/1.5 system-ui,sans-serif; }
+.tela { min-height:100dvh; display:grid; place-content:center; text-align:center; padding:24px; gap:8px; }
+h1 { font-size:1.75rem; margin:0; }
+.mesa { font-size:2.5rem; font-weight:700; color:var(--laranja); margin:0; }
+.nota { opacity:.8; max-width:28ch; margin-inline:auto; }

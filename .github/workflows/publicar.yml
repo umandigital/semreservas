@@ -1,0 +1,89 @@
+# CI em todo push e pull request. Publicação em public_html/semreservas/ só a
+# partir da main. Segurança do deploy:
+#  - só ENVIA (sem --delete) e só dentro de public_html/semreservas/;
+#  - na main, publica de verdade apenas se a variável do repositório
+#    DEPLOY_REAL for "true"; do contrário roda em SIMULAÇÃO (lista, não envia).
+name: CI e publicação
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      simular:
+        description: "Simular: lista o que subiria, sem enviar"
+        type: boolean
+        default: true
+
+concurrency:
+  group: publicar-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  SERVIDOR: 89.116.115.238
+  PORTA: "65002"
+  USUARIO: u967848854
+  DESTINO: /home/u967848854/domains/umandigital.com.br/public_html/semreservas
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Testes de isolamento do banco
+        run: |
+          command -v psql >/dev/null || sudo apt-get install -y postgresql
+          apps/api/run-tests.sh
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: apps/consumidor/package-lock.json }
+      - name: Tipos, testes e build do consumidor
+        working-directory: apps/consumidor
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_DEFAULT_TENANT: gastropub
+          BASE_PATH: /semreservas/
+        run: |
+          npm ci
+          npm test
+          npm run build
+      - name: Nenhuma chave secreta no pacote publicado
+        run: "! grep -rEl 'service_role|sb_secret_' apps/consumidor/dist"
+      - uses: actions/upload-artifact@v4
+        with: { name: site, path: apps/consumidor/dist, include-hidden-files: true }
+
+  publicar:
+    needs: testar
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: site, path: site }
+      - name: Preparar a chave
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_CHAVE_PRIVADA }}" | tr -d '\r' > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null \
+            || { echo "::error::SSH_CHAVE_PRIVADA não é uma chave privada válida (cole inteira, com BEGIN e END)."; exit 1; }
+          ssh-keyscan -p "$PORTA" "$SERVIDOR" >> ~/.ssh/known_hosts 2>/dev/null
+          test -s ~/.ssh/known_hosts || { echo "::error::servidor não respondeu ao ssh-keyscan."; exit 1; }
+      - name: Testar o acesso e o destino
+        run: |
+          ssh -p "$PORTA" -o StrictHostKeyChecking=yes -o BatchMode=yes "$USUARIO@$SERVIDOR" \
+            "test -d '$DESTINO'" \
+            || { echo "::error::acesso recusado, ou a pasta $DESTINO não existe (crie public_html/semreservas no hPanel)."; exit 1; }
+      - name: Enviar
+        run: |
+          SECO=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            [ "${{ inputs.simular }}" = "true" ] && SECO="--dry-run"
+          else
+            [ "${{ vars.DEPLOY_REAL }}" = "true" ] || SECO="--dry-run"
+          fi
+          [ -n "$SECO" ] && echo "::notice::SIMULAÇÃO — nada será enviado de verdade"
+          rsync -rltz --checksum --human-readable --itemize-changes $SECO \
+            --no-perms --no-owner --no-group \
+            -e "ssh -p $PORTA -o StrictHostKeyChecking=yes" \
+            site/ "$USUARIO@$SERVIDOR:$DESTINO/"
