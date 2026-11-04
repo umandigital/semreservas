@@ -1,7 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { brl, CATEGORIAS, ITENS, type Item } from '../data/cardapio'
-import { setQtd, useSelecao, useShared } from '../lib/mockStore'
-import { IconBusca, IconLista, IconCardapio, IconMais } from '../ui/Icons'
+import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useShared, useSocial } from '../lib/mockStore'
+import { baseCurtidas } from '../lib/util'
+import { IconBalao, IconBusca, IconCardapio, IconCoracao, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
 
 const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
 
@@ -24,7 +25,7 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
       <div className={lista ? 'lista' : 'feed'}>
         {itens.map(i => lista
           ? <LinhaItem key={i.id} i={i} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />
-          : <CartaoFeed key={i.id} i={i} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />)}
+          : <CartaoFeed key={i.id} ir={ir} i={i} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />)}
       </div>
       {total > 0 && <button className="flutuante" onClick={() => ir('/pedido')}>Ver minha seleção ({total})</button>}
     </section>
@@ -33,27 +34,43 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
 
 function Acao({ i, esgotado, qtd }: { i: Item; esgotado: boolean; qtd: number }) {
   if (esgotado) return <span className="esgotado">Acabou hoje</span>
-  if (qtd === 0) return <button className="primario" onClick={() => setQtd(i.id, 1)}><IconMais /> Adicionar</button>
+  if (qtd === 0) return <button className="primario cheio" onClick={() => { setQtd(i.id, 1); avisar('Incluído na sua seleção.') }}><IconMais /> Adicionar ao pedido</button>
   return <span className="qtd"><button onClick={() => setQtd(i.id, qtd - 1)} aria-label={`Menos ${i.nome}`}>−</button><b>{qtd}</b><button onClick={() => setQtd(i.id, qtd + 1)} aria-label={`Mais ${i.nome}`}>+</button></span>
 }
 
-function CartaoFeed({ i, base, esgotado, qtd }: { i: Item; base: string; esgotado: boolean; qtd: number }) {
-  const [aberto, setAberto] = useState(false); const v = useRef<HTMLVideoElement>(null)
+function CartaoFeed({ i, base, esgotado, qtd, ir }: { i: Item; base: string; esgotado: boolean; qtd: number; ir: (r: string) => void }) {
+  const [aberto, setAberto] = useState(false)
+  const soc = useSocial(); const membro = useMembro()
+  const curtido = soc.likes.includes(i.id), salvo = soc.saved.includes(i.id)
   const reduzir = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+  const enviar = async () => {
+    const url = location.href.split('#')[0]
+    try { if (navigator.share) { await navigator.share({ title: i.nome, text: `${i.nome} · ${brl(i.preco)}`, url }); return } } catch { return }
+    try { await navigator.clipboard.writeText(url); avisar('Link copiado. Compartilhar não comprova que alguém publicou.') } catch { avisar('Copie o endereço da barra do navegador.') }
+  }
   return (
     <article className={'cartao' + (esgotado ? ' off' : '')}>
-      {i.video && !reduzir
-        ? <video ref={v} src={base + i.video} poster={base + i.img} muted loop playsInline autoPlay preload="none" aria-label={`Vídeo de ${i.nome}`} />
-        : <img src={base + i.img} alt={i.nome} loading="lazy" />}
-      <div className="sombra">
-        <div className="linha"><h2>{i.nome}</h2><span className="preco">{brl(i.preco)}</span></div>
-        <p>{i.desc}</p>
-        {aberto && <ul className="ingr">{i.ingredientes.map(x => <li key={x}>{x}</li>)}{i.tags?.map(t => <li key={t} className="tag">{t}</li>)}</ul>}
-        <div className="linha">
-          <button className="link" onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Ocultar ingredientes' : 'Ver ingredientes'}</button>
-          <Acao i={i} esgotado={esgotado} qtd={qtd} />
+      <div className="quadro">
+        {i.video && !reduzir
+          ? <video src={base + i.video} poster={base + i.img} muted loop playsInline autoPlay preload="none" aria-label={`Vídeo de ${i.nome}`} />
+          : <img src={base + i.img} alt={i.nome} loading="lazy" />}
+        <span className="selo">{i.video ? '▶ Vídeo' : '● Foto'}</span>
+        <div className="lateral">
+          <button onClick={() => curtir(i.id)} aria-pressed={curtido} aria-label={`Curtir ${i.nome}`}><IconCoracao cheio={curtido} /><small>{baseCurtidas(i.id) + (curtido ? 1 : 0)}</small></button>
+          <button onClick={() => ir('/comentarios/' + i.id)} aria-label={`Comentar ${i.nome}`}><IconBalao /><small>Comentar</small></button>
+          <button onClick={() => { salvar(i.id); avisar(salvo ? 'Removido dos salvos.' : membro ? 'Salvo na sua conta e disponível em outros aparelhos.' : 'Salvo só neste aparelho. Entre para guardar em qualquer lugar.') }} aria-pressed={salvo} aria-label={`Salvar ${i.nome}`}><IconEstrela cheio={salvo} /><small>Salvar</small></button>
+          <button onClick={enviar} aria-label={`Enviar ${i.nome}`}><IconEnviar /><small>Enviar</small></button>
+        </div>
+        <div className="sombra">
+          <span className="catag">{i.cat}</span>
+          <h2>{i.nome}</h2>
+          <span className="preco">{brl(i.preco)}</span>
+          <p>{aberto ? i.desc : i.desc.length > 55 ? i.desc.slice(0, 55) + '…' : i.desc}</p>
+          {aberto && <ul className="ingr">{i.ingredientes.map(x => <li key={x}>{x}</li>)}{i.tags?.map(t => <li key={t} className="tag">{t}</li>)}</ul>}
+          <button className="link" onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Recolher descrição ↓' : 'Ver ingredientes e detalhes ↑'}</button>
         </div>
       </div>
+      <div className="rodacartao"><Acao i={i} esgotado={esgotado} qtd={qtd} /></div>
     </article>
   )
 }
