@@ -21,13 +21,8 @@ O pacote inteiro assume um bar/restaurante de salão (mesa + garçom). Os tipos 
 
 Consequência técnica: `establishment_type` e **módulos habilitáveis** (`menu`, `waiter_call`, `kitchen_request`, `delivery_whatsapp`, `daily_board`) precisam estar no modelo de dados desde o início. Detalhes em `03-TIPOS-DE-ESTABELECIMENTO.md`.
 
-### 1.2 "Sem número de mesa" quebra o rodízio e enfraquece o chamar-garçom **[BLOQUEIA]**
-O pacote resolve a localização com "zona opcional + código de 4 caracteres + garçom procura". Para chamar garçom isso é frágil; para **entregar uma fatia específica na mesa certa** é inviável. Alternativas reais (ver pergunta 4 em `02-PERGUNTAS-EM-ABERTO.md`):
-- cliente **informa o número da mesa** (campo obrigatório de 1 toque: grade de botões, não teclado);
-- placa fixa por mesa (tag com mesa gravada no URL) — mais simples para o cliente, perde a mobilidade dos displays;
-- híbrido: placa móvel + grade de mesas na primeira interação, lembrada na sessão.
-
-Recomendação: **híbrido**. A mesa fica na sessão do visitante, o garçom vê "Mesa 12" e nunca precisa procurar.
+### 1.2 "Sem número de mesa" quebra o rodízio e enfraquece o chamar-garçom — **RESOLVIDO**
+O pacote propunha zona + código com placas móveis. O fundador decidiu: **placa numerada por mesa**, com vínculo corrigível no servidor. Ver `adr/0003-placa-numerada-por-mesa.md`.
 
 ### 1.3 A stack proposta não cabe no servidor atual **[BLOQUEIA]**
 O pacote sugere Node + PostgreSQL + Redis + S3/CDN + worker + SSE. O servidor do umandigital.com.br é hospedagem Hostinger (acesso SSH na 65002, `domains/.../public_html`): PHP + MySQL, sem processo permanente, sem PostgreSQL, SSE e jobs agendados limitados. O próprio pacote diz que a stack "não é decisão aprovada". Proposta e alternativas no ADR-0001.
