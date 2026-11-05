@@ -18,6 +18,7 @@ q -f seeds/gastropub/seed.sql
 q -f apps/api/tests/isolamento.sql
 q -f apps/api/tests/chamados.sql
 q -f apps/api/tests/dono.sql
+q -f apps/api/tests/presenca.sql
 
 # O SQL do gerador de placas aplica e as placas novas resolvem a mesa certa.
 GEN=$(mktemp -d)
