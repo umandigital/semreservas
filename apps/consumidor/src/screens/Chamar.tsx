@@ -37,6 +37,7 @@ export function Chamar({ ir }: { ir: (r: string) => void }) {
       <h1>Chamar garçom</h1>
       <p className="mesa-g">Mesa {mesa} <button className="link" onClick={() => setTrocando(true)}>Não é esta mesa?</button></p>
       <p>Como podemos ajudar?</p>
+      <p className="nota">Para confirmar que você está no restaurante, o navegador pode pedir a localização do aparelho. Usamos só nesse momento e <b>não guardamos</b> a sua posição.</p>
       <div className="motivos">{MOTIVOS.map(m => <button key={m.kind} className="primario grande" disabled={busy} onClick={() => enviar(m.kind)}>{m.rotulo}</button>)}</div>
       {erro && <p className="alerta" role="alert">{erro}</p>}
     </section>

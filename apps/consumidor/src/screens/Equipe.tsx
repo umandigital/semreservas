@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { instalavel, instalar, jaInstalado, ehIos, registrarPwa } from '../lib/pwa'
-import { ApiError, painelFila, painelInfo, painelMudar, ROTULO, type Pedido } from '../lib/api'
+import { ApiError, painelFila, painelInfo, painelMudar, painelTrote, ROTULO, type Pedido } from '../lib/api'
 
 // Painel da equipe: abre pelo link, um toque para ativar e fica funcionando. Só serve para a fila.
 const TOKEN_KEY = 'sr-painel'
@@ -121,9 +121,12 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
         <li key={p.id} className={p.status === 'PENDING' ? 'novo' : ''}>
           <div className="mesa-xl">Mesa {p.table_label}</div>
           <div className="linha"><b className="oque">{p.detail ?? ROTULO[p.kind]}</b><span>{minutos(p.created_at)}</span></div>
+          {p.presence === 'far' && <p className="presenca longe">⚠ Pode estar fora do restaurante</p>}
+          {p.presence === 'unknown' && <p className="presenca">Localização não verificada</p>}
           {p.status === 'PENDING'
             ? <button className="primario grande" onClick={async () => { await painelMudar(token!, p.id, 'ACKNOWLEDGED').catch(() => false); atualizar() }}>Assumir</button>
             : <button className="sec grande" onClick={async () => { await painelMudar(token!, p.id, 'RESOLVED').catch(() => false); atualizar() }}>Concluir</button>}
+          <button className="link" onClick={async () => { if (confirm(`Mesa ${p.table_label}: não havia ninguém? O aparelho que chamou pode ser bloqueado se repetir.`)) { await painelTrote(token!, p.id).catch(() => false); atualizar() } }}>Sem ninguém na mesa</button>
         </li>))}</ul>
       <p className="nota">{notif === 'denied' ? 'Notificações bloqueadas no navegador. O som e o piscar continuam.' : 'Deixe esta tela aberta. Ela avisa com som e piscando.'}</p>
       <button className="link" onClick={() => bip()}>Testar som</button>

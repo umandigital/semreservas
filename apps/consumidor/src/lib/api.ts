@@ -4,10 +4,10 @@ import { supabase } from './supabase'
 
 export type Kind = 'waiter' | 'bill' | 'question' | 'order' | 'other' | 'kitchen_item'
 export type Status = 'PENDING' | 'ACKNOWLEDGED' | 'RESOLVED' | 'CANCELLED'
-export type ApiCode = 'sem-config' | 'rede' | 'invalid_token' | 'invalid_kind' | 'invalid_table' | 'module_disabled' | 'rate_limited'
+export type ApiCode = 'sem-config' | 'rede' | 'invalid_token' | 'invalid_kind' | 'invalid_table' | 'module_disabled' | 'rate_limited' | 'too_far' | 'location_required' | 'device_blocked'
 export class ApiError extends Error { constructor(public code: ApiCode) { super(code) } }
 
-const CONHECIDOS: ApiCode[] = ['invalid_token', 'invalid_kind', 'invalid_table', 'module_disabled', 'rate_limited']
+const CONHECIDOS: ApiCode[] = ['invalid_token', 'invalid_kind', 'invalid_table', 'module_disabled', 'rate_limited', 'too_far', 'location_required', 'device_blocked']
 async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T[]> {
   if (!supabase) throw new ApiError('sem-config')
   let res
@@ -18,8 +18,9 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T[]> {
 }
 
 export type Chamado = { id: string; status: Status; public_code: string; table_label: string; cancel_token: string | null; already_open: boolean }
-export const criarChamado = async (token: string, kind: Kind, mesa?: string, detalhe?: string) =>
-  (await rpc<Chamado>('create_service_request', { p_token: token, p_kind: kind, p_table_label: mesa ?? null, p_detail: detalhe ?? null }))[0]
+export type Local = { lat: number; lon: number }
+export const criarChamado = async (token: string, kind: Kind, mesa?: string, detalhe?: string, aparelho?: string, local?: Local | null) =>
+  (await rpc<Chamado>('create_service_request', { p_token: token, p_kind: kind, p_table_label: mesa ?? null, p_detail: detalhe ?? null, p_device: aparelho ?? null, p_lat: local?.lat ?? null, p_lon: local?.lon ?? null }))[0]
 
 export type StatusChamado = { status: Status; table_label: string; kind: Kind; detail: string | null; public_code: string; acknowledged_at: string | null; resolved_at: string | null }
 export const statusChamado = async (id: string) => (await rpc<StatusChamado>('public_request_status', { p_id: id }))[0] ?? null
@@ -29,11 +30,15 @@ export const mesasDaPlaca = async (token: string) => (await rpc<{ label: string 
 export const esgotadosPublicos = async (slug: string) => (await rpc<{ item_id: string }>('public_sold_out', { p_slug: slug })).map(r => r.item_id)
 
 // ── painel da equipe (link secreto, sem login) ──
-export type Pedido = { id: string; table_label: string; kind: Kind; detail: string | null; status: Status; public_code: string; created_at: string; acknowledged_at: string | null; server_now: string }
+export type Presenca = 'near' | 'far' | 'unknown'
+export type Pedido = { id: string; table_label: string; kind: Kind; detail: string | null; status: Status; public_code: string; presence: Presenca; created_at: string; acknowledged_at: string | null; server_now: string }
 export const painelInfo = async (token: string) => (await rpc<{ tenant_name: string; tenant_slug: string }>('panel_info', { p_token: token }))[0]
 export const painelFila = (token: string) => rpc<Pedido>('panel_requests', { p_token: token })
 export const painelMudar = async (token: string, id: string, para: 'ACKNOWLEDGED' | 'RESOLVED') =>
   ((await rpc<boolean>('panel_change_request', { p_token: token, p_id: id, p_to: para }))[0] as unknown) === true
+
+export const painelTrote = async (token: string, id: string) =>
+  ((await rpc<boolean>('panel_false_alarm', { p_token: token, p_id: id }))[0] as unknown) === true
 
 export const ROTULO: Record<Kind, string> = { waiter: 'Chamar garçom', bill: 'Conta', question: 'Dúvida', order: 'Fazer pedido', other: 'Outro', kitchen_item: 'Pedido à cozinha' }
 export const MENSAGEM_ERRO: Record<ApiCode, string> = {
@@ -44,4 +49,7 @@ export const MENSAGEM_ERRO: Record<ApiCode, string> = {
   invalid_table: 'Mesa não encontrada. Escolha a mesa de novo.',
   module_disabled: 'O chamado digital está desligado neste estabelecimento. Chame alguém do salão.',
   rate_limited: 'Muitos chamados agora. Aguarde um instante e tente de novo.',
+  too_far: 'Parece que você não está no restaurante. O chamado digital só funciona dentro do local. Se estiver aqui, chame alguém do salão.',
+  location_required: 'Para chamar o garçom precisamos confirmar que você está no restaurante. Permita a localização do aparelho e tente de novo.',
+  device_blocked: 'Os chamados deste aparelho estão pausados por 24 horas. Se precisar de algo, fale com a equipe pessoalmente.',
 }
