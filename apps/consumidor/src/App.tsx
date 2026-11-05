@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useRota, setMesa, setToken, setSlug, getMesa } from './lib/router'
 import { parseRoute } from './lib/route'
 import { carregarTenant, resolverPlaca } from './lib/supabase'
@@ -20,6 +20,7 @@ import { Contato } from './screens/Contato'
 import { BoasVindas } from './screens/BoasVindas'
 import { IconCardapio, IconHome, IconPrancheta, IconPresente, IconSino, IconUsuario, IconWifi } from './ui/Icons'
 
+const Dono = lazy(() => import('./screens/Dono'))   // código do dashboard só baixa quem abre #/dono
 type Boot = { fase: 'carregando' } | { fase: 'ok'; nome: string } | { fase: 'placa-invalida' } | { fase: 'erro'; msg: string }
 const NOME_PADRAO = 'SemReservas GastroPub'
 
@@ -44,6 +45,7 @@ export function App() {
   }, [])
 
   if (equipe) return <Equipe tokenUrl={rota.slice(8) || undefined} />
+  if (rota === '/dono') return <Suspense fallback={<main className="centro"><p>Carregando…</p></main>}><Dono /></Suspense>
   if (boot.fase === 'carregando') return <main className="centro"><p>Carregando…</p></main>
   if (boot.fase === 'placa-invalida') return <main className="centro"><h1>Placa indisponível</h1><p>Esta placa foi desativada. Chame um atendente.</p></main>
   if (!entrou) return <BoasVindas nome={boot.fase === 'ok' ? boot.nome : NOME_PADRAO} mesa={getMesa()} entrar={() => { try { sessionStorage.setItem('sr-entrou', '1') } catch { /* ignora */ } setEntrou(true) }} />
