@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { instalavel, instalar, jaInstalado, ehIos, registrarPwa } from '../lib/pwa'
 import { ApiError, painelFila, painelInfo, painelMudar, ROTULO, type Pedido } from '../lib/api'
 
 // Painel da equipe: abre pelo link, um toque para ativar e fica funcionando. Só serve para a fila.
@@ -25,6 +26,9 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
   const ctx = useRef<AudioContext | null>(null); const lock = useRef<{ release(): Promise<void> } | null>(null)
   const pend = useRef(0); const ultimoOk = useRef(Date.now()); const avisados = useRef(new Set<string>()); const titulo = useRef(document.title)
 
+  useEffect(() => { if (token) registrarPwa(token) }, [token])
+  const [podeInstalar, setPodeInstalar] = useState(false)
+  useEffect(() => instalavel(setPodeInstalar), [])
   useEffect(() => {
     if (!token) return setFase('invalido')
     painelInfo(token).then(i => { setNome(i.tenant_name); setFase('splash'); try { localStorage.setItem(TOKEN_KEY, token) } catch { /* ignora */ } })
@@ -102,6 +106,8 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
       <h1>{nome}</h1><p>Painel de atendimento</p>
       <button className="primario grande" onClick={iniciar}>Toque para iniciar</button>
       <p className="nota">Um toque ativa o som e mantém a tela acesa. Deixe esta tela aberta, mesmo minimizada.</p>
+      {!jaInstalado() && podeInstalar && <button className="sec grande" onClick={() => instalar()}>Instalar o painel neste aparelho</button>}
+      {!jaInstalado() && ehIos() && <p className="nota">Para instalar no iPhone/iPad: toque em Compartilhar e em "Adicionar à Tela de Início".</p>}
     </main>
   )
   const abertos = fila, pendentes = abertos.filter(p => p.status === 'PENDING').length
