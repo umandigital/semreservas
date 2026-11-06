@@ -25,7 +25,7 @@ export default function VisorAR({ item, fechar }: { item: Item; fechar: () => vo
         {erro && <p className="alerta" role="alert">Não foi possível carregar o 3D neste aparelho. Veja as fotos do prato no cardápio.</p>}
         {pronto && !erro && (
           <model-viewer ref={ref} src={media(m.glb)} poster={m.poster ? media(m.poster) : undefined} alt={`Modelo 3D de ${item.nome}`}
-            ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor" ar-scale="fixed" camera-controls touch-action="pan-y" auto-rotate
+            ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor" ar-scale="fixed" camera-controls touch-action="pan-y" auto-rotate camera-orbit={m.orbita}
             shadow-intensity="1.1" shadow-softness="0.9" exposure="1.05" environment-image="neutral" interaction-prompt="none" style={{ width: '100%', height: '100%' }}>
             <button slot="ar-button" hidden aria-hidden="true" tabIndex={-1} />   {/* esconde o botão padrão: usamos o nosso "Projetar na mesa" */}
           </model-viewer>

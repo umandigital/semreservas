@@ -81,7 +81,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir, abrirAr }: { i: Item; n: numb
       {i.video && !reduzir
         ? <video src={base + i.video} poster={base + i.img} muted loop playsInline preload="metadata" aria-label={`Vídeo de ${i.nome}`} />
         : <img src={base + i.img} alt={i.nome} loading={n > 2 ? 'lazy' : 'eager'} />}
-      <span className="selo">{i.video ? '▶ Vídeo' : '● Foto'}{i.modelo ? ' · 3D' : ''}</span>
+      <span className="selo">{i.video ? '▶ Vídeo' : i.modelo?.capaRender ? '◆ Imagem 3D' : '● Foto'}{i.modelo && !i.modelo.capaRender ? ' · 3D' : ''}</span>
       <div className="lateral">
         <button onClick={() => curtir(i.id)} aria-pressed={curtido} aria-label={`Curtir ${i.nome}`}><IconCoracao cheio={curtido} /><small>{baseCurtidas(i.id) + (curtido ? 1 : 0)}</small></button>
         <button onClick={() => ir('/comentarios/' + i.id)} aria-label={`Comentar ${i.nome}`}><IconBalao /><small>Comentar</small></button>
