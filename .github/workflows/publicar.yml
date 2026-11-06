@@ -123,5 +123,6 @@ jobs:
           tools/validar-retirados.sh deploy/retirados.txt > retirados-validos.txt
           while IFS= read -r f; do
             if [ -n "$SECO" ]; then echo "SIMULAÇÃO: removeria $DESTINO/$f"; continue; fi
-            ssh -p "$PORTA" -o StrictHostKeyChecking=yes "$USUARIO@$SERVIDOR" "rm -f -- '$DESTINO/$f'" && echo "removido (se existia): $f"
+            ssh -n -p "$PORTA" -o StrictHostKeyChecking=yes "$USUARIO@$SERVIDOR" "rm -f -- '$DESTINO/$f'" && echo "removido (se existia): $f"   # -n: sem ele o ssh engole o resto da lista
           done < retirados-validos.txt
+          echo "processados: $(wc -l < retirados-validos.txt) arquivo(s) da lista"
