@@ -51,6 +51,10 @@ jobs:
           npm ci
           npm test
           npm run build
+      - name: Lista de arquivos retirados (validação e testes)
+        run: |
+          tools/validar-retirados.test.sh
+          tools/validar-retirados.sh deploy/retirados.txt
       - name: Nenhuma chave secreta no pacote publicado
         run: |
           node --test tools/verificar-pacote.test.mjs
@@ -63,6 +67,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: 'deploy tools', sparse-checkout-cone-mode: true }
       - uses: actions/download-artifact@v4
         with: { name: site, path: site }
       - name: Preparar a chave
@@ -100,8 +106,19 @@ jobs:
           else
             [ "${{ vars.DEPLOY_REAL }}" = "true" ] || SECO="--dry-run"
           fi
+          echo "SECO=$SECO" >> "$GITHUB_ENV"
           [ -n "$SECO" ] && echo "::notice::SIMULAÇÃO — nada será enviado de verdade"
           rsync -rltz --checksum --human-readable --itemize-changes $SECO \
             --no-perms --no-owner --no-group \
             -e "ssh -p $PORTA -o StrictHostKeyChecking=yes" \
             site/ "$USUARIO@$SERVIDOR:$DESTINO/"
+      # O envio acima nunca apaga nada. Quando um arquivo SAI do app (ex.: um prato 3D retirado), ele fica no servidor.
+      # Esta etapa apaga SOMENTE os arquivos listados em deploy/retirados.txt, e só dentro de media/ (o validador
+      # recusa qualquer outro caminho). Em simulação, só lista.
+      - name: Remover do servidor os arquivos retirados
+        run: |
+          tools/validar-retirados.sh deploy/retirados.txt > retirados-validos.txt
+          while IFS= read -r f; do
+            if [ -n "$SECO" ]; then echo "SIMULAÇÃO: removeria $DESTINO/$f"; continue; fi
+            ssh -p "$PORTA" -o StrictHostKeyChecking=yes "$USUARIO@$SERVIDOR" "rm -f -- '$DESTINO/$f'" && echo "removido (se existia): $f"
+          done < retirados-validos.txt

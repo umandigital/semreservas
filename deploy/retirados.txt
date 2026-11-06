@@ -1,0 +1,4 @@
+# Arquivos que saíram do app e devem ser APAGADOS do servidor (o deploy normal só envia, nunca apaga).
+# Um caminho por linha, relativo à pasta do app, só dentro de media/. Linhas com # são comentário.
+media/modelos/xis-pao-sovado.glb
+media/xis-pao-sovado.webp
