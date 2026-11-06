@@ -137,6 +137,16 @@ main.cheio { padding-bottom:0; }
 .reel .cta-ar { width:100%; min-height:48px; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-color:var(--laranja); color:#fff; }
 .visor-ar { position:fixed; inset:0; z-index:60; background:var(--bg); display:flex; flex-direction:column; padding-top:env(safe-area-inset-top); }
 .visor-ar > header { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 16px; border-bottom:1px solid var(--bg3); } .visor-ar > header small { display:block; color:var(--mut); }
-.visor-ar-cena { position:relative; flex:1; min-height:0; background:radial-gradient(circle at 50% 40%, #4a2578, var(--bg) 75%); } .visor-ar-cena model-viewer { --poster-color:transparent; }
-.carregando-ar { position:absolute; inset:0; display:grid; place-content:center; margin:0; }
+:root { --fundo-3d: radial-gradient(ellipse 85% 70% at 50% 46%, #fbf8f3 0%, #eee6da 52%, #d3c7b6 100%); }   /* fundo padrão de estúdio: claro e neutro, vale para todos os pratos */
+.visor-ar-cena { position:relative; flex:1; min-height:0; background:var(--fundo-3d); } .visor-ar-cena model-viewer { --poster-color:transparent; }
+.carregando-ar { position:absolute; inset:0; display:grid; place-content:center; margin:0; color:#5a4a3a; }
 .visor-ar > footer { padding:12px 16px calc(12px + env(safe-area-inset-bottom)); display:grid; gap:6px; background:#1a0a30; } .visor-ar > footer p { margin:0; }
+/* prato com botão "Veja em 3D": a área de ações é mais alta, então a coluna lateral sobe */
+.reel.com-3d .lateral { bottom:140px; }
+/* telas baixas: "Veja em 3D" e "Adicionar" lado a lado, para a coluna lateral não subir sobre as categorias */
+@media (max-height:640px) {
+  .reel.com-3d .acao-reel { display:flex; gap:8px; align-items:stretch; } .reel.com-3d .acao-reel > * { flex:1; }
+  .reel.com-3d .cta-ar { margin-bottom:0; font-size:.9rem; } .reel.com-3d .acao-reel .primario { font-size:.9rem; }
+  .reel.com-3d .lateral { bottom:80px; }
+}
+@media (max-height:640px) { .reel .selo { display:none; } }

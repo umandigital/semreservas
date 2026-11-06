@@ -3,7 +3,7 @@ import type { Item } from '../data/cardapio'
 import { media } from '../lib/util'
 import type { ModeloEl } from '../ui/model-viewer'
 
-/** Visor 3D e realidade aumentada. Carregado sob demanda: o código do <model-viewer> só baixa quando o cliente toca em "Projetar na mesa". */
+/** Visor 3D e realidade aumentada. Carregado sob demanda: o código do <model-viewer> só baixa quando o cliente toca em "Veja em 3D". */
 export default function VisorAR({ item, fechar }: { item: Item; fechar: () => void }) {
   const m = item.modelo!
   const ref = useRef<ModeloEl | null>(null)
@@ -20,7 +20,7 @@ export default function VisorAR({ item, fechar }: { item: Item; fechar: () => vo
   return (
     <div className="visor-ar" role="dialog" aria-modal="true" aria-label={`${item.nome} em 3D`}>
       <header><div><b>{item.nome}</b><small>{m.medidas}</small></div><button className="icone" onClick={fechar} aria-label="Fechar">✕</button></header>
-      <div className="visor-ar-cena">
+      <div className="visor-ar-cena">   {/* o fundo é o "estúdio" padrão (--fundo-3d), igual para todos os pratos */}
         {!pronto && !erro && <p className="nota carregando-ar">Carregando o prato em 3D…</p>}
         {erro && <p className="alerta" role="alert">Não foi possível carregar o 3D neste aparelho. Veja as fotos do prato no cardápio.</p>}
         {pronto && !erro && (
@@ -32,8 +32,8 @@ export default function VisorAR({ item, fechar }: { item: Item; fechar: () => vo
         )}
       </div>
       <footer>
-        <p className="nota">{ra === false ? 'Para projetar na mesa, abra no seu celular. Aqui você pode girar o prato com o mouse.' : 'Arraste para girar. Toque em "Projetar na mesa", aponte a câmera para a mesa e mova o celular devagar.'}</p>
-        <button className="primario grande" disabled={!ra} onClick={projetar}>{ra === null && !erro ? 'Preparando…' : 'Projetar na mesa'}</button>
+        <p className="nota">{ra === false ? 'Para projetar na mesa, abra no seu celular. Aqui você pode girar o prato com o mouse.' : 'Arraste para girar o prato. Toque em "Projete na mesa", aponte a câmera para a mesa e mova o celular devagar.'}</p>
+        <button className="primario grande" disabled={!ra} onClick={projetar}>{ra === null && !erro ? 'Preparando…' : 'Projete na mesa'}</button>
         {dica && <p className="nota">Quando a superfície aparecer, toque nela para colocar o prato.</p>}
         <p className="nota">{m.nota}</p>
       </footer>

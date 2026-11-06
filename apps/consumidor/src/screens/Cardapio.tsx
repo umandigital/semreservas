@@ -5,7 +5,7 @@ import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useSocial } from
 import { baseCurtidas } from '../lib/util'
 import { IconBalao, IconBusca, IconCubo, IconCardapio, IconCoracao, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
 
-const VisorAR = lazy(() => import('./VisorAR'))   // 3D/RA só baixa quando alguém toca em "Projetar na mesa"
+const VisorAR = lazy(() => import('./VisorAR'))   // 3D/RA só baixa quando alguém toca em "Veja em 3D"
 const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
 
 export function Cardapio({ ir }: { ir: (r: string) => void }) {
@@ -77,7 +77,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir, abrirAr }: { i: Item; n: numb
     try { await navigator.clipboard.writeText(url); avisar('Link copiado. Compartilhar não comprova que alguém publicou.') } catch { avisar('Copie o endereço da barra do navegador.') }
   }
   return (
-    <article className={'reel' + (esgotado ? ' off' : '')} aria-label={`${i.nome}, prato ${n} de ${de}`}>
+    <article className={'reel' + (esgotado ? ' off' : '') + (i.modelo ? ' com-3d' : '')} aria-label={`${i.nome}, prato ${n} de ${de}`}>
       {i.video && !reduzir
         ? <video src={base + i.video} poster={base + i.img} muted loop playsInline preload="metadata" aria-label={`Vídeo de ${i.nome}`} />
         : <img src={base + i.img} alt={i.nome} loading={n > 2 ? 'lazy' : 'eager'} />}
@@ -98,7 +98,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir, abrirAr }: { i: Item; n: numb
         <button className="link" style={{ textAlign: 'left', padding: 0 }} onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Recolher descrição ↓' : 'Ver ingredientes e detalhes ↑'}</button>
       </div>
       <div className="acao-reel">
-        {i.modelo && <button className="sec cta-ar" onClick={() => abrirAr(i)}><IconCubo /> Projetar na mesa</button>}
+        {i.modelo && <button className="sec cta-ar" onClick={() => abrirAr(i)}><IconCubo /> Veja em 3D</button>}
         <Acao i={i} esgotado={esgotado} qtd={qtd} />
       </div>
     </article>
@@ -109,7 +109,7 @@ function LinhaItem({ i, base, esgotado, qtd, abrirAr }: { i: Item; base: string;
   return (
     <article className={'linha-item' + (esgotado ? ' off' : '')}>
       <img src={base + i.img} alt="" loading="lazy" />
-      <div className="meio"><h2>{i.nome}</h2><p>{i.desc}</p><span className="preco">{brl(i.preco)}</span>{i.modelo && <button className="link" style={{ padding: 0, textAlign: 'left' }} onClick={() => abrirAr(i)}>Projetar na mesa (3D)</button>}</div>
+      <div className="meio"><h2>{i.nome}</h2><p>{i.desc}</p><span className="preco">{brl(i.preco)}</span>{i.modelo && <button className="link" style={{ padding: 0, textAlign: 'left' }} onClick={() => abrirAr(i)}>Veja em 3D</button>}</div>
       <Acao i={i} esgotado={esgotado} qtd={qtd} />
     </article>
   )
