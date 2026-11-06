@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRe
 import { brl, CATEGORIAS, CONFIG, ITENS, type Item } from '../data/cardapio'
 import { useEsgotados } from '../lib/hooks'
 import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
+import { useRaAberta, definirRaAberta } from '../lib/raAberta'
 import { abrirRa, baseCurtidas, media, webxrArDisponivel } from '../lib/util'
 import type { ModeloEl } from '../ui/model-viewer'
 import { IconBalao, IconBusca, IconCardapio, IconCoracao, IconCubo, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
@@ -92,7 +93,8 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
   const { perto, ativo } = useVisibilidade(ref, !!i.modelo)
   const [carregado, setCarregado] = useState(false); const [ra, setRa] = useState(false)
   const aoCarregar = useCallback((podeRa: boolean) => { setCarregado(true); setRa(podeRa) }, [])
-  useEffect(() => { if (!perto) { setCarregado(false); setRa(false) } }, [perto])   // longe da tela: libera o 3D (memória e bateria)
+  const raAberta = useRaAberta()
+  useEffect(() => { if (!perto || raAberta) { setCarregado(false); setRa(false) } }, [perto, raAberta])   // longe da tela: libera o 3D (memória e bateria)
   const enviar = async () => {
     const url = location.href.split('#')[0]
     try { if (navigator.share) { await navigator.share({ title: i.nome, text: `${i.nome} · ${brl(i.preco)}`, url }); return } } catch { return }
@@ -100,11 +102,15 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
   }
   const [msgRa, setMsgRa] = useState(''); const [webxrAr, setWebxrAr] = useState(false)
   // no Chrome do Android a RA é a nossa (prato já na mesa apontada); descobre isso e adianta o download dela quando o prato chega perto
-  useEffect(() => { if (!i.modelo || !perto) return; webxrArDisponivel().then(ok => { setWebxrAr(ok); if (ok) void import('../lib/arWebxr') }) }, [i.modelo, perto])
+  useEffect(() => {
+    if (!i.modelo || !perto) return
+    const glb = media(i.modelo.glbAr ?? i.modelo.glb)
+    webxrArDisponivel().then(ok => { setWebxrAr(ok); if (ok) void import('../lib/arWebxr').then(a => a.prepararAr(glb)) })   // baixa o código e o modelo antes do toque
+  }, [i.modelo, perto])
   const projetar = async () => {
     if (!i.modelo) return
     if (webxrAr) {
-      try { const { iniciarAr } = await import('../lib/arWebxr'); await iniciarAr({ glb: media(i.modelo.glb), nome: i.nome, medidas: i.modelo.medidas, nota: i.modelo.nota }); setMsgRa(''); return }
+      try { const { iniciarAr } = await import('../lib/arWebxr'); await iniciarAr({ glb: media(i.modelo.glbAr ?? i.modelo.glb), nome: i.nome, medidas: i.modelo.medidas, nota: i.modelo.nota, aoAbrir: () => definirRaAberta(true), aoFechar: () => definirRaAberta(false) }); setMsgRa(''); return }
       catch { setMsgRa('Não consegui abrir a câmera do navegador. Tentando o aplicativo do Google…') }
     }
     if (!mv.current) return; const r = await abrirRa(mv.current, setMsgRa); if (r !== 'aberto') setTimeout(() => setMsgRa(''), 9000)
@@ -115,7 +121,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
       {m ? (
         <div className="palco">
           <img className={'poster3d' + (carregado ? ' some' : '')} src={media(m.poster)} alt={i.nome} />
-          {perto && <Suspense fallback={null}><Modelo3D item={i} ativo={ativo && !esgotado} mvRef={mv} aoCarregar={aoCarregar} /></Suspense>}
+          {perto && !raAberta && <Suspense fallback={null}><Modelo3D item={i} ativo={ativo && !esgotado} mvRef={mv} aoCarregar={aoCarregar} /></Suspense>}
           <span className="nota3d">{m.nota.split('.')[0]} · {m.medidas}</span>
         </div>
       ) : i.video && !reduzir

@@ -6,7 +6,7 @@ export type Item = {
 }
 /** Modelo 3D para "Projetar na mesa" (realidade aumentada). As medidas reais vêm do próprio arquivo (em metros). */
 export type Modelo3D = {
-  glb: string; poster: string          // poster = render com fundo transparente (aparece enquanto o 3D carrega)
+  glb: string; glbAr?: string; poster: string          // poster = render com fundo transparente (aparece enquanto o 3D carrega)
   medidas: string                      // texto para o cliente
   tamanhoM: [number, number, number]   // largura × altura × profundidade REAIS, em metros: o teste confere com o arquivo
   nota: string; orbita?: string
@@ -19,7 +19,7 @@ export const ITENS: Item[] = [
   { id: 'h2', cat: 'Hambúrgueres', nome: 'Duplo Cheddar', preco: 4290, desc: 'Dois blends, cheddar cremoso e cebola caramelizada.', ingredientes: ['Pão brioche', '2 blends 120 g', 'Cheddar', 'Cebola caramelizada'], img: m('burger.webp') },
   { id: 'h3', cat: 'Hambúrgueres', nome: 'Bacon BBQ', preco: 3990, desc: 'Bacon crocante e molho barbecue defumado.', ingredientes: ['Pão brioche', 'Blend 160 g', 'Bacon', 'Molho barbecue', 'Cebola roxa'], img: m('burger.webp') },
   { id: 'h5', cat: 'Hambúrgueres', nome: 'Burger Quádruplo', preco: 6290, desc: 'Quatro carnes, cheddar, bacon e creme no pão brilhante.', ingredientes: ['Pão brioche', '4 carnes', 'Cheddar', 'Bacon', 'Creme da casa'], img: m('modelos/hamburguer-4-carnes-poster.webp'),
-    modelo: { glb: m('modelos/hamburguer-4-carnes.glb'), poster: m('modelos/hamburguer-4-carnes-poster.webp'), medidas: 'Prato de 22 cm · 16 cm de altura', tamanhoM: [0.218, 0.157, 0.218], orbita: '30deg 68deg auto', nota: 'Imagem ilustrativa em tamanho real, com o prato. O lanche servido pode ter pequenas diferenças.' } },
+    modelo: { glb: m('modelos/hamburguer-4-carnes.glb'), glbAr: m('modelos/hamburguer-4-carnes-ar.glb'), poster: m('modelos/hamburguer-4-carnes-poster.webp'), medidas: 'Prato de 22 cm · 16 cm de altura', tamanhoM: [0.218, 0.157, 0.218], orbita: '30deg 68deg auto', nota: 'Imagem ilustrativa em tamanho real, com o prato. O lanche servido pode ter pequenas diferenças.' } },
   { id: 'h4', cat: 'Hambúrgueres', nome: 'Veggie de Grão-de-bico', preco: 3690, desc: 'Burger vegetal com tahine e folhas.', ingredientes: ['Pão brioche', 'Burger de grão-de-bico', 'Tahine', 'Rúcula', 'Tomate'], img: m('burger.webp'), tags: ['vegetariano'] },
   { id: 'p1', cat: 'Pizzas', nome: 'Margherita', preco: 4990, desc: 'Molho de tomate, mussarela e manjericão.', ingredientes: ['Massa de fermentação lenta', 'Molho de tomate', 'Mussarela', 'Manjericão'], img: m('pizza.webp'), tags: ['vegetariano'] },
   { id: 'p2', cat: 'Pizzas', nome: 'Calabresa', preco: 5290, desc: 'Calabresa fatiada e cebola.', ingredientes: ['Massa', 'Mussarela', 'Calabresa', 'Cebola'], img: m('pizza.webp') },

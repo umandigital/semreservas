@@ -1,6 +1,8 @@
-// RA própria (WebXR) para Android/Chrome: o prato aparece JÁ na superfície para onde a câmera aponta, em TAMANHO REAL, e o
-// cliente toca para fixar. Existe porque o modo pronto do <model-viewer> coloca o modelo a >= 1 m à frente (no ar) e só
-// corrige a altura, o que faz o prato aparecer longe, pequeno e fora da mesa.
+// RA própria (WebXR) para Android/Chrome. Regras que garantem estabilidade e fluidez:
+//  1. o prato NÃO segue a câmera: espera uma superfície horizontal ESTÁVEL no centro da tela, aparece ali em tamanho real e
+//     fica TRAVADO no mundo (âncora do ARCore quando existe; senão posição fixa). Mexer o celular só muda o ponto de vista.
+//  2. leve: sem mapa de sombras (sombra falsa), sem antialias, pixel ratio 1, modelo já baixado e aquecido antes do toque,
+//     e o 3D do feed é desmontado enquanto a RA está aberta (um só contexto WebGL).
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
@@ -12,17 +14,35 @@ export async function suportaWebxrAr(): Promise<boolean> {
   try { return !!xr() && await xr()!.isSessionSupported('immersive-ar') } catch { return false }
 }
 
-export type OpcoesAr = { glb: string; nome: string; medidas: string; nota: string; aoFechar?: () => void }
-export type EstadoAr = { fixado: boolean; achouSuperficie: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string }
-
-/** Pontos de entrada de teste/diagnóstico: estado atual da sessão (vazio quando não há RA aberta). */
+export type OpcoesAr = { glb: string; nome: string; medidas: string; nota: string; aoAbrir?: () => void; aoFechar?: () => void }
+export type EstadoAr = {
+  fixado: boolean; achouSuperficie: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
+  triangulos: number; chamadas: number; sombraMapa: boolean; ancora: boolean; estavel: number
+}
 declare global { interface Window { __srAr?: () => EstadoAr } }
+
+// modelo baixado e interpretado antes do toque (cache por endereço)
+const cache = new Map<string, Promise<THREE.Group>>()
+export function prepararAr(glb: string): Promise<THREE.Group> {
+  let p = cache.get(glb)
+  if (!p) { p = new GLTFLoader().loadAsync(glb).then(g => g.scene); p.catch(() => cache.delete(glb)); cache.set(glb, p) }
+  return p
+}
+
+const MIN_DIST = 0.35, MAX_DIST = 2.5      // metros da câmera: nem colado, nem lá longe (onde o ARCore erra)
+const QUADROS_ESTAVEIS = 10, TOLERANCIA = 0.03   // ~10 quadros seguidos dentro de 3 cm
+
+function texturaSombra(): THREE.Texture {
+  const c = document.createElement('canvas'); c.width = c.height = 128
+  const g = c.getContext('2d')!; const r = g.createRadialGradient(64, 64, 6, 64, 64, 62)
+  r.addColorStop(0, 'rgba(0,0,0,0.55)'); r.addColorStop(0.55, 'rgba(0,0,0,0.25)'); r.addColorStop(1, 'rgba(0,0,0,0)')
+  g.fillStyle = r; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c)
+}
 
 /** Abre a RA. Chame DENTRO do toque do cliente (o navegador só permite iniciar RA com um toque). */
 export async function iniciarAr(o: OpcoesAr): Promise<void> {
   if (!xr()) throw new Error('sem-webxr')
-  const carregando = new GLTFLoader().loadAsync(o.glb)              // baixa o modelo enquanto a câmera abre
-  // ── interface sobre a câmera (DOM overlay) ──
+  const carregando = prepararAr(o.glb)                              // já em cache quando o cliente chegou perto do prato
   const ui = document.createElement('div'); ui.className = 'ra-overlay'
   ui.innerHTML = `<div class="ra-topo"><div><b>${esc(o.nome)}</b><small>${esc(o.medidas)}</small></div><button type="button" class="ra-x" aria-label="Fechar">✕</button></div>
     <div class="ra-captura" hidden></div>
@@ -30,64 +50,95 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   document.body.appendChild(ui)
   const q = <T extends HTMLElement>(s: string) => ui.querySelector(s) as T
   const msg = q<HTMLElement>('.ra-msg'), captura = q<HTMLElement>('.ra-captura'), mover = q<HTMLButtonElement>('.ra-mover'), fechar = q<HTMLButtonElement>('.ra-x')
-  for (const b of [fechar, mover, captura]) b.addEventListener('beforexrselect', e => e.preventDefault())   // toque nos botões não "fixa" o prato
+  for (const b of [fechar, mover, captura]) b.addEventListener('beforexrselect', e => e.preventDefault())
 
   let session: any
   try {
-    session = await xr()!.requestSession('immersive-ar', { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'light-estimation'], domOverlay: { root: ui } })
-  } catch (e) { ui.remove(); throw e }
+    session = await xr()!.requestSession('immersive-ar', { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'light-estimation', 'anchors'], domOverlay: { root: ui } })
+  } catch (e) { ui.remove(); throw e }          // recusou: o 3D do feed segue montado para o plano B (Scene Viewer)
+  o.aoAbrir?.()                                  // sessão aberta: o feed desmonta o 3D dele (um só contexto WebGL)
+  await new Promise(r => setTimeout(r, 50))
 
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: false })
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'high-performance' })
   renderer.setPixelRatio(1); renderer.xr.enabled = true; renderer.xr.setReferenceSpaceType('local')
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap
+  renderer.shadowMap.enabled = false
   await renderer.xr.setSession(session)
 
   const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera()
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x9a8a78, 1.6))
-  const grupo = new THREE.Group(); grupo.visible = false; scene.add(grupo)       // prato + sombra, movem juntos
-  const sol = new THREE.DirectionalLight(0xffffff, 2.2); sol.position.set(0.6, 1.6, 0.8); sol.castShadow = true
-  sol.shadow.mapSize.set(1024, 1024); Object.assign(sol.shadow.camera, { left: -0.5, right: 0.5, top: 0.5, bottom: -0.5, near: 0.1, far: 4 }); sol.shadow.bias = -0.0005
-  grupo.add(sol, sol.target)
-  const chao = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShadowMaterial({ opacity: 0.32 })); chao.rotation.x = -Math.PI / 2; chao.receiveShadow = true; grupo.add(chao)
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x9a8a78, 1.7))
+  const sol = new THREE.DirectionalLight(0xffffff, 1.8); sol.position.set(0.6, 1.6, 0.8); scene.add(sol)
+  const grupo = new THREE.Group(); grupo.visible = false; scene.add(grupo)       // prato + sombra falsa, movem juntos
+  const modelo = await carregando; const cena = modelo.clone(true); cena.scale.setScalar(1)   // o arquivo já está em METROS
+  cena.traverse(n => { (n as THREE.Mesh).frustumCulled = false }); grupo.add(cena)
+  const caixa = new THREE.Box3().setFromObject(cena); const raio = Math.max(caixa.max.x - caixa.min.x, caixa.max.z - caixa.min.z) * 0.9
+  const sombra = new THREE.Mesh(new THREE.PlaneGeometry(raio * 2, raio * 2).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: texturaSombra(), transparent: true, depthWrite: false }))
+  sombra.position.y = 0.0005; grupo.add(sombra)
   const mira = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.045, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })); mira.visible = false; scene.add(mira)
+  try { await renderer.compileAsync(scene, camera) } catch { /* aquecimento é opcional */ }
 
-  const gltf = await carregando; const modelo = gltf.scene; modelo.scale.setScalar(1)          // o arquivo já está em METROS: nunca se redimensiona
-  modelo.traverse(n => { const m = n as THREE.Mesh; if (m.isMesh) { m.castShadow = true; m.frustumCulled = false } }); grupo.add(modelo)
-
-  let fixado = false, achou = false, giro = 0, fase = 'procurando'
-  const alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
+  let fixado = false, achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
+  let acum = 0; const media = new THREE.Vector3(), alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
   const texto = (t: string) => { msg.textContent = t }
-  texto('Aponte a câmera para a mesa e mova o celular devagar.')
+  const viewer = await session.requestReferenceSpace('viewer')
+  const abrirFonte = async () => { fonte = await session.requestHitTestSource({ space: viewer }) }
+  const fecharFonte = () => { try { fonte?.cancel() } catch { /* ignora */ } fonte = null }
 
-  const viewer = await session.requestReferenceSpace('viewer'); const fonte = await session.requestHitTestSource({ space: viewer })
-  session.addEventListener('select', () => {                                   // um toque fixa o prato onde ele está
-    if (fixado || !achou) return
-    fixado = true; fase = 'fixado'; mira.visible = false; mover.hidden = false; captura.hidden = false
-    texto('Prato fixado na mesa. Arraste o dedo para girar.')
-  })
-  mover.addEventListener('click', () => { fixado = false; fase = 'procurando'; mover.hidden = true; captura.hidden = true; texto('Aponte para outro ponto da mesa e toque para fixar.') })
-  let x0: number | null = null                                                 // girar com o dedo depois de fixado
+  const reiniciar = async () => {                                   // volta a procurar superfície (primeira vez e "mover o prato")
+    fixado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false
+    try { ancora?.delete() } catch { /* ignora */ } ancora = null
+    mover.hidden = true; captura.hidden = true
+    texto('Mova o celular devagar apontando para a mesa…')
+    await abrirFonte()
+  }
+  let x0: number | null = null                                      // girar com o dedo depois de fixado
   captura.addEventListener('pointerdown', e => { x0 = e.clientX; captura.setPointerCapture(e.pointerId) })
-  captura.addEventListener('pointermove', e => { if (x0 === null) return; giro += (e.clientX - x0) * 0.012; x0 = e.clientX; modelo.rotation.y = giro })
+  captura.addEventListener('pointermove', e => { if (x0 === null) return; giro += (e.clientX - x0) * 0.012; x0 = e.clientX; cena.rotation.y = giro })
   captura.addEventListener('pointerup', () => { x0 = null })
+  mover.addEventListener('click', () => { void reiniciar() })
 
-  const encerrar = () => { renderer.setAnimationLoop(null); try { fonte.cancel() } catch { /* ignora */ } renderer.dispose(); ui.remove(); window.__srAr = undefined; o.aoFechar?.() }
+  const encerrar = () => {
+    renderer.setAnimationLoop(null); fecharFonte(); try { ancora?.delete() } catch { /* ignora */ }
+    renderer.dispose(); ui.remove(); window.__srAr = undefined; o.aoFechar?.()
+  }
   fechar.addEventListener('click', () => { session.end().catch(() => encerrar()) })
   session.addEventListener('end', encerrar)
 
-  window.__srAr = () => ({ fixado, achouSuperficie: achou, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: modelo.scale.x, giro: modelo.rotation.y, fase })
+  window.__srAr = () => ({
+    fixado, achouSuperficie: achou, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
+    triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: !!ancora, estavel: acum,
+  })
+
+  const colocar = (pos: THREE.Vector3, hit: any) => {
+    fixado = true; achou = true; fase = 'fixado'; fecharFonte()
+    grupo.position.copy(pos); grupo.visible = true; mira.visible = false
+    cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
+    cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z)
+    mover.hidden = false; captura.hidden = false
+    texto('Prato fixado na mesa. Arraste o dedo para girar.')
+    if (session.enabledFeatures?.includes?.('anchors') && hit?.createAnchor) hit.createAnchor().then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora: fica estático */ })
+  }
+
+  await reiniciar()
   renderer.setAnimationLoop((_t, frame) => {
-    if (frame && !fixado) {
-      const ref = renderer.xr.getReferenceSpace()!; const r = frame.getHitTestResults(fonte)
-      const pose = r.length ? r[0].getPose(ref) : null
-      if (pose) {
-        tmp.fromArray(pose.transform.matrix)
-        if (tmp.elements[5] > 0.75) {                                          // só superfície horizontal (mesa/bancada/chão)
-          alvo.setFromMatrixPosition(tmp); mira.position.copy(alvo); mira.visible = true; fase = 'seguindo'
-          if (!achou) { achou = true; fase = 'seguindo'; grupo.position.copy(alvo); cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld); modelo.rotation.y = giro = Math.atan2(cam.x - alvo.x, cam.z - alvo.z); grupo.visible = true; texto('Toque na tela para fixar o prato aqui.') }
-          else grupo.position.lerp(alvo, 0.4)                                  // acompanha a mira com suavidade
-        } else mira.visible = false
-      } else mira.visible = false
+    if (frame) {
+      const ref = renderer.xr.getReferenceSpace()!
+      if (fixado) {
+        if (ancora) { const p = frame.getPose(ancora.anchorSpace, ref); if (p) { tmp.fromArray(p.transform.matrix); grupo.position.setFromMatrixPosition(tmp) } }   // o ARCore corrige a deriva
+      } else if (fonte) {
+        const r = frame.getHitTestResults(fonte); const pose = r.length ? r[0].getPose(ref) : null
+        let ok = false
+        if (pose) {
+          tmp.fromArray(pose.transform.matrix); alvo.setFromMatrixPosition(tmp)
+          cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld); const d = cam.distanceTo(alvo)
+          ok = tmp.elements[5] > 0.75 && d >= MIN_DIST && d <= MAX_DIST        // superfície horizontal, a uma distância confiável
+        }
+        if (ok) {
+          mira.position.copy(alvo); mira.visible = true
+          if (acum === 0 || media.distanceTo(alvo) > TOLERANCIA) { media.copy(alvo); acum = 1 }   // pulou: recomeça a contar
+          else { acum++; media.lerp(alvo, 1 / acum) }
+          if (acum >= QUADROS_ESTAVEIS) colocar(media.clone(), r[0])
+        } else { acum = 0; mira.visible = false }
+      }
     }
     renderer.render(scene, camera)
   })

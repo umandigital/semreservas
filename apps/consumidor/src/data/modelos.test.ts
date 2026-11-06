@@ -28,6 +28,14 @@ describe('modelos 3D do cardápio', () => {
     it('não exige extensão que o Scene Viewer / Quick Look ignorariam', () => expect(glb(m.glb).extensionsRequired ?? []).toEqual([]))
     it('tamanho real confere com o declarado (±3%)', () => { const c = caixa(glb(m.glb)); m.tamanhoM.forEach((v, k) => expect(Math.abs(c.dim[k] - v) / v, `eixo ${k}: arquivo ${c.dim[k].toFixed(4)} m, declarado ${v} m`).toBeLessThan(0.03)) })
     it('base no chão (y = 0) e centrado, para assentar na mesa onde se aponta', () => { const c = caixa(glb(m.glb)); expect(Math.abs(c.base)).toBeLessThan(0.005); expect(Math.abs(c.centro[0])).toBeLessThan(0.02); expect(Math.abs(c.centro[1])).toBeLessThan(0.02) })
+    if (m.glbAr) it('versão leve da RA: mesmo tamanho, base no chão, sem extensões, até 70 mil triângulos', () => {
+      const j = glb(m.glbAr!), c = caixa(j)
+      expect(j.extensionsRequired ?? []).toEqual([])
+      m.tamanhoM.forEach((v, k) => expect(Math.abs(c.dim[k] - v) / v, `eixo ${k}`).toBeLessThan(0.03))
+      expect(Math.abs(c.base)).toBeLessThan(0.005)
+      let tri = 0; for (const me of j.meshes) for (const p of me.primitives) tri += (p.indices !== undefined ? j.accessors[p.indices].count : j.accessors[p.attributes.POSITION].count) / 3
+      expect(tri).toBeLessThanOrEqual(70000)
+    })
     it('unidade plausível para um prato (entre 5 cm e 60 cm)', () => { const c = caixa(glb(m.glb)); expect(Math.max(...c.dim)).toBeGreaterThan(0.05); expect(Math.max(...c.dim)).toBeLessThan(0.6) })
   })
 })
