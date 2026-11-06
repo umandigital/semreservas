@@ -2,7 +2,10 @@
 export type Item = {
   id: string; cat: string; nome: string; preco: number // centavos
   desc: string; ingredientes: string[]; img: string; video?: string; tags?: string[]
+  modelo?: Modelo3D
 }
+/** Modelo 3D para "Projetar na mesa" (realidade aumentada). As medidas reais vêm do próprio arquivo (em metros). */
+export type Modelo3D = { glb: string; poster?: string; medidas: string; nota: string }
 export const CATEGORIAS = ['Hambúrgueres', 'Pizzas', 'Porções', 'Bebidas', 'Sobremesas'] as const
 
 const m = (f: string) => `media/${f}`
@@ -15,6 +18,8 @@ export const ITENS: Item[] = [
   { id: 'p2', cat: 'Pizzas', nome: 'Calabresa', preco: 5290, desc: 'Calabresa fatiada e cebola.', ingredientes: ['Massa', 'Mussarela', 'Calabresa', 'Cebola'], img: m('pizza.webp') },
   { id: 'p3', cat: 'Pizzas', nome: 'Quatro Queijos', preco: 5890, desc: 'Mussarela, provolone, gorgonzola e parmesão.', ingredientes: ['Massa', 'Mussarela', 'Provolone', 'Gorgonzola', 'Parmesão'], img: m('pizza.webp'), tags: ['vegetariano'] },
   { id: 'p4', cat: 'Pizzas', nome: 'Pizza do Pub', preco: 6190, desc: 'Costela desfiada, cheddar e cebola crispy.', ingredientes: ['Massa', 'Costela desfiada', 'Cheddar', 'Cebola crispy'], img: m('pizza.webp') },
+  { id: 'p5', cat: 'Pizzas', nome: 'Meio a Meio', preco: 5690, desc: 'Metade mussarela com tomate-cereja e manjericão, metade calabresa.', ingredientes: ['Massa de fermentação lenta', 'Molho de tomate', 'Mussarela', 'Tomate-cereja', 'Manjericão', 'Calabresa'], img: m('pizza-meio-a-meio.webp'),
+    modelo: { glb: m('modelos/pizza-meio-a-meio.glb'), poster: m('pizza-meio-a-meio.webp'), medidas: '32 cm de diâmetro', nota: 'Imagem ilustrativa em tamanho real. O prato servido pode ter pequenas diferenças.' } },
   { id: 'a1', cat: 'Porções', nome: 'Batata Rústica', preco: 2490, desc: 'Batata com casca, alho e alecrim.', ingredientes: ['Batata', 'Alho', 'Alecrim', 'Sal'], img: m('fries.webp'), tags: ['vegetariano'] },
   { id: 'a2', cat: 'Porções', nome: 'Onion Rings', preco: 2690, desc: 'Anéis de cebola empanados com molho da casa.', ingredientes: ['Cebola', 'Empanado', 'Molho da casa'], img: m('fries.webp'), tags: ['vegetariano'] },
   { id: 'a3', cat: 'Porções', nome: 'Frango Crocante', preco: 3890, desc: 'Tiras de frango empanadas e molho de mostarda e mel.', ingredientes: ['Frango', 'Empanado', 'Mostarda e mel'], img: m('fries.webp') },

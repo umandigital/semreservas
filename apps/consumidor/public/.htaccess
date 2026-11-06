@@ -9,3 +9,6 @@ Header set Referrer-Policy "strict-origin-when-cross-origin"
 # localização do aparelho para confirmar que o cliente está no restaurante (somente neste app, "self").
 Header always unset Permissions-Policy
 Header always set Permissions-Policy "geolocation=(self), camera=(), microphone=()"
+# Tipos corretos para os modelos 3D (a realidade aumentada do Android e do iPhone confere o tipo do arquivo).
+AddType model/gltf-binary .glb
+AddType model/vnd.usdz+zip .usdz

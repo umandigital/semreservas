@@ -132,3 +132,11 @@ main.cheio { padding-bottom:0; }
 .barras { list-style:none; padding:0; margin:0 0 8px; display:grid; gap:8px; } .barras li { position:relative; display:flex; justify-content:space-between; align-items:center; min-height:40px; padding:0 12px; background:var(--bg2); border-radius:10px; overflow:hidden; } .barras li i { position:absolute; left:0; top:0; bottom:0; background:var(--bg3); z-index:0; } .barras li span,.barras li b { position:relative; z-index:1; }
 .link-painel { display:block; word-break:break-all; background:var(--bg); padding:10px; border-radius:10px; font-size:.85rem; user-select:all; }
 .presenca { margin:4px 0; font-size:.9rem; color:var(--mut); } .presenca.longe { color:#ffb3a8; font-weight:700; }
+
+/* ── 3D / realidade aumentada ── */
+.reel .cta-ar { width:100%; min-height:48px; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-color:var(--laranja); color:#fff; }
+.visor-ar { position:fixed; inset:0; z-index:60; background:var(--bg); display:flex; flex-direction:column; padding-top:env(safe-area-inset-top); }
+.visor-ar > header { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 16px; border-bottom:1px solid var(--bg3); } .visor-ar > header small { display:block; color:var(--mut); }
+.visor-ar-cena { position:relative; flex:1; min-height:0; background:radial-gradient(circle at 50% 40%, #4a2578, var(--bg) 75%); } .visor-ar-cena model-viewer { --poster-color:transparent; }
+.carregando-ar { position:absolute; inset:0; display:grid; place-content:center; margin:0; }
+.visor-ar > footer { padding:12px 16px calc(12px + env(safe-area-inset-bottom)); display:grid; gap:6px; background:#1a0a30; } .visor-ar > footer p { margin:0; }

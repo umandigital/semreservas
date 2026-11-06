@@ -1,15 +1,17 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { brl, CATEGORIAS, ITENS, type Item } from '../data/cardapio'
 import { useEsgotados } from '../lib/hooks'
 import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
 import { baseCurtidas } from '../lib/util'
-import { IconBalao, IconBusca, IconCardapio, IconCoracao, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
+import { IconBalao, IconBusca, IconCubo, IconCardapio, IconCoracao, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
 
+const VisorAR = lazy(() => import('./VisorAR'))   // 3D/RA só baixa quando alguém toca em "Projetar na mesa"
 const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
 
 export function Cardapio({ ir }: { ir: (r: string) => void }) {
   const soldOut = useEsgotados(); const sel = useSelecao()
   const [cat, setCat] = useState<string>('Todos'); const [q, setQ] = useState(''); const [lista, setLista] = useState(false)
+  const [ar, setAr] = useState<Item | null>(null)
   const [dica, setDica] = useState(() => { try { return !localStorage.getItem('sr-dica') } catch { return true } })
   const [h, setH] = useState<number | null>(null); const wrap = useRef<HTMLDivElement>(null); const rolo = useRef<HTMLDivElement>(null)
   const base = import.meta.env.BASE_URL
@@ -45,13 +47,14 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
       </div>
       {itens.length === 0 ? <p className="vazio-reel">Nada encontrado. Tente outra palavra.</p> : lista ? (
         <div className={'lista lista-wrap'} ref={rolo} style={{ position: 'absolute', inset: 0, paddingTop: 128, paddingBottom: 16, background: 'var(--bg)' }}>
-          {itens.map(i => <LinhaItem key={i.id} i={i} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />)}
+          {itens.map(i => <LinhaItem key={i.id} abrirAr={setAr} i={i} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />)}
         </div>
       ) : (
         <div className="reels" ref={rolo} onScroll={rolou} tabIndex={0} aria-label="Pratos do cardápio. Deslize para ver o próximo">
-          {itens.map((i, n) => <Reel key={i.id} ir={ir} i={i} n={n + 1} de={itens.length} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />)}
+          {itens.map((i, n) => <Reel key={i.id} ir={ir} abrirAr={setAr} i={i} n={n + 1} de={itens.length} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />)}
         </div>
       )}
+      {ar && <Suspense fallback={<div className="visor-ar"><p className="nota carregando-ar">Carregando…</p></div>}><VisorAR item={ar} fechar={() => setAr(null)} /></Suspense>}
       {dica && !lista && itens.length > 1 && <div className="dica-deslize" aria-hidden="true">↑ Deslize para o próximo</div>}
     </div>
   )
@@ -63,7 +66,7 @@ function Acao({ i, esgotado, qtd }: { i: Item; esgotado: boolean; qtd: number })
   return <span className="qtd"><button onClick={() => setQtd(i.id, qtd - 1)} aria-label={`Menos ${i.nome}`}>−</button><b>{qtd}</b><button onClick={() => setQtd(i.id, qtd + 1)} aria-label={`Mais ${i.nome}`}>+</button></span>
 }
 
-function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: number; base: string; esgotado: boolean; qtd: number; ir: (r: string) => void }) {
+function Reel({ i, n, de, base, esgotado, qtd, ir, abrirAr }: { i: Item; n: number; de: number; base: string; esgotado: boolean; qtd: number; ir: (r: string) => void; abrirAr: (i: Item) => void }) {
   const [aberto, setAberto] = useState(false)
   const soc = useSocial(); const membro = useMembro()
   const curtido = soc.likes.includes(i.id), salvo = soc.saved.includes(i.id)
@@ -78,7 +81,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
       {i.video && !reduzir
         ? <video src={base + i.video} poster={base + i.img} muted loop playsInline preload="metadata" aria-label={`Vídeo de ${i.nome}`} />
         : <img src={base + i.img} alt={i.nome} loading={n > 2 ? 'lazy' : 'eager'} />}
-      <span className="selo">{i.video ? '▶ Vídeo' : '● Foto'}</span>
+      <span className="selo">{i.video ? '▶ Vídeo' : '● Foto'}{i.modelo ? ' · 3D' : ''}</span>
       <div className="lateral">
         <button onClick={() => curtir(i.id)} aria-pressed={curtido} aria-label={`Curtir ${i.nome}`}><IconCoracao cheio={curtido} /><small>{baseCurtidas(i.id) + (curtido ? 1 : 0)}</small></button>
         <button onClick={() => ir('/comentarios/' + i.id)} aria-label={`Comentar ${i.nome}`}><IconBalao /><small>Comentar</small></button>
@@ -94,16 +97,19 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
         {aberto && <ul className="ingr">{i.ingredientes.map(x => <li key={x}>{x}</li>)}{i.tags?.map(t => <li key={t} className="tag">{t}</li>)}</ul>}
         <button className="link" style={{ textAlign: 'left', padding: 0 }} onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Recolher descrição ↓' : 'Ver ingredientes e detalhes ↑'}</button>
       </div>
-      <div className="acao-reel"><Acao i={i} esgotado={esgotado} qtd={qtd} /></div>
+      <div className="acao-reel">
+        {i.modelo && <button className="sec cta-ar" onClick={() => abrirAr(i)}><IconCubo /> Projetar na mesa</button>}
+        <Acao i={i} esgotado={esgotado} qtd={qtd} />
+      </div>
     </article>
   )
 }
 
-function LinhaItem({ i, base, esgotado, qtd }: { i: Item; base: string; esgotado: boolean; qtd: number }) {
+function LinhaItem({ i, base, esgotado, qtd, abrirAr }: { i: Item; base: string; esgotado: boolean; qtd: number; abrirAr: (i: Item) => void }) {
   return (
     <article className={'linha-item' + (esgotado ? ' off' : '')}>
       <img src={base + i.img} alt="" loading="lazy" />
-      <div className="meio"><h2>{i.nome}</h2><p>{i.desc}</p><span className="preco">{brl(i.preco)}</span></div>
+      <div className="meio"><h2>{i.nome}</h2><p>{i.desc}</p><span className="preco">{brl(i.preco)}</span>{i.modelo && <button className="link" style={{ padding: 0, textAlign: 'left' }} onClick={() => abrirAr(i)}>Projetar na mesa (3D)</button>}</div>
       <Acao i={i} esgotado={esgotado} qtd={qtd} />
     </article>
   )
