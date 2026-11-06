@@ -137,3 +137,4 @@ main.cheio { padding-bottom:0; }
 @keyframes sobe { 50% { transform:translate(-50%,-8px); } } @media (prefers-reduced-motion:reduce) { .dica-deslize { animation:none; } }
 .tag3d { margin-left:8px; font-size:.7rem; background:var(--laranja); color:var(--bg); padding:1px 8px; border-radius:99px; vertical-align:middle; }
 @media (max-height:640px) { .reel .contador,.dica-deslize { display:none; } .reel .sombra h2 { font-size:1.15rem; } .reel .acao-reel .primario,.reel .cta-ar { font-size:.88rem; } }
+.reel .status-ra { margin:0; padding:6px 14px; background:#3b1a63; color:#fff; font-size:.85rem; }

@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRe
 import { brl, CATEGORIAS, CONFIG, ITENS, type Item } from '../data/cardapio'
 import { useEsgotados } from '../lib/hooks'
 import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
-import { baseCurtidas, media } from '../lib/util'
+import { abrirRa, baseCurtidas, media } from '../lib/util'
 import type { ModeloEl } from '../ui/model-viewer'
 import { IconBalao, IconBusca, IconCardapio, IconCoracao, IconCubo, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
 
@@ -98,7 +98,8 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
     try { if (navigator.share) { await navigator.share({ title: i.nome, text: `${i.nome} · ${brl(i.preco)}`, url }); return } } catch { return }
     try { await navigator.clipboard.writeText(url); avisar('Link copiado. Compartilhar não comprova que alguém publicou.') } catch { avisar('Copie o endereço da barra do navegador.') }
   }
-  const projetar = async () => { try { await mv.current?.activateAR() } catch { avisar('Não foi possível abrir a câmera de realidade aumentada neste aparelho.') } }
+  const [msgRa, setMsgRa] = useState('')
+  const projetar = async () => { if (!mv.current) return; const r = await abrirRa(mv.current, setMsgRa); if (r !== 'aberto') setTimeout(() => setMsgRa(''), 9000) }
   const m = i.modelo
   return (
     <article ref={ref} className={'reel' + (esgotado ? ' off' : '') + (m ? ' com-3d' : '')} aria-label={`${i.nome}, prato ${n} de ${de}`}>
@@ -126,6 +127,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
           {aberto && <ul className="ingr">{i.ingredientes.map(x => <li key={x}>{x}</li>)}{i.tags?.map(t => <li key={t} className="tag">{t}</li>)}</ul>}
           <button className="link" style={{ textAlign: 'left', padding: 0 }} onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Recolher ↓' : 'Ver ingredientes ↑'}</button>
         </div>
+        {msgRa && <p className="status-ra" role="status">{msgRa}</p>}
         <div className="acao-reel">
           {m && <button className="sec cta-ar" disabled={!ra || esgotado} onClick={projetar} title={carregado && !ra ? 'Disponível no celular' : undefined}><IconCubo /> Projete na mesa</button>}
           <Acao i={i} esgotado={esgotado} qtd={qtd} curto={!!m} />
