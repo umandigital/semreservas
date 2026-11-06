@@ -5,7 +5,12 @@ export type Item = {
   modelo?: Modelo3D
 }
 /** Modelo 3D para "Projetar na mesa" (realidade aumentada). As medidas reais vêm do próprio arquivo (em metros). */
-export type Modelo3D = { glb: string; poster?: string; medidas: string; nota: string; orbita?: string; capaRender?: boolean }
+export type Modelo3D = {
+  glb: string; poster: string          // poster = render com fundo transparente (aparece enquanto o 3D carrega)
+  medidas: string                      // texto para o cliente
+  tamanhoM: [number, number, number]   // largura × altura × profundidade REAIS, em metros: o teste confere com o arquivo
+  nota: string; orbita?: string
+}
 export const CATEGORIAS = ['Hambúrgueres', 'Pizzas', 'Porções', 'Bebidas', 'Sobremesas'] as const
 
 const m = (f: string) => `media/${f}`
@@ -13,13 +18,15 @@ export const ITENS: Item[] = [
   { id: 'h1', cat: 'Hambúrgueres', nome: 'Clássico da Casa', preco: 3490, desc: 'Blend 160 g, queijo prato e maionese da casa.', ingredientes: ['Pão brioche', 'Blend bovino 160 g', 'Queijo prato', 'Alface', 'Tomate', 'Maionese da casa'], img: m('burger.webp'), video: m('burger-demo.mp4') },
   { id: 'h2', cat: 'Hambúrgueres', nome: 'Duplo Cheddar', preco: 4290, desc: 'Dois blends, cheddar cremoso e cebola caramelizada.', ingredientes: ['Pão brioche', '2 blends 120 g', 'Cheddar', 'Cebola caramelizada'], img: m('burger.webp') },
   { id: 'h3', cat: 'Hambúrgueres', nome: 'Bacon BBQ', preco: 3990, desc: 'Bacon crocante e molho barbecue defumado.', ingredientes: ['Pão brioche', 'Blend 160 g', 'Bacon', 'Molho barbecue', 'Cebola roxa'], img: m('burger.webp') },
+  { id: 'h5', cat: 'Hambúrgueres', nome: 'Burger Quádruplo', preco: 6290, desc: 'Quatro carnes, cheddar, bacon e creme no pão brilhante.', ingredientes: ['Pão brioche', '4 carnes', 'Cheddar', 'Bacon', 'Creme da casa'], img: m('modelos/hamburguer-4-carnes-poster.webp'),
+    modelo: { glb: m('modelos/hamburguer-4-carnes.glb'), poster: m('modelos/hamburguer-4-carnes-poster.webp'), medidas: 'Prato de 22 cm · 16 cm de altura', tamanhoM: [0.218, 0.157, 0.218], orbita: '30deg 68deg auto', nota: 'Imagem ilustrativa em tamanho real, com o prato. O lanche servido pode ter pequenas diferenças.' } },
   { id: 'h4', cat: 'Hambúrgueres', nome: 'Veggie de Grão-de-bico', preco: 3690, desc: 'Burger vegetal com tahine e folhas.', ingredientes: ['Pão brioche', 'Burger de grão-de-bico', 'Tahine', 'Rúcula', 'Tomate'], img: m('burger.webp'), tags: ['vegetariano'] },
   { id: 'p1', cat: 'Pizzas', nome: 'Margherita', preco: 4990, desc: 'Molho de tomate, mussarela e manjericão.', ingredientes: ['Massa de fermentação lenta', 'Molho de tomate', 'Mussarela', 'Manjericão'], img: m('pizza.webp'), tags: ['vegetariano'] },
   { id: 'p2', cat: 'Pizzas', nome: 'Calabresa', preco: 5290, desc: 'Calabresa fatiada e cebola.', ingredientes: ['Massa', 'Mussarela', 'Calabresa', 'Cebola'], img: m('pizza.webp') },
   { id: 'p3', cat: 'Pizzas', nome: 'Quatro Queijos', preco: 5890, desc: 'Mussarela, provolone, gorgonzola e parmesão.', ingredientes: ['Massa', 'Mussarela', 'Provolone', 'Gorgonzola', 'Parmesão'], img: m('pizza.webp'), tags: ['vegetariano'] },
   { id: 'p4', cat: 'Pizzas', nome: 'Pizza do Pub', preco: 6190, desc: 'Costela desfiada, cheddar e cebola crispy.', ingredientes: ['Massa', 'Costela desfiada', 'Cheddar', 'Cebola crispy'], img: m('pizza.webp') },
   { id: 'p5', cat: 'Pizzas', nome: 'Meio a Meio', preco: 5690, desc: 'Metade mussarela com tomate-cereja e manjericão, metade calabresa.', ingredientes: ['Massa de fermentação lenta', 'Molho de tomate', 'Mussarela', 'Tomate-cereja', 'Manjericão', 'Calabresa'], img: m('pizza-meio-a-meio.webp'),
-    modelo: { glb: m('modelos/pizza-meio-a-meio.glb'), poster: m('pizza-meio-a-meio.webp'), medidas: '32 cm de diâmetro', nota: 'Imagem ilustrativa em tamanho real. O prato servido pode ter pequenas diferenças.' } },
+    modelo: { glb: m('modelos/pizza-meio-a-meio.glb'), poster: m('modelos/pizza-meio-a-meio-poster.webp'), medidas: '32 cm de diâmetro', tamanhoM: [0.32, 0.0345, 0.32], orbita: '20deg 60deg auto', nota: 'Imagem ilustrativa em tamanho real. O prato servido pode ter pequenas diferenças.' } },
   { id: 'a1', cat: 'Porções', nome: 'Batata Rústica', preco: 2490, desc: 'Batata com casca, alho e alecrim.', ingredientes: ['Batata', 'Alho', 'Alecrim', 'Sal'], img: m('fries.webp'), tags: ['vegetariano'] },
   { id: 'a2', cat: 'Porções', nome: 'Onion Rings', preco: 2690, desc: 'Anéis de cebola empanados com molho da casa.', ingredientes: ['Cebola', 'Empanado', 'Molho da casa'], img: m('fries.webp'), tags: ['vegetariano'] },
   { id: 'a3', cat: 'Porções', nome: 'Frango Crocante', preco: 3890, desc: 'Tiras de frango empanadas e molho de mostarda e mel.', ingredientes: ['Frango', 'Empanado', 'Mostarda e mel'], img: m('fries.webp') },
@@ -37,6 +44,8 @@ export const brl = (c: number) => (c / 100).toLocaleString('pt-BR', { style: 'cu
 
 // Configuração do estabelecimento (teste). Campo vazio = ação não aparece (nunca inventar destino).
 export const CONFIG = {
+  // Fundo padrão do restaurante para os pratos em 3D (qualquer CSS de background: cor, gradiente ou imagem).
+  fundo3d: 'radial-gradient(ellipse 85% 70% at 50% 46%, #fbf8f3 0%, #eee6da 52%, #d3c7b6 100%)',
   wifi: { ssid: 'GastroPub-Guest', senha: 'teste1234' },
   instagram: '' as string,
   googleAvaliacao: '' as string,

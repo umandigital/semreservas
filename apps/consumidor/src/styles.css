@@ -86,39 +86,8 @@ button:disabled { opacity:.45; cursor:not-allowed; }
 .oque { font-size:1.25rem; }
 .equipe { max-width:520px; margin:0 auto; }
 
-/* ── Cardápio estilo Reels: um prato por tela, deslize para o próximo ── */
-.reels-wrap { position:relative; overflow:hidden; background:#000; }
-.reels-topo { position:absolute; top:0; left:0; right:0; z-index:5; padding:8px 0 14px; background:linear-gradient(to bottom,rgba(10,2,25,.92) 55%,rgba(10,2,25,0)); }
-.reels-topo .barra { padding:0 12px 6px; } .reels-topo .chips { padding:4px 12px; }
-.reels-topo .busca,.reels-topo .icone,.reels-topo .chip { background:rgba(30,10,55,.85); backdrop-filter:blur(6px); }
-.reels-topo .chip.on { background:var(--laranja); }
-.pilula-sel { min-height:44px; padding:0 14px; border:0; border-radius:var(--r); background:var(--laranja); color:var(--bg); font-weight:800; white-space:nowrap; }
-.reels { position:absolute; inset:0; overflow-y:auto; scroll-snap-type:y mandatory; overscroll-behavior:contain; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
-.reels::-webkit-scrollbar { display:none; }
-.reel { position:relative; height:100%; scroll-snap-align:start; scroll-snap-stop:always; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; background:#000; }
-.reel img,.reel video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.reel.off img,.reel.off video { filter:grayscale(1) brightness(.45); }
-.reel .selo { position:absolute; left:12px; top:132px; z-index:2; background:rgba(20,5,40,.75); padding:3px 10px; border-radius:99px; font-size:.8rem; }
-.reel .lateral { position:absolute; right:8px; bottom:210px; display:grid; gap:10px; z-index:3; }
-.reel .lateral button { width:54px; min-height:54px; display:grid; place-items:center; align-content:center; background:rgba(20,5,40,.7); border:1px solid rgba(255,255,255,.2); border-radius:14px; color:#fff; padding:4px 0; }
-.reel .lateral small { font-size:.62rem; line-height:1.1; }
-.reel .sombra { position:relative; z-index:2; padding:90px 78px 10px 16px; background:linear-gradient(to top,rgba(10,2,25,.96) 55%,rgba(10,2,25,0)); display:grid; gap:6px; }
-.reel .sombra h2 { font-size:1.6rem; } .reel .sombra p { margin:0; color:#f0e8fa; }
-.reel .catag { align-self:flex-start; background:rgba(51,16,66,.85); padding:2px 10px; border-radius:99px; font-size:.8rem; }
-.reel .acao-reel { position:relative; z-index:3; padding:6px 12px 12px; background:rgba(10,2,25,.96); }
-.reel .acao-reel .primario { width:100%; min-height:52px; font-size:1.05rem; } .reel .acao-reel .qtd { width:100%; justify-content:space-between; } .reel .acao-reel .esgotado { display:block; text-align:center; }
-.dica-deslize { position:absolute; left:50%; bottom:150px; transform:translateX(-50%); z-index:6; background:rgba(255,255,255,.92); color:#111; padding:8px 14px; border-radius:99px; font-weight:700; font-size:.9rem; pointer-events:none; animation:sobe 1.4s ease-in-out infinite; }
-@keyframes sobe { 50% { transform:translate(-50%,-8px); } } @media (prefers-reduced-motion:reduce) { .dica-deslize { animation:none; } }
-.contador { position:absolute; left:12px; bottom:218px; z-index:3; background:rgba(20,5,40,.75); padding:2px 10px; border-radius:99px; font-size:.78rem; }
 .lista-wrap { overflow-y:auto; } .vazio-reel { position:absolute; inset:0; display:grid; place-content:center; text-align:center; padding:24px; color:var(--mut); }
 main.cheio { padding-bottom:0; }
-/* ajustes: nada sobrepõe título/descrição e todos os botões laterais ficam abaixo das categorias */
-.reel .lateral { bottom:150px; gap:8px; } .reel .lateral button { width:48px; min-height:48px; }
-.contador { bottom:auto; top:170px; left:12px; } .reel .selo { top:134px; }
-.dica-deslize { bottom:auto; top:44%; }
-/* telas baixas (iPhone SE e parecidos): botões laterais descem ao lado do texto, sem sobrepor nada */
-.reel .lateral { bottom:80px; } .dica-deslize { top:178px; }
-@media (max-height:640px) { .contador, .dica-deslize { display:none; } .reel .sombra h2 { font-size:1.35rem; } .reel .sombra { padding-top:60px; } .reel .lateral button { width:44px; min-height:44px; } .reel .lateral { gap:6px; } }
 
 .boas-vindas { min-height:100dvh; display:grid; place-content:center; gap:14px; text-align:center; padding:24px; max-width:420px; margin:0 auto; background:radial-gradient(circle at 50% 20%, #4a2578, var(--bg) 70%); }
 .boas-vindas h1 { margin:0; font-size:1.9rem; } .boas-vindas p { margin:0; }
@@ -133,20 +102,38 @@ main.cheio { padding-bottom:0; }
 .link-painel { display:block; word-break:break-all; background:var(--bg); padding:10px; border-radius:10px; font-size:.85rem; user-select:all; }
 .presenca { margin:4px 0; font-size:.9rem; color:var(--mut); } .presenca.longe { color:#ffb3a8; font-weight:700; }
 
-/* ── 3D / realidade aumentada ── */
-.reel .cta-ar { width:100%; min-height:48px; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-color:var(--laranja); color:#fff; }
-.visor-ar { position:fixed; inset:0; z-index:60; background:var(--bg); display:flex; flex-direction:column; padding-top:env(safe-area-inset-top); }
-.visor-ar > header { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 16px; border-bottom:1px solid var(--bg3); } .visor-ar > header small { display:block; color:var(--mut); }
-:root { --fundo-3d: radial-gradient(ellipse 85% 70% at 50% 46%, #fbf8f3 0%, #eee6da 52%, #d3c7b6 100%); }   /* fundo padrão de estúdio: claro e neutro, vale para todos os pratos */
-.visor-ar-cena { position:relative; flex:1; min-height:0; background:var(--fundo-3d); } .visor-ar-cena model-viewer { --poster-color:transparent; }
-.carregando-ar { position:absolute; inset:0; display:grid; place-content:center; margin:0; color:#5a4a3a; }
-.visor-ar > footer { padding:12px 16px calc(12px + env(safe-area-inset-bottom)); display:grid; gap:6px; background:#1a0a30; } .visor-ar > footer p { margin:0; }
-/* prato com botão "Veja em 3D": a área de ações é mais alta, então a coluna lateral sobe */
-.reel.com-3d .lateral { bottom:140px; }
-/* telas baixas: "Veja em 3D" e "Adicionar" lado a lado, para a coluna lateral não subir sobre as categorias */
-@media (max-height:640px) {
-  .reel.com-3d .acao-reel { display:flex; gap:8px; align-items:stretch; } .reel.com-3d .acao-reel > * { flex:1; }
-  .reel.com-3d .cta-ar { margin-bottom:0; font-size:.9rem; } .reel.com-3d .acao-reel .primario { font-size:.9rem; }
-  .reel.com-3d .lateral { bottom:80px; }
-}
-@media (max-height:640px) { .reel .selo { display:none; } }
+/* ── Cardápio estilo Reels (bloco único): um prato por tela; os 3D aparecem direto, com o fundo padrão do restaurante ── */
+:root { --fundo-3d: radial-gradient(ellipse 85% 70% at 50% 46%, #fbf8f3 0%, #eee6da 52%, #d3c7b6 100%); --topo-reel: 60px; }
+.reels-wrap { position:relative; overflow:hidden; background:#000; }
+.reels-topo { position:absolute; top:0; left:0; right:0; z-index:5; height:var(--topo-reel); display:flex; align-items:center; gap:8px; padding:0 10px; background:linear-gradient(to bottom,#1a0a30 84%,rgba(26,10,48,0)); }
+.reels-topo .icone { flex:none; background:rgba(74,37,120,.9); }
+.reels-topo .chips { flex:1; min-width:0; padding:0; } .reels-topo .chip { background:rgba(74,37,120,.9); } .reels-topo .chip.on { background:var(--laranja); }
+.reels-topo .busca { flex:1; min-width:0; }
+.reels { position:absolute; inset:0; overflow-y:auto; scroll-snap-type:y mandatory; overscroll-behavior:contain; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.reels::-webkit-scrollbar { display:none; }
+.reel { position:relative; height:100%; scroll-snap-align:start; scroll-snap-stop:always; overflow:hidden; display:grid; grid-template-rows:var(--topo-reel) minmax(0,1fr) auto; background:#000; }
+.reel > img,.reel > video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.reel.off > img,.reel.off > video,.reel.off .palco { filter:grayscale(1) brightness(.5); }
+.reel .selo,.reel .contador { position:absolute; left:10px; z-index:2; background:rgba(20,5,40,.75); color:#fff; padding:2px 10px; border-radius:99px; font-size:.78rem; }
+.reel .selo { top:calc(var(--topo-reel) + 6px); } .reel .contador { top:calc(var(--topo-reel) + 32px); }
+.reel .lateral { grid-row:2; grid-column:1; align-self:center; justify-self:end; margin-right:8px; display:grid; gap:8px; z-index:3; }
+.reel .lateral button { width:44px; min-height:44px; display:grid; place-items:center; align-content:center; background:rgba(20,5,40,.62); border:1px solid rgba(255,255,255,.22); border-radius:14px; color:#fff; padding:2px 0; }
+.reel .lateral small { font-size:.62rem; line-height:1; }
+.reel .base { grid-row:3; position:relative; z-index:3; }
+.reel .sombra { padding:56px 64px 6px 14px; background:linear-gradient(to top,rgba(10,2,25,.96) 60%,rgba(10,2,25,0)); display:grid; gap:2px; }
+.reel .linha-nome { display:flex; align-items:baseline; justify-content:space-between; gap:10px; } .reel .sombra h2 { font-size:1.3rem; } .reel .sombra p { margin:0; color:#f0e8fa; font-size:.92rem; }
+.reel .sombra p.desc1 { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.reel .acao-reel { display:flex; gap:8px; align-items:stretch; padding:6px 12px 10px; background:rgba(10,2,25,.96); }
+.reel .acao-reel > * { flex:1; min-width:0; } .reel .acao-reel .primario { min-height:48px; font-size:1rem; } .reel .acao-reel .qtd { justify-content:space-between; } .reel .acao-reel .esgotado { display:block; text-align:center; }
+.reel .cta-ar { min-height:48px; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700; border-color:var(--laranja); color:#fff; font-size:1rem; }
+/* prato em 3D: o produto ocupa todo o espaço entre o topo e o painel; fundo padrão do restaurante */
+.reel.com-3d { background:var(--fundo-3d); }
+.reel.com-3d .sombra { background:#1a0a30; padding:8px 14px 4px; }
+.palco { grid-row:2; grid-column:1; position:relative; min-height:0; }
+.palco model-viewer { position:absolute; inset:0; width:100%; height:100%; background:transparent; --poster-color:transparent; }
+.palco .poster3d { position:absolute; inset:2% 3% 8%; width:94%; height:90%; object-fit:contain; transition:opacity .35s; } .palco .poster3d.some { opacity:0; }
+.palco .nota3d { position:absolute; left:10px; right:60px; bottom:6px; font-size:.7rem; color:#6b5a48; z-index:1; pointer-events:none; }
+.dica-deslize { position:absolute; left:50%; top:40%; transform:translateX(-50%); z-index:6; background:rgba(255,255,255,.92); color:#111; padding:8px 14px; border-radius:99px; font-weight:700; font-size:.9rem; pointer-events:none; animation:sobe 1.4s ease-in-out infinite; }
+@keyframes sobe { 50% { transform:translate(-50%,-8px); } } @media (prefers-reduced-motion:reduce) { .dica-deslize { animation:none; } }
+.tag3d { margin-left:8px; font-size:.7rem; background:var(--laranja); color:var(--bg); padding:1px 8px; border-radius:99px; vertical-align:middle; }
+@media (max-height:640px) { .reel .contador,.dica-deslize { display:none; } .reel .sombra h2 { font-size:1.15rem; } .reel .acao-reel .primario,.reel .cta-ar { font-size:.88rem; } }
