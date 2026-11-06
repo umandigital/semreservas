@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRe
 import { brl, CATEGORIAS, CONFIG, ITENS, type Item } from '../data/cardapio'
 import { useEsgotados } from '../lib/hooks'
 import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
-import { abrirRa, baseCurtidas, media } from '../lib/util'
+import { abrirRa, baseCurtidas, media, webxrArDisponivel } from '../lib/util'
 import type { ModeloEl } from '../ui/model-viewer'
 import { IconBalao, IconBusca, IconCardapio, IconCoracao, IconCubo, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
 
@@ -98,8 +98,17 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
     try { if (navigator.share) { await navigator.share({ title: i.nome, text: `${i.nome} · ${brl(i.preco)}`, url }); return } } catch { return }
     try { await navigator.clipboard.writeText(url); avisar('Link copiado. Compartilhar não comprova que alguém publicou.') } catch { avisar('Copie o endereço da barra do navegador.') }
   }
-  const [msgRa, setMsgRa] = useState('')
-  const projetar = async () => { if (!mv.current) return; const r = await abrirRa(mv.current, setMsgRa); if (r !== 'aberto') setTimeout(() => setMsgRa(''), 9000) }
+  const [msgRa, setMsgRa] = useState(''); const [webxrAr, setWebxrAr] = useState(false)
+  // no Chrome do Android a RA é a nossa (prato já na mesa apontada); descobre isso e adianta o download dela quando o prato chega perto
+  useEffect(() => { if (!i.modelo || !perto) return; webxrArDisponivel().then(ok => { setWebxrAr(ok); if (ok) void import('../lib/arWebxr') }) }, [i.modelo, perto])
+  const projetar = async () => {
+    if (!i.modelo) return
+    if (webxrAr) {
+      try { const { iniciarAr } = await import('../lib/arWebxr'); await iniciarAr({ glb: media(i.modelo.glb), nome: i.nome, medidas: i.modelo.medidas, nota: i.modelo.nota }); setMsgRa(''); return }
+      catch { setMsgRa('Não consegui abrir a câmera do navegador. Tentando o aplicativo do Google…') }
+    }
+    if (!mv.current) return; const r = await abrirRa(mv.current, setMsgRa); if (r !== 'aberto') setTimeout(() => setMsgRa(''), 9000)
+  }
   const m = i.modelo
   return (
     <article ref={ref} className={'reel' + (esgotado ? ' off' : '') + (m ? ' com-3d' : '')} aria-label={`${i.nome}, prato ${n} de ${de}`}>
@@ -129,7 +138,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
         </div>
         {msgRa && <p className="status-ra" role="status">{msgRa}</p>}
         <div className="acao-reel">
-          {m && <button className="sec cta-ar" disabled={!ra || esgotado} onClick={projetar} title={carregado && !ra ? 'Disponível no celular' : undefined}><IconCubo /> Projete na mesa</button>}
+          {m && <button className="sec cta-ar" disabled={!(ra || webxrAr) || esgotado} onClick={projetar} title={carregado && !ra && !webxrAr ? 'Disponível no celular' : undefined}><IconCubo /> Projete na mesa</button>}
           <Acao i={i} esgotado={esgotado} qtd={qtd} curto={!!m} />
         </div>
       </div>

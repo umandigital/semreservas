@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 // Rotas por # (#/cardapio): funcionam em hospedagem comum sem regras de servidor.
 // O /r/{token} da placa é resolvido uma vez e vira #/ com a mesa guardada na sessão.
-const atual = () => (location.hash.replace(/^#/, '') || '/')
+/** Lê a tela a partir do hash. Hash que NÃO começa com "/" não é tela do app (ex.: o #model-viewer-no-ar-fallback que o componente
+ *  de RA usa como sinal): é ignorado, para não derrubar o cardápio e reiniciar no primeiro prato. */
+export const lerRota = (hash: string, anterior = '/'): string => { const h = hash.replace(/^#/, ''); return h === '' ? '/' : h.startsWith('/') ? h : anterior }
+const atual = (anterior = '/') => lerRota(location.hash, anterior)
 export function useRota(): [string, (r: string) => void] {
-  const [r, setR] = useState(atual)
-  useEffect(() => { const f = () => setR(atual()); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
+  const [r, setR] = useState(() => atual())
+  useEffect(() => { const f = () => setR(a => atual(a)); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
   return [r, (n: string) => { location.hash = n }]
 }
 const MESA = 'sr-mesa'

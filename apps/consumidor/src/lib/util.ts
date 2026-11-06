@@ -40,3 +40,8 @@ export async function abrirRa(el: ElRa, aviso: (m: string) => void, espera = 180
     return 'falhou'
   } finally { limpa() }
 }
+
+/** O navegador faz RA pelo WebXR? (checagem leve: não carrega a biblioteca 3D) */
+export async function webxrArDisponivel(): Promise<boolean> {
+  try { const x = (navigator as unknown as { xr?: { isSessionSupported(m: string): Promise<boolean> } }).xr; return !!x && await x.isSessionSupported('immersive-ar') } catch { return false }
+}

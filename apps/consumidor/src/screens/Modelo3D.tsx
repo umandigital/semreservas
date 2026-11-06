@@ -15,7 +15,7 @@ export default function Modelo3D({ item, ativo, mvRef, aoCarregar }: { item: Ite
   }, [mvRef, aoCarregar])
   return (
     <model-viewer ref={el => { mvRef.current = el }} src={media(m.glb)} alt={`Modelo 3D de ${item.nome}`}
-      ar ar-modes="scene-viewer webxr quick-look" ar-placement="floor" ar-scale="fixed"
+      ar ar-modes="scene-viewer quick-look" ar-placement="floor" ar-scale="fixed"
       camera-controls disable-zoom disable-pan touch-action="pan-y" camera-orbit={m.orbita} auto-rotate={ativo ? '' : undefined} rotation-per-second="16deg"
       shadow-intensity="1.1" shadow-softness="0.9" exposure="1.05" environment-image="neutral" interaction-prompt="none">
       <button slot="ar-button" hidden aria-hidden="true" tabIndex={-1} />
