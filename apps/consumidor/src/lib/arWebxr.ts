@@ -16,7 +16,7 @@ export async function suportaWebxrAr(): Promise<boolean> {
 
 export type OpcoesAr = { glb: string; nome: string; medidas: string; nota: string; aoAbrir?: () => void; aoFechar?: () => void }
 export type EstadoAr = {
-  fixado: boolean; achouSuperficie: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
+  fixado: boolean; achouSuperficie: boolean; visivel: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
   triangulos: number; chamadas: number; sombraMapa: boolean; ancora: boolean; estavel: number
 }
 declare global { interface Window { __srAr?: () => EstadoAr } }
@@ -30,7 +30,7 @@ export function prepararAr(glb: string): Promise<THREE.Group> {
 }
 
 const MIN_DIST = 0.35, MAX_DIST = 2.5      // metros da câmera: nem colado, nem lá longe (onde o ARCore erra)
-const QUADROS_ESTAVEIS = 10, TOLERANCIA = 0.03   // ~10 quadros seguidos dentro de 3 cm
+const QUADROS_ESTAVEIS = 4, TOLERANCIA = 0.03   // 4 quadros seguidos dentro de 3 cm travam o prato
 
 function texturaSombra(): THREE.Texture {
   const c = document.createElement('canvas'); c.width = c.height = 128
@@ -80,14 +80,16 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   let acum = 0; const media = new THREE.Vector3(), alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
   const texto = (t: string) => { msg.textContent = t }
   const viewer = await session.requestReferenceSpace('viewer')
-  const abrirFonte = async () => { fonte = await session.requestHitTestSource({ space: viewer }) }
+  const abrirFonte = async () => {              // 'point' acha superfície antes de o celular andar para o lado (só 'plane' exige movimento)
+    try { fonte = await session.requestHitTestSource({ space: viewer, entityTypes: ['plane', 'point'] }) } catch { fonte = await session.requestHitTestSource({ space: viewer }) }
+  }
   const fecharFonte = () => { try { fonte?.cancel() } catch { /* ignora */ } fonte = null }
 
   const reiniciar = async () => {                                   // volta a procurar superfície (primeira vez e "mover o prato")
     fixado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false
     try { ancora?.delete() } catch { /* ignora */ } ancora = null
     mover.hidden = true; captura.hidden = true
-    texto('Mova o celular devagar apontando para a mesa…')
+    texto('Procurando a mesa… o prato se ajusta sozinho.')
     await abrirFonte()
   }
   let x0: number | null = null                                      // girar com o dedo depois de fixado
@@ -104,7 +106,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   session.addEventListener('end', encerrar)
 
   window.__srAr = () => ({
-    fixado, achouSuperficie: achou, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
+    fixado, achouSuperficie: achou, visivel: grupo.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
     triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: !!ancora, estavel: acum,
   })
 
@@ -132,12 +134,22 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
           cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld); const d = cam.distanceTo(alvo)
           ok = tmp.elements[5] > 0.75 && d >= MIN_DIST && d <= MAX_DIST        // superfície horizontal, a uma distância confiável
         }
+        cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)
         if (ok) {
-          mira.position.copy(alvo); mira.visible = true
+          if (!achou) { achou = true; grupo.position.copy(alvo) } else grupo.position.lerp(alvo, 0.5)   // vai para a superfície real
+          grupo.visible = true; mira.visible = false
           if (acum === 0 || media.distanceTo(alvo) > TOLERANCIA) { media.copy(alvo); acum = 1 }   // pulou: recomeça a contar
           else { acum++; media.lerp(alvo, 1 / acum) }
           if (acum >= QUADROS_ESTAVEIS) colocar(media.clone(), r[0])
-        } else { acum = 0; mira.visible = false }
+        } else {
+          acum = 0; mira.visible = false
+          if (!achou) {                                                   // ainda sem superfície: o prato JÁ aparece à frente, na altura estimada da mesa
+            const m = renderer.xr.getCamera().matrixWorld.elements; const dx = -m[8], dy = -m[9], dz = -m[10]
+            const k = dy < -0.15 ? Math.min(1.6, (-0.7) / dy) : 0.9
+            grupo.position.set(cam.x + dx * k, cam.y - 0.7, cam.z + dz * k); grupo.visible = true
+            cena.rotation.y = Math.atan2(cam.x - grupo.position.x, cam.z - grupo.position.z)
+          }
+        }
       }
     }
     renderer.render(scene, camera)
