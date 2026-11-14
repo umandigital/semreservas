@@ -115,6 +115,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
 
   let fixado = false, confirmado = false, desde = performance.now(), achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
   let dbgHit = '-', dbgProf = '-'
+  const firme = new THREE.Vector3(), frouxo = new THREE.Vector3(); let firmeT = 0, frouxoT = 0, pendente = 0   // últimas medidas da superfície (firme = dentro dos filtros; frouxo = filtros relaxados)
   let acum = 0; const media = new THREE.Vector3(), alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
   const texto = (t: string) => { if (msg.textContent !== t) msg.textContent = t }
   let viewer: any = null
@@ -125,7 +126,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const fecharFonte = () => { try { fonte?.cancel() } catch { /* ignora */ } fonte = null }
 
   const reiniciar = async () => {                                   // volta a procurar superfície (primeira vez e "mover o prato")
-    amostras.length = 0; acumP = 0; usouProf = false
+    amostras.length = 0; acumP = 0; usouProf = false; pendente = 0; firmeT = 0; frouxoT = 0; fixar.disabled = false
     fixado = false; confirmado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false; desde = performance.now(); fantasma(true); fixar.hidden = false
     try { ancora?.delete() } catch { /* ignora */ } ancora = null
     mover.hidden = true; captura.hidden = true; med.hidden = true; medidas.visible = false
@@ -137,11 +138,12 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   captura.addEventListener('pointermove', e => { if (x0 === null) return; giro += (e.clientX - x0) * 0.012; x0 = e.clientX; cena.rotation.y = giro })
   captura.addEventListener('pointerup', () => { x0 = null })
   mover.addEventListener('click', () => { void reiniciar() })
-  const fixarAqui = () => {                                         // o cliente escolheu o lugar: fixa JÁ, sólido e no tamanho real, onde o prato está
-    if (fixado || !grupo.visible) return
-    fixado = true; confirmado = true; fase = 'fixado-manual'; fecharFonte(); fantasma(false); fixar.hidden = true; mira.visible = false
-    mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig; virar()
-    texto('Prato fixado aqui, no tamanho real. Se parecer fora do lugar, toque em Mover o prato.')
+  const fixarAqui = () => {                                         // o cliente escolheu o lugar: o prato vai para a SUPERFÍCIE MEDIDA naquele ponto, já sólido e no tamanho real
+    if (fixado || !grupo.visible || pendente) return
+    const agora = performance.now()
+    if (agora - firmeT < 2500) { colocar(firme.clone(), 'fixado-manual'); return }          // já havia uma medida recente: usa na hora
+    if (agora - frouxoT < 1500) { colocar(frouxo.clone(), 'fixado-manual'); return }
+    pendente = agora; fixar.disabled = true; texto('Medindo a mesa… segure o celular firme apontando para o lugar.')   // espera a 1ª medida (até 1,5 s); sem ela, fixa na estimativa
   }
   fixar.addEventListener('click', fixarAqui)
   session.addEventListener('select', fixarAqui)                     // tocar em qualquer ponto da câmera também fixa
@@ -162,8 +164,8 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: false, estavel: acum,
   })
 
-  const colocar = (pos: THREE.Vector3) => {                              // fica PARADO no espaço do aparelho (sem âncora: âncora de plano se mexe quando o ARCore refina o plano)
-    fixado = true; confirmado = true; achou = true; fase = 'fixado'; fecharFonte(); fantasma(false); fixar.hidden = true
+  const colocar = (pos: THREE.Vector3, motivo = 'fixado') => {                              // fica PARADO no espaço do aparelho (sem âncora: âncora de plano se mexe quando o ARCore refina o plano)
+    fixado = true; confirmado = true; achou = true; fase = motivo; pendente = 0; fixar.disabled = false; fecharFonte(); fantasma(false); fixar.hidden = true
     grupo.position.copy(pos); grupo.visible = true; mira.visible = false
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
     cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z); virar()
@@ -186,10 +188,13 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
           if (pose) {
             tmp.fromArray(pose.transform.matrix); alvo.setFromMatrixPosition(tmp); const d = cam.distanceTo(alvo), abaixo = cam.y - alvo.y
             dbgHit = `${d.toFixed(2)}m abaixo ${abaixo.toFixed(2)} n.y ${tmp.elements[5].toFixed(2)}`
+            const agora = performance.now()
+            if (tmp.elements[5] > 0.5 && d >= 0.2 && d <= 2.5 && abaixo >= 0.05 && abaixo <= 1.35) { frouxo.copy(alvo); frouxoT = agora }
             ok = tmp.elements[5] > 0.6 && d >= MIN_DIST && d <= MAX_DIST && abaixo >= ABAIXO_MIN && abaixo <= ABAIXO_MAX   // não é chão (longe e fundo) nem parede nem tampo colado na lente      // superfície quase horizontal (acha antes), a uma distância confiável
           }
         }
         if (ok) {
+          firme.copy(alvo); firmeT = performance.now()
           if (!achou) { achou = true; texto('Mesa detectada, ajustando o prato…') }
           grupo.position.lerp(alvo, 0.25); grupo.visible = true; mira.visible = false   // desliza do chute inicial até a superfície real
           if (acum === 0 || media.distanceTo(alvo) > TOLERANCIA) { media.copy(alvo); acum = 1 }   // pulou: recomeça a contar
@@ -198,7 +203,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
         } else {
           acum = 0
           let prof = false
-          if (!achou && depthOk) {                                        // profundidade do ARCore (sem depender de textura): ponto do centro da tela, em metros
+          if (depthOk && (!achou || pendente)) {                                        // profundidade do ARCore (sem depender de textura): ponto do centro da tela, em metros
             try {
               const v = vp.views[0]; const di = (frame as any).getDepthInformation?.(v)
               if (di) {
@@ -208,7 +213,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
                   const md = [...amostras].sort((a, b) => a - b)[amostras.length >> 1]
                   mv.fromArray(v.transform.matrix); vPos.setFromMatrixPosition(mv); vFwd.set(-mv.elements[8], -mv.elements[9], -mv.elements[10])
                   pProf.copy(vPos).addScaledVector(vFwd, md)
-                  const ab = vPos.y - pProf.y; dbgProf = `${md.toFixed(2)}m abaixo ${ab.toFixed(2)}`; if (ab >= ABAIXO_MIN && ab <= ABAIXO_MAX) prof = true   // só vale se estiver na altura de uma mesa (ignora chão, parede e teto)
+                  const ab = vPos.y - pProf.y; dbgProf = `${md.toFixed(2)}m abaixo ${ab.toFixed(2)}`; if (ab >= ABAIXO_MIN && ab <= ABAIXO_MAX) { prof = true; firme.copy(pProf); firmeT = performance.now() }   // só vale se estiver na altura de uma mesa (ignora chão, parede e teto)
                 }
               }
             } catch { depthOk = false }
@@ -230,6 +235,12 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
           }
         }
       }
+    }
+    if (pendente && !fixado) {                                        // aguardando a medida pedida pelo toque em "Fixar aqui"
+      const agora = performance.now()
+      if (firmeT > pendente) colocar(firme.clone(), 'fixado-manual')
+      else if (frouxoT > pendente && agora - pendente > 600) colocar(frouxo.clone(), 'fixado-manual')
+      else if (agora - pendente > 1500) colocar(grupo.position.clone(), 'fixado-estimado')
     }
     if (dbg && frame) dbg.textContent = `fase ${fase}\nhit ${dbgHit}\nprof ${dbgProf}\nfeat ${(session.enabledFeatures ?? []).join(',')}\ndepthOk ${depthOk} pos ${grupo.position.x.toFixed(2)},${grupo.position.y.toFixed(2)},${grupo.position.z.toFixed(2)}\ncam y ${cam.y.toFixed(2)}`
     renderer.render(scene, camera)
