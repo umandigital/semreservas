@@ -125,7 +125,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
 
   const reiniciar = async () => {                                   // volta a procurar superfície (primeira vez e "mover o prato")
     amostras.length = 0; acumP = 0; usouProf = false
-    fixado = false; confirmado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false; desde = performance.now(); fantasma(true); fixar.hidden = true
+    fixado = false; confirmado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false; desde = performance.now(); fantasma(true); fixar.hidden = false
     try { ancora?.delete() } catch { /* ignora */ } ancora = null
     mover.hidden = true; captura.hidden = true; med.hidden = true; medidas.visible = false
     texto('Procurando a mesa… o prato se ajusta sozinho.')
@@ -136,10 +136,15 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   captura.addEventListener('pointermove', e => { if (x0 === null) return; giro += (e.clientX - x0) * 0.012; x0 = e.clientX; cena.rotation.y = giro })
   captura.addEventListener('pointerup', () => { x0 = null })
   mover.addEventListener('click', () => { void reiniciar() })
-  fixar.addEventListener('click', () => {                           // plano B: mesa difícil de detectar (lisa, pouca luz) → fixa onde o prato está
-    fixado = true; fase = 'fixado-aprox'; fecharFonte(); fixar.hidden = true; mira.visible = false; mover.hidden = false; captura.hidden = false; fantasma(false)
-    texto('Prato fixado com distância estimada (a mesa não foi detectada). Se parecer fora do lugar, toque em Mover o prato.')
-  })
+  let pedirAncora = false
+  const fixarAqui = () => {                                         // o cliente escolheu o lugar: fixa JÁ, sólido e no tamanho real, onde o prato está
+    if (fixado || !grupo.visible) return
+    fixado = true; confirmado = true; fase = 'fixado-manual'; fecharFonte(); fantasma(false); fixar.hidden = true; mira.visible = false
+    mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig; virar(); pedirAncora = true
+    texto('Prato fixado aqui, no tamanho real. Se parecer fora do lugar, toque em Mover o prato.')
+  }
+  fixar.addEventListener('click', fixarAqui)
+  session.addEventListener('select', fixarAqui)                     // tocar em qualquer ponto da câmera também fixa
   med.addEventListener('click', () => { medLig = !medLig; medidas.visible = medLig; med.textContent = medLig ? 'Tamanho ✓' : 'Tamanho' })
   ing?.addEventListener('click', () => { cartaz.visible = !cartaz.visible; ing.textContent = cartaz.visible ? 'Ingredientes ✓' : 'Ingredientes' })
 
@@ -172,6 +177,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
       const ref = renderer.xr.getReferenceSpace()!
       const vp = frame.getViewerPose(ref)
       if (fixado) {
+        if (pedirAncora) { pedirAncora = false; if (!ancora && session.enabledFeatures?.includes?.('anchors') && (frame as any).createAnchor) (frame as any).createAnchor(new XRRigidTransform({ x: grupo.position.x, y: grupo.position.y, z: grupo.position.z }), ref).then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora */ }) }
         if (ancora) { const p = frame.getPose(ancora.anchorSpace, ref); if (p) { tmp.fromArray(p.transform.matrix); grupo.position.setFromMatrixPosition(tmp) } }   // o ARCore corrige a deriva
       } else if (vp) {                                                    // só desenha quando o rastreamento do aparelho já tem posição
         cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)
@@ -220,8 +226,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
             grupo.position.set(cam.x + dx * k, dy < -0.15 ? cam.y + dy * k : cam.y - 0.5, cam.z + dz * k); grupo.visible = true
             cena.rotation.y = Math.atan2(cam.x - grupo.position.x, cam.z - grupo.position.z); virar()
             const t = performance.now() - desde
-            if (t > 5000 && fixar.hidden) fixar.hidden = false
-            texto(t > 7000 ? 'Mesa lisa? Aponte também para uma borda ou objeto e mova o celular devagar em círculo. Ou toque em Fixar aqui.' : 'Procurando a mesa… mova o celular devagar. O prato se ajusta sozinho.')
+            texto(t > 7000 ? 'Escolha o lugar e toque em Fixar aqui. Se preferir, aponte para uma borda ou objeto e mova o celular devagar para ele se ajustar sozinho.' : 'Aponte para o lugar na mesa e toque em Fixar aqui, ou aguarde: o prato se ajusta sozinho.')
           }
         }
       }
