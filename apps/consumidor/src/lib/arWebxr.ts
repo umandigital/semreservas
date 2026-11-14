@@ -30,8 +30,8 @@ export function prepararAr(glb: string): Promise<THREE.Group> {
   return p
 }
 
-const MIN_DIST = 0.25, MAX_DIST = 1.8      // metros da câmera: nem colado, nem lá longe (onde o ARCore erra)
-const QUADROS_ESTAVEIS = 4, TOLERANCIA = 0.03   // 4 quadros seguidos dentro de 3 cm travam o prato
+const MIN_DIST = 0.3, MAX_DIST = 1.6, ABAIXO_MIN = 0.2, ABAIXO_MAX = 1.25      // metros da câmera: nem colado, nem lá longe (onde o ARCore erra)
+const QUADROS_ESTAVEIS = 5, TOLERANCIA = 0.04   // 4 quadros seguidos dentro de 3 cm travam o prato
 
 function texturaSombra(): THREE.Texture {
   const c = document.createElement('canvas'); c.width = c.height = 128
@@ -56,7 +56,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
 
   let session: any
   try {
-    session = await xr()!.requestSession('immersive-ar', { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'light-estimation', 'anchors', 'depth-sensing'], domOverlay: { root: ui },
+    session = await xr()!.requestSession('immersive-ar', { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'light-estimation', 'depth-sensing'], domOverlay: { root: ui },
       depthSensing: { usagePreference: ['cpu-optimized', 'gpu-optimized'], dataFormatPreference: ['luminance-alpha', 'float32'] } })   // profundidade: distância da mesa na hora, sem depender da textura
   } catch (e) { ui.remove(); throw e }          // recusou: o 3D do feed segue montado para o plano B (Scene Viewer)
   o.aoAbrir?.()                                  // sessão aberta: o feed desmonta o 3D dele (um só contexto WebGL)
@@ -114,6 +114,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const mira = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.045, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })); mira.visible = false; scene.add(mira)
 
   let fixado = false, confirmado = false, desde = performance.now(), achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
+  let dbgHit = '-', dbgProf = '-'
   let acum = 0; const media = new THREE.Vector3(), alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
   const texto = (t: string) => { if (msg.textContent !== t) msg.textContent = t }
   let viewer: any = null
@@ -136,11 +137,10 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   captura.addEventListener('pointermove', e => { if (x0 === null) return; giro += (e.clientX - x0) * 0.012; x0 = e.clientX; cena.rotation.y = giro })
   captura.addEventListener('pointerup', () => { x0 = null })
   mover.addEventListener('click', () => { void reiniciar() })
-  let pedirAncora = false
   const fixarAqui = () => {                                         // o cliente escolheu o lugar: fixa JÁ, sólido e no tamanho real, onde o prato está
     if (fixado || !grupo.visible) return
     fixado = true; confirmado = true; fase = 'fixado-manual'; fecharFonte(); fantasma(false); fixar.hidden = true; mira.visible = false
-    mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig; virar(); pedirAncora = true
+    mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig; virar()
     texto('Prato fixado aqui, no tamanho real. Se parecer fora do lugar, toque em Mover o prato.')
   }
   fixar.addEventListener('click', fixarAqui)
@@ -148,6 +148,8 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   med.addEventListener('click', () => { medLig = !medLig; medidas.visible = medLig; med.textContent = medLig ? 'Tamanho ✓' : 'Tamanho' })
   ing?.addEventListener('click', () => { cartaz.visible = !cartaz.visible; ing.textContent = cartaz.visible ? 'Ingredientes ✓' : 'Ingredientes' })
 
+  let dbg: HTMLElement | null = null                                // ?radebug no endereço: mostra o que o aparelho está informando (para diagnosticar em campo)
+  if (/radebug/.test(location.href)) { dbg = document.createElement('pre'); dbg.style.cssText = 'position:absolute;left:8px;top:96px;margin:0;padding:6px 8px;background:rgba(0,0,0,.65);color:#9f9;font:11px/1.3 monospace;pointer-events:none;max-width:70vw;white-space:pre-wrap'; ui.appendChild(dbg) }
   const encerrar = () => {
     renderer.setAnimationLoop(null); fecharFonte(); try { ancora?.delete() } catch { /* ignora */ }
     renderer.dispose(); ui.remove(); window.__srAr = undefined; o.aoFechar?.()
@@ -157,18 +159,16 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
 
   window.__srAr = () => ({
     fixado, achouSuperficie: achou, visivel: grupo.visible, confirmado, profundidade: usouProf, cartaz: cartaz.visible, medidas: medidas.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
-    triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: !!ancora, estavel: acum,
+    triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: false, estavel: acum,
   })
 
-  const colocar = (pos: THREE.Vector3, hit: any, quadro?: XRFrame, ref?: XRReferenceSpace) => {
+  const colocar = (pos: THREE.Vector3) => {                              // fica PARADO no espaço do aparelho (sem âncora: âncora de plano se mexe quando o ARCore refina o plano)
     fixado = true; confirmado = true; achou = true; fase = 'fixado'; fecharFonte(); fantasma(false); fixar.hidden = true
     grupo.position.copy(pos); grupo.visible = true; mira.visible = false
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
     cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z); virar()
     mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig
     texto('Prato no tamanho real, fixado na mesa. Garfo e faca servem de comparação. Arraste para girar.')
-    if (!hit && quadro && ref && session.enabledFeatures?.includes?.('anchors') && (quadro as any).createAnchor) (quadro as any).createAnchor(new XRRigidTransform({ x: pos.x, y: pos.y, z: pos.z }), ref).then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora */ })
-    else if (session.enabledFeatures?.includes?.('anchors') && hit?.createAnchor) hit.createAnchor().then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora: fica estático */ })
   }
 
   void reiniciar()
@@ -177,24 +177,24 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
       const ref = renderer.xr.getReferenceSpace()!
       const vp = frame.getViewerPose(ref)
       if (fixado) {
-        if (pedirAncora) { pedirAncora = false; if (!ancora && session.enabledFeatures?.includes?.('anchors') && (frame as any).createAnchor) (frame as any).createAnchor(new XRRigidTransform({ x: grupo.position.x, y: grupo.position.y, z: grupo.position.z }), ref).then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora */ }) }
-        if (ancora) { const p = frame.getPose(ancora.anchorSpace, ref); if (p) { tmp.fromArray(p.transform.matrix); grupo.position.setFromMatrixPosition(tmp) } }   // o ARCore corrige a deriva
+        // parado: nada a fazer
       } else if (vp) {                                                    // só desenha quando o rastreamento do aparelho já tem posição
         cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)
         let r: any[] = [], ok = false
         if (fonte) {
           r = frame.getHitTestResults(fonte); const pose = r.length ? r[0].getPose(ref) : null
           if (pose) {
-            tmp.fromArray(pose.transform.matrix); alvo.setFromMatrixPosition(tmp); const d = cam.distanceTo(alvo)
-            ok = tmp.elements[5] > 0.6 && d >= MIN_DIST && d <= MAX_DIST      // superfície quase horizontal (acha antes), a uma distância confiável
+            tmp.fromArray(pose.transform.matrix); alvo.setFromMatrixPosition(tmp); const d = cam.distanceTo(alvo), abaixo = cam.y - alvo.y
+            dbgHit = `${d.toFixed(2)}m abaixo ${abaixo.toFixed(2)} n.y ${tmp.elements[5].toFixed(2)}`
+            ok = tmp.elements[5] > 0.6 && d >= MIN_DIST && d <= MAX_DIST && abaixo >= ABAIXO_MIN && abaixo <= ABAIXO_MAX   // não é chão (longe e fundo) nem parede nem tampo colado na lente      // superfície quase horizontal (acha antes), a uma distância confiável
           }
         }
         if (ok) {
           if (!achou) { achou = true; texto('Mesa detectada, ajustando o prato…') }
-          grupo.position.lerp(alvo, 0.3); grupo.visible = true; mira.visible = false   // desliza do chute inicial até a superfície real
+          grupo.position.lerp(alvo, 0.25); grupo.visible = true; mira.visible = false   // desliza do chute inicial até a superfície real
           if (acum === 0 || media.distanceTo(alvo) > TOLERANCIA) { media.copy(alvo); acum = 1 }   // pulou: recomeça a contar
           else { acum++; media.lerp(alvo, 1 / acum) }
-          if (acum >= QUADROS_ESTAVEIS && grupo.position.distanceTo(media) < 0.012) colocar(media.clone(), r[0])
+          if (acum >= QUADROS_ESTAVEIS) colocar(media.clone())
         } else {
           acum = 0
           let prof = false
@@ -208,7 +208,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
                   const md = [...amostras].sort((a, b) => a - b)[amostras.length >> 1]
                   mv.fromArray(v.transform.matrix); vPos.setFromMatrixPosition(mv); vFwd.set(-mv.elements[8], -mv.elements[9], -mv.elements[10])
                   pProf.copy(vPos).addScaledVector(vFwd, md)
-                  if (pProf.y < vPos.y - 0.12) prof = true                  // ignora parede/teto: a mesa fica abaixo do celular
+                  const ab = vPos.y - pProf.y; dbgProf = `${md.toFixed(2)}m abaixo ${ab.toFixed(2)}`; if (ab >= ABAIXO_MIN && ab <= ABAIXO_MAX) prof = true   // só vale se estiver na altura de uma mesa (ignora chão, parede e teto)
                 }
               }
             } catch { depthOk = false }
@@ -218,7 +218,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
             cena.rotation.y = Math.atan2(cam.x - grupo.position.x, cam.z - grupo.position.z); virar()
             if (acumP === 0 || mProf.distanceTo(pProf) > 0.04) { mProf.copy(pProf); acumP = 1 } else { acumP++; mProf.lerp(pProf, 0.2) }
             texto('Medindo a distância da mesa…')
-            if (acumP >= 8 && grupo.position.distanceTo(mProf) < 0.02) colocar(mProf.clone(), null, frame, ref)
+            if (acumP >= 8) colocar(mProf.clone())
           } else if (!achou) {                                            // sem superfície nem profundidade: o prato (fantasma) JÁ aparece à frente, na altura estimada da mesa
             acumP = 0
             const m = renderer.xr.getCamera().matrixWorld.elements; const dx = -m[8], dy = -m[9], dz = -m[10]
@@ -231,6 +231,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
         }
       }
     }
+    if (dbg && frame) dbg.textContent = `fase ${fase}\nhit ${dbgHit}\nprof ${dbgProf}\nfeat ${(session.enabledFeatures ?? []).join(',')}\ndepthOk ${depthOk} pos ${grupo.position.x.toFixed(2)},${grupo.position.y.toFixed(2)},${grupo.position.z.toFixed(2)}\ncam y ${cam.y.toFixed(2)}`
     renderer.render(scene, camera)
   })
 }
