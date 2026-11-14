@@ -15,7 +15,7 @@ export async function suportaWebxrAr(): Promise<boolean> {
 }
 
 export type Rotulo = { titulo: string; linhas: string[] }
-export type OpcoesAr = { rotulo?: Rotulo; glb: string; nome: string; medidas: string; nota: string; aoAbrir?: () => void; aoFechar?: () => void }
+export type OpcoesAr = { depurar?: boolean; rotulo?: Rotulo; glb: string; nome: string; medidas: string; nota: string; aoAbrir?: () => void; aoFechar?: () => void }
 export type EstadoAr = {
   fixado: boolean; achouSuperficie: boolean; visivel: boolean; confirmado: boolean; profundidade: boolean; cartaz: boolean; medidas: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
   triangulos: number; chamadas: number; sombraMapa: boolean; ancora: boolean; estavel: number
@@ -114,7 +114,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const mira = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.045, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })); mira.visible = false; scene.add(mira)
 
   let fixado = false, confirmado = false, desde = performance.now(), achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
-  let dbgHit = '-', dbgProf = '-'
+  let dbgHit = '-', dbgProf = '-', dbgDepth = 'sem API', dbgFix = '-', nQuadros = 0, nHits = 0, dbgMotivo = '-'
   const firme = new THREE.Vector3(), frouxo = new THREE.Vector3(); let firmeT = 0, frouxoT = 0   // últimas medidas da superfície (firme = dentro dos filtros; frouxo = filtros relaxados)
   let acum = 0; const media = new THREE.Vector3(), alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
   const texto = (t: string) => { if (msg.textContent !== t) msg.textContent = t }
@@ -161,7 +161,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   ing?.addEventListener('click', () => { cartaz.visible = !cartaz.visible; ing.textContent = cartaz.visible ? 'Ingredientes ✓' : 'Ingredientes' })
 
   let dbg: HTMLElement | null = null                                // ?radebug no endereço: mostra o que o aparelho está informando (para diagnosticar em campo)
-  if (/radebug/.test(location.href)) { dbg = document.createElement('pre'); dbg.style.cssText = 'position:absolute;left:8px;top:96px;margin:0;padding:6px 8px;background:rgba(0,0,0,.65);color:#9f9;font:11px/1.3 monospace;pointer-events:none;max-width:70vw;white-space:pre-wrap'; ui.appendChild(dbg) }
+  if (o.depurar || /radebug/.test(location.href)) { dbg = document.createElement('pre'); dbg.style.cssText = 'position:absolute;left:8px;top:96px;margin:0;padding:6px 8px;background:rgba(0,0,0,.65);color:#9f9;font:11px/1.3 monospace;pointer-events:none;max-width:78vw;z-index:5;white-space:pre-wrap'; ui.appendChild(dbg) }
   const encerrar = () => {
     renderer.setAnimationLoop(null); fecharFonte(); try { ancora?.delete() } catch { /* ignora */ }
     renderer.dispose(); ui.remove(); window.__srAr = undefined; o.aoFechar?.()
@@ -174,7 +174,8 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: false, estavel: acum,
   })
 
-  const colocar = (pos: THREE.Vector3, motivo = 'fixado') => {                              // fica PARADO no espaço do aparelho (sem âncora: âncora de plano se mexe quando o ARCore refina o plano)
+  const colocar = (pos: THREE.Vector3, motivo = 'fixado') => {
+    { const c = renderer.xr.getCamera().matrixWorld; const dx = pos.x - c.elements[12], dy = pos.y - c.elements[13], dz = pos.z - c.elements[14]; dbgFix = `${motivo}: ${Math.hypot(dx, dy, dz).toFixed(2)} m do celular, ${(-dy).toFixed(2)} m abaixo` }                              // fica PARADO no espaço do aparelho (sem âncora: âncora de plano se mexe quando o ARCore refina o plano)
     fixado = true; confirmado = true; achou = true; fase = motivo; fixar.disabled = false; fecharFonte(); fantasma(false); fixar.hidden = true
     grupo.position.copy(pos); grupo.visible = true; mira.visible = false
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
@@ -194,10 +195,11 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
         cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)
         let r: any[] = [], ok = false
         if (fonte) {
-          r = frame.getHitTestResults(fonte); const pose = r.length ? r[0].getPose(ref) : null
+          r = frame.getHitTestResults(fonte); const pose = r.length ? r[0].getPose(ref) : null; nQuadros++; if (r.length) nHits++
           if (pose) {
             tmp.fromArray(pose.transform.matrix); alvo.setFromMatrixPosition(tmp); const d = cam.distanceTo(alvo), abaixo = cam.y - alvo.y
-            dbgHit = `${d.toFixed(2)}m abaixo ${abaixo.toFixed(2)} n.y ${tmp.elements[5].toFixed(2)}`
+            dbgHit = `${d.toFixed(2)} m, ${abaixo.toFixed(2)} m abaixo, normal.y ${tmp.elements[5].toFixed(2)}`
+            dbgMotivo = tmp.elements[5] <= 0.6 ? 'inclinada' : d < MIN_DIST ? 'perto demais' : d > MAX_DIST ? 'longe demais' : abaixo < ABAIXO_MIN ? 'acima/colada' : abaixo > ABAIXO_MAX ? 'fundo demais (chão?)' : 'aceita'
             const agora = performance.now()
             if (tmp.elements[5] > 0.5 && d >= 0.2 && d <= 2.5 && abaixo >= 0.05 && abaixo <= 1.35) { frouxo.copy(alvo); frouxoT = agora }
             ok = tmp.elements[5] > 0.6 && d >= MIN_DIST && d <= MAX_DIST && abaixo >= ABAIXO_MIN && abaixo <= ABAIXO_MAX   // não é chão (longe e fundo) nem parede nem tampo colado na lente      // superfície quase horizontal (acha antes), a uma distância confiável
@@ -215,7 +217,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
           let prof = false
           if (depthOk) {                                        // profundidade do ARCore (sem depender de textura): ponto do centro da tela, em metros
             try {
-              const v = vp.views[0]; const di = (frame as any).getDepthInformation?.(v)
+              const v = vp.views[0]; const di = (frame as any).getDepthInformation?.(v); dbgDepth = !(frame as any).getDepthInformation ? 'sem API' : di ? 'ativa' : 'sem dado'
               if (di) {
                 const dm: number = di.getDepthInMeters(0.5, 0.5)
                 if (dm > 0.25 && dm < 2.2) {
@@ -244,7 +246,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
       }
     }
     if (!fixado && frame) atualizarBotao()
-    if (dbg && frame) dbg.textContent = `fase ${fase}\nhit ${dbgHit}\nprof ${dbgProf}\nfeat ${(session.enabledFeatures ?? []).join(',')}\ndepthOk ${depthOk} pos ${grupo.position.x.toFixed(2)},${grupo.position.y.toFixed(2)},${grupo.position.z.toFixed(2)}\ncam y ${cam.y.toFixed(2)}`
+    if (dbg && frame) dbg.textContent = `RA diag · fase ${fase} · ${((performance.now() - desde) / 1000).toFixed(0)}s\nrecursos: ${(session.enabledFeatures ?? []).join(',')}\nhit-test: ${nHits}/${nQuadros} quadros com resultado\núltimo hit: ${dbgHit}\nmotivo: ${dbgMotivo}\nprofundidade: ${dbgDepth} ${dbgProf}\nmedida viva: ${medidaViva() ?? 'não'}\nfixou: ${dbgFix}`
     renderer.render(scene, camera)
   })
 }
