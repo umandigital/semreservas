@@ -115,7 +115,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
 
   let fixado = false, confirmado = false, desde = performance.now(), achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
   let dbgHit = '-', dbgProf = '-'
-  const firme = new THREE.Vector3(), frouxo = new THREE.Vector3(); let firmeT = 0, frouxoT = 0, pendente = 0   // últimas medidas da superfície (firme = dentro dos filtros; frouxo = filtros relaxados)
+  const firme = new THREE.Vector3(), frouxo = new THREE.Vector3(); let firmeT = 0, frouxoT = 0   // últimas medidas da superfície (firme = dentro dos filtros; frouxo = filtros relaxados)
   let acum = 0; const media = new THREE.Vector3(), alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
   const texto = (t: string) => { if (msg.textContent !== t) msg.textContent = t }
   let viewer: any = null
@@ -126,11 +126,10 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const fecharFonte = () => { try { fonte?.cancel() } catch { /* ignora */ } fonte = null }
 
   const reiniciar = async () => {                                   // volta a procurar superfície (primeira vez e "mover o prato")
-    amostras.length = 0; acumP = 0; usouProf = false; pendente = 0; firmeT = 0; frouxoT = 0; fixar.disabled = false
+    amostras.length = 0; acumP = 0; usouProf = false; firmeT = 0; frouxoT = 0; fixar.disabled = true; fixar.textContent = 'Medindo a mesa…'
     fixado = false; confirmado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false; desde = performance.now(); fantasma(true); fixar.hidden = false
     try { ancora?.delete() } catch { /* ignora */ } ancora = null
     mover.hidden = true; captura.hidden = true; med.hidden = true; medidas.visible = false
-    texto('Procurando a mesa… o prato se ajusta sozinho.')
     abrirFonte().catch(() => texto('Não consegui detectar a mesa neste aparelho. Toque em Fixar aqui.'))   // sem await: o prato não espera o ARCore ficar pronto
   }
   let x0: number | null = null                                      // girar com o dedo depois de fixado
@@ -138,12 +137,23 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   captura.addEventListener('pointermove', e => { if (x0 === null) return; giro += (e.clientX - x0) * 0.012; x0 = e.clientX; cena.rotation.y = giro })
   captura.addEventListener('pointerup', () => { x0 = null })
   mover.addEventListener('click', () => { void reiniciar() })
-  const fixarAqui = () => {                                         // o cliente escolheu o lugar: o prato vai para a SUPERFÍCIE MEDIDA naquele ponto, já sólido e no tamanho real
-    if (fixado || !grupo.visible || pendente) return
-    const agora = performance.now()
-    if (agora - firmeT < 2500) { colocar(firme.clone(), 'fixado-manual'); return }          // já havia uma medida recente: usa na hora
-    if (agora - frouxoT < 1500) { colocar(frouxo.clone(), 'fixado-manual'); return }
-    pendente = agora; fixar.disabled = true; texto('Medindo a mesa… segure o celular firme apontando para o lugar.')   // espera a 1ª medida (até 1,5 s); sem ela, fixa na estimativa
+  // "Fixar aqui" só vale com uma MEDIDA VIVA da mesa (hit-test/profundidade nos últimos 0,5 s): assim o prato vai exatamente para onde o aparelho mediu, no tamanho real.
+  // O ARCore só mede depois de ver movimento/detalhe; por isso, sem medida, o botão fica em "Medindo…" (e libera "Fixar mesmo assim" após 8 s, como último recurso).
+  const medidaViva = () => { const t = performance.now(); return t - firmeT < 500 ? 'firme' : t - frouxoT < 500 ? 'frouxo' : null }
+  const fixarAqui = () => {
+    if (fixado || !grupo.visible) return
+    const m = medidaViva()
+    if (m === 'firme') colocar(firme.clone(), 'fixado-manual')
+    else if (m === 'frouxo') colocar(frouxo.clone(), 'fixado-manual')
+    else if (performance.now() - desde > 8000) colocar(grupo.position.clone(), 'fixado-estimado')
+  }
+  const atualizarBotao = () => {                                    // estado do botão a cada quadro, conforme haja ou não medida
+    const m = medidaViva(), livre = performance.now() - desde > 8000
+    const rot = m ? 'Fixar aqui' : livre ? 'Fixar mesmo assim' : 'Medindo a mesa…'
+    if (fixar.textContent !== rot) fixar.textContent = rot
+    fixar.disabled = !m && !livre
+    fixar.classList.toggle('pronto', !!m)
+    texto(m ? 'Mesa medida. Toque em Fixar aqui para o prato ficar no tamanho real.' : livre ? 'Não consegui medir a mesa. Aponte para uma borda ou objeto, ou fixe mesmo assim (tamanho aproximado).' : 'Mova o celular devagar, de um lado para o outro, até o prato encaixar na mesa.')
   }
   fixar.addEventListener('click', fixarAqui)
   session.addEventListener('select', fixarAqui)                     // tocar em qualquer ponto da câmera também fixa
@@ -165,7 +175,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   })
 
   const colocar = (pos: THREE.Vector3, motivo = 'fixado') => {                              // fica PARADO no espaço do aparelho (sem âncora: âncora de plano se mexe quando o ARCore refina o plano)
-    fixado = true; confirmado = true; achou = true; fase = motivo; pendente = 0; fixar.disabled = false; fecharFonte(); fantasma(false); fixar.hidden = true
+    fixado = true; confirmado = true; achou = true; fase = motivo; fixar.disabled = false; fecharFonte(); fantasma(false); fixar.hidden = true
     grupo.position.copy(pos); grupo.visible = true; mira.visible = false
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
     cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z); virar()
@@ -195,7 +205,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
         }
         if (ok) {
           firme.copy(alvo); firmeT = performance.now()
-          if (!achou) { achou = true; texto('Mesa detectada, ajustando o prato…') }
+          if (!achou) achou = true
           grupo.position.lerp(alvo, 0.25); grupo.visible = true; mira.visible = false   // desliza do chute inicial até a superfície real
           if (acum === 0 || media.distanceTo(alvo) > TOLERANCIA) { media.copy(alvo); acum = 1 }   // pulou: recomeça a contar
           else { acum++; media.lerp(alvo, 1 / acum) }
@@ -203,7 +213,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
         } else {
           acum = 0
           let prof = false
-          if (depthOk && (!achou || pendente)) {                                        // profundidade do ARCore (sem depender de textura): ponto do centro da tela, em metros
+          if (depthOk) {                                        // profundidade do ARCore (sem depender de textura): ponto do centro da tela, em metros
             try {
               const v = vp.views[0]; const di = (frame as any).getDepthInformation?.(v)
               if (di) {
@@ -222,7 +232,6 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
             usouProf = true; if (grupo.visible) grupo.position.lerp(pProf, 0.4); else grupo.position.copy(pProf); grupo.visible = true
             cena.rotation.y = Math.atan2(cam.x - grupo.position.x, cam.z - grupo.position.z); virar()
             if (acumP === 0 || mProf.distanceTo(pProf) > 0.04) { mProf.copy(pProf); acumP = 1 } else { acumP++; mProf.lerp(pProf, 0.2) }
-            texto('Medindo a distância da mesa…')
             if (acumP >= 8) colocar(mProf.clone())
           } else if (!achou) {                                            // sem superfície nem profundidade: o prato (fantasma) JÁ aparece à frente, na altura estimada da mesa
             acumP = 0
@@ -230,18 +239,11 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
             const k = dy < -0.15 ? Math.min(1, Math.max(0.4, 0.5 / -dy)) : 0.8   // chute: mesa ~50 cm abaixo do celular
             grupo.position.set(cam.x + dx * k, dy < -0.15 ? cam.y + dy * k : cam.y - 0.5, cam.z + dz * k); grupo.visible = true
             cena.rotation.y = Math.atan2(cam.x - grupo.position.x, cam.z - grupo.position.z); virar()
-            const t = performance.now() - desde
-            texto(t > 7000 ? 'Escolha o lugar e toque em Fixar aqui. Se preferir, aponte para uma borda ou objeto e mova o celular devagar para ele se ajustar sozinho.' : 'Aponte para o lugar na mesa e toque em Fixar aqui, ou aguarde: o prato se ajusta sozinho.')
           }
         }
       }
     }
-    if (pendente && !fixado) {                                        // aguardando a medida pedida pelo toque em "Fixar aqui"
-      const agora = performance.now()
-      if (firmeT > pendente) colocar(firme.clone(), 'fixado-manual')
-      else if (frouxoT > pendente && agora - pendente > 600) colocar(frouxo.clone(), 'fixado-manual')
-      else if (agora - pendente > 1500) colocar(grupo.position.clone(), 'fixado-estimado')
-    }
+    if (!fixado && frame) atualizarBotao()
     if (dbg && frame) dbg.textContent = `fase ${fase}\nhit ${dbgHit}\nprof ${dbgProf}\nfeat ${(session.enabledFeatures ?? []).join(',')}\ndepthOk ${depthOk} pos ${grupo.position.x.toFixed(2)},${grupo.position.y.toFixed(2)},${grupo.position.z.toFixed(2)}\ncam y ${cam.y.toFixed(2)}`
     renderer.render(scene, camera)
   })
