@@ -142,11 +142,11 @@ main.cheio { padding-bottom:0; }
 /* ── RA própria (WebXR): interface sobre a câmera ── */
 .ra-overlay { position:fixed; inset:0; z-index:2147483000; pointer-events:none; font-family:system-ui,sans-serif; color:#fff; display:flex; flex-direction:column; justify-content:space-between; }
 .ra-overlay button { pointer-events:auto; font:inherit; color:inherit; }
-.ra-topo { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding:calc(10px + env(safe-area-inset-top)) 12px 0; }
+.ra-topo { position:relative; z-index:3; display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding:calc(10px + env(safe-area-inset-top)) 12px 0; }
 .ra-topo > div { background:rgba(20,5,40,.78); padding:6px 12px; border-radius:12px; } .ra-topo small { display:block; opacity:.85; }
 .ra-x { width:48px; height:48px; border-radius:50%; border:0; background:rgba(20,5,40,.82); font-size:1.2rem; }
-.ra-captura { position:absolute; inset:96px 0 150px; pointer-events:auto; touch-action:none; }
-.ra-base { padding:0 12px calc(12px + env(safe-area-inset-bottom)); display:grid; gap:8px; justify-items:center; }
+.ra-captura { z-index:1; position:absolute; inset:96px 0 150px; pointer-events:auto; touch-action:none; }
+.ra-base { position:relative; z-index:3; padding:0 12px calc(12px + env(safe-area-inset-bottom)); display:grid; gap:8px; justify-items:center; }
 .ra-msg { margin:0; background:rgba(20,5,40,.82); padding:10px 14px; border-radius:14px; text-align:center; font-weight:600; max-width:94%; }
 .ra-fixar:disabled { opacity:.55; background:#8a6f93; }
 .ra-fixar.pronto { box-shadow:0 0 0 3px #fff, 0 0 18px 4px rgba(255,154,60,.9); }

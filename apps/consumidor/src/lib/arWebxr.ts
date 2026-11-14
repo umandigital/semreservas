@@ -47,12 +47,13 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const ui = document.createElement('div'); ui.className = 'ra-overlay'
   ui.innerHTML = `<div class="ra-topo"><div><b>${esc(o.nome)}</b><small>${esc(o.medidas)}</small></div><button type="button" class="ra-x" aria-label="Fechar">✕</button></div>
     <div class="ra-captura" hidden></div>
-    <div class="ra-base"><p class="ra-msg" role="status"></p><div class="ra-botoes"><button type="button" class="ra-mover" hidden>Mover o prato</button><button type="button" class="ra-med" hidden>Tamanho ✓</button><button type="button" class="ra-fixar" hidden>Fixar aqui</button>${o.rotulo ? '<button type="button" class="ra-ing">Ingredientes ✓</button>' : ''}</div><small class="ra-nota">${esc(o.nota)}</small></div>`
+    <div class="ra-base"><p class="ra-msg" role="status"></p><div class="ra-botoes"><button type="button" class="ra-mover" hidden>Mover o prato</button><button type="button" class="ra-med" hidden>Tamanho ✓</button><button type="button" class="ra-fixar" hidden>Fixar aqui</button>${o.depurar ? '<button type="button" class="ra-med ra-aj" data-f="0.97" hidden>Ajuste: maior</button><button type="button" class="ra-med ra-aj" data-f="1.03" hidden>Ajuste: menor</button>' : ''}${o.rotulo ? '<button type="button" class="ra-ing">Ingredientes ✓</button>' : ''}</div><small class="ra-nota">${esc(o.nota)}</small></div>`
   document.body.appendChild(ui)
   const q = <T extends HTMLElement>(s: string) => ui.querySelector(s) as T
   const ing = ui.querySelector('.ra-ing') as HTMLButtonElement | null, med = ui.querySelector('.ra-med') as HTMLButtonElement, fixar = ui.querySelector('.ra-fixar') as HTMLButtonElement
   const msg = q<HTMLElement>('.ra-msg'), captura = q<HTMLElement>('.ra-captura'), mover = q<HTMLButtonElement>('.ra-mover'), fechar = q<HTMLButtonElement>('.ra-x')
-  for (const b of [fechar, mover, captura, med, fixar, ...(ing ? [ing] : [])]) b.addEventListener('beforexrselect', e => e.preventDefault())
+  const ajustes = [...ui.querySelectorAll('.ra-aj')] as HTMLButtonElement[]
+  for (const b of [fechar, mover, captura, med, fixar, ...ajustes, ...(ing ? [ing] : [])]) b.addEventListener('beforexrselect', e => e.preventDefault())
 
   let session: any
   try {
@@ -114,7 +115,9 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const mira = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.045, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })); mira.visible = false; scene.add(mira)
 
   let fixado = false, confirmado = false, desde = performance.now(), achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
-  let dbgHit = '-', dbgProf = '-', dbgDepth = 'sem API', dbgFix = '-', nQuadros = 0, nHits = 0, dbgMotivo = '-'
+  let fator = 1; try { const f = parseFloat(localStorage.getItem('ra-fator') ?? ''); if (f > 0.5 && f < 1.5) fator = f } catch { /* sem armazenamento */ }
+  const medida0 = new THREE.Vector3(), camFix = new THREE.Vector3()                     // posição medida e posição do celular ao fixar (para o ajuste de distância)
+  let dbgAx = '-', dbgDm = '-', dbgHit = '-', dbgProf = '-', dbgDepth = 'sem API', dbgFix = '-', nQuadros = 0, nHits = 0, dbgMotivo = '-'
   const firme = new THREE.Vector3(), frouxo = new THREE.Vector3(); let firmeT = 0, frouxoT = 0   // últimas medidas da superfície (firme = dentro dos filtros; frouxo = filtros relaxados)
   let acum = 0; const media = new THREE.Vector3(), alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
   const texto = (t: string) => { if (msg.textContent !== t) msg.textContent = t }
@@ -129,7 +132,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     amostras.length = 0; acumP = 0; usouProf = false; firmeT = 0; frouxoT = 0; fixar.disabled = true; fixar.textContent = 'Medindo a mesa…'
     fixado = false; confirmado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false; desde = performance.now(); fantasma(true); fixar.hidden = false
     try { ancora?.delete() } catch { /* ignora */ } ancora = null
-    mover.hidden = true; captura.hidden = true; med.hidden = true; medidas.visible = false
+    mover.hidden = true; captura.hidden = true; med.hidden = true; ajustes.forEach(b => { b.hidden = true }); medidas.visible = false
     abrirFonte().catch(() => texto('Não consegui detectar a mesa neste aparelho. Toque em Fixar aqui.'))   // sem await: o prato não espera o ARCore ficar pronto
   }
   let x0: number | null = null                                      // girar com o dedo depois de fixado
@@ -157,6 +160,11 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   }
   fixar.addEventListener('click', fixarAqui)
   session.addEventListener('select', fixarAqui)                     // tocar em qualquer ponto da câmera também fixa
+  for (const b of ajustes) b.addEventListener('click', () => {      // diagnóstico: alinhe a régua virtual de 32 cm com uma régua real; o fator fica salvo neste aparelho
+    if (!fixado) return
+    fator = Math.min(1.4, Math.max(0.6, fator * parseFloat(b.dataset.f!))); try { localStorage.setItem('ra-fator', String(fator)) } catch { /* ignora */ }
+    grupo.position.copy(camFix).add(medida0.clone().sub(camFix).multiplyScalar(fator))
+  })
   med.addEventListener('click', () => { medLig = !medLig; medidas.visible = medLig; med.textContent = medLig ? 'Tamanho ✓' : 'Tamanho' })
   ing?.addEventListener('click', () => { cartaz.visible = !cartaz.visible; ing.textContent = cartaz.visible ? 'Ingredientes ✓' : 'Ingredientes' })
 
@@ -174,13 +182,15 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: false, estavel: acum,
   })
 
-  const colocar = (pos: THREE.Vector3, motivo = 'fixado') => {
+  const colocar = (pos0: THREE.Vector3, motivo = 'fixado') => {
+    camFix.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld); medida0.copy(pos0)
+    const pos = camFix.clone().add(pos0.clone().sub(camFix).multiplyScalar(fator))     // fator de distância do aparelho (1 = sem correção)
     { const c = renderer.xr.getCamera().matrixWorld; const dx = pos.x - c.elements[12], dy = pos.y - c.elements[13], dz = pos.z - c.elements[14]; dbgFix = `${motivo}: ${Math.hypot(dx, dy, dz).toFixed(2)} m do celular, ${(-dy).toFixed(2)} m abaixo` }                              // fica PARADO no espaço do aparelho (sem âncora: âncora de plano se mexe quando o ARCore refina o plano)
     fixado = true; confirmado = true; achou = true; fase = motivo; fixar.disabled = false; fecharFonte(); fantasma(false); fixar.hidden = true
     grupo.position.copy(pos); grupo.visible = true; mira.visible = false
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
     cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z); virar()
-    mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig
+    mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig; ajustes.forEach(b => { b.hidden = false })
     texto('Prato no tamanho real, fixado na mesa. Garfo e faca servem de comparação. Arraste para girar.')
   }
 
@@ -194,10 +204,12 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
       } else if (vp) {                                                    // só desenha quando o rastreamento do aparelho já tem posição
         cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)
         let r: any[] = [], ok = false
+        if (dbg && depthOk) { try { const v0 = vp.views[0]; const di0 = (frame as any).getDepthInformation?.(v0); if (di0) { dbgDm = di0.getDepthInMeters(0.5, 0.5).toFixed(2) + ' m (centro da tela)' } } catch { /* ignora */ } }
         if (fonte) {
           r = frame.getHitTestResults(fonte); const pose = r.length ? r[0].getPose(ref) : null; nQuadros++; if (r.length) nHits++
           if (pose) {
             tmp.fromArray(pose.transform.matrix); alvo.setFromMatrixPosition(tmp); const d = cam.distanceTo(alvo), abaixo = cam.y - alvo.y
+            { const ee = renderer.xr.getCamera().matrixWorld.elements; dbgAx = ((alvo.x - cam.x) * -ee[8] + (alvo.y - cam.y) * -ee[9] + (alvo.z - cam.z) * -ee[10]).toFixed(2) }
             dbgHit = `${d.toFixed(2)} m, ${abaixo.toFixed(2)} m abaixo, normal.y ${tmp.elements[5].toFixed(2)}`
             dbgMotivo = tmp.elements[5] <= 0.6 ? 'inclinada' : d < MIN_DIST ? 'perto demais' : d > MAX_DIST ? 'longe demais' : abaixo < ABAIXO_MIN ? 'acima/colada' : abaixo > ABAIXO_MAX ? 'fundo demais (chão?)' : 'aceita'
             const agora = performance.now()
@@ -246,7 +258,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
       }
     }
     if (!fixado && frame) atualizarBotao()
-    if (dbg && frame) dbg.textContent = `RA diag · fase ${fase} · ${((performance.now() - desde) / 1000).toFixed(0)}s\nrecursos: ${(session.enabledFeatures ?? []).join(',')}\nhit-test: ${nHits}/${nQuadros} quadros com resultado\núltimo hit: ${dbgHit}\nmotivo: ${dbgMotivo}\nprofundidade: ${dbgDepth} ${dbgProf}\nmedida viva: ${medidaViva() ?? 'não'}\nfixou: ${dbgFix}`
+    if (dbg && frame) dbg.textContent = `RA diag · fase ${fase} · ${((performance.now() - desde) / 1000).toFixed(0)}s\nrecursos: ${(session.enabledFeatures ?? []).join(',')}\nhit-test: ${nHits}/${nQuadros} quadros com resultado\núltimo hit: ${dbgHit}\nmotivo: ${dbgMotivo}\nprofundidade: ${dbgDepth} · lida ${dbgDm}\nhit ao longo do eixo da câmera: ${dbgAx} m\nfator de distância: ${fator.toFixed(2)}\nmedida viva: ${medidaViva() ?? 'não'}\nfixou: ${dbgFix}`
     renderer.render(scene, camera)
   })
 }
