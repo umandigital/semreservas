@@ -1,0 +1,14 @@
+/* Estilos da interface da RA (sobre a câmera). Ajuste cores/fonte à marca do site. */
+.ra-overlay { position:fixed; inset:0; z-index:2147483000; pointer-events:none; font-family:system-ui,sans-serif; color:#fff; display:flex; flex-direction:column; justify-content:space-between; }
+.ra-overlay button { pointer-events:auto; font:inherit; color:inherit; }
+.ra-topo { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding:calc(10px + env(safe-area-inset-top)) 12px 0; }
+.ra-topo > div { background:rgba(20,5,40,.78); padding:6px 12px; border-radius:12px; } .ra-topo small { display:block; opacity:.85; }
+.ra-x { width:48px; height:48px; border-radius:50%; border:0; background:rgba(20,5,40,.82); font-size:1.2rem; }
+.ra-captura { position:absolute; inset:96px 0 150px; pointer-events:auto; touch-action:none; }
+.ra-base { padding:0 12px calc(12px + env(safe-area-inset-bottom)); display:grid; gap:8px; justify-items:center; }
+.ra-msg { margin:0; background:rgba(20,5,40,.82); padding:10px 14px; border-radius:14px; text-align:center; font-weight:600; max-width:94%; }
+.ra-fixar { min-height:48px; padding:0 16px; border-radius:14px; border:0; background:#ff7a1a; color:#2a1148; font-weight:800; }
+.ra-ing { min-height:48px; padding:0 16px; border-radius:14px; border:1px solid rgba(255,255,255,.5); background:rgba(24,12,40,.75); color:#fff; font-weight:700; }
+.ra-botoes { display:flex; gap:8px; flex-wrap:wrap; }
+.ra-med { min-height:48px; padding:0 16px; border-radius:14px; border:1px solid rgba(255,255,255,.5); background:rgba(24,12,40,.75); color:#fff; font-weight:700; } .ra-mover { min-height:48px; padding:0 18px; border-radius:14px; border:0; background:#ff7a1a; color:#2a1148; font-weight:800; }
+.ra-nota { background:rgba(20,5,40,.6); padding:2px 10px; border-radius:99px; font-size:.7rem; text-align:center; }
