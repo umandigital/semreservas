@@ -148,6 +148,7 @@ main.cheio { padding-bottom:0; }
 .ra-captura { position:absolute; inset:96px 0 150px; pointer-events:auto; touch-action:none; }
 .ra-base { padding:0 12px calc(12px + env(safe-area-inset-bottom)); display:grid; gap:8px; justify-items:center; }
 .ra-msg { margin:0; background:rgba(20,5,40,.82); padding:10px 14px; border-radius:14px; text-align:center; font-weight:600; max-width:94%; }
+.ra-fixar { min-height:48px; padding:0 16px; border-radius:14px; border:0; background:#ff7a1a; color:#2a1148; font-weight:800; }
 .ra-ing { min-height:48px; padding:0 16px; border-radius:14px; border:1px solid rgba(255,255,255,.5); background:rgba(24,12,40,.75); color:#fff; font-weight:700; }
 .ra-botoes { display:flex; gap:8px; flex-wrap:wrap; }
 .ra-med { min-height:48px; padding:0 16px; border-radius:14px; border:1px solid rgba(255,255,255,.5); background:rgba(24,12,40,.75); color:#fff; font-weight:700; } .ra-mover { min-height:48px; padding:0 18px; border-radius:14px; border:0; background:#ff7a1a; color:#2a1148; font-weight:800; }

@@ -17,7 +17,7 @@ export async function suportaWebxrAr(): Promise<boolean> {
 export type Rotulo = { titulo: string; linhas: string[] }
 export type OpcoesAr = { rotulo?: Rotulo; glb: string; nome: string; medidas: string; nota: string; aoAbrir?: () => void; aoFechar?: () => void }
 export type EstadoAr = {
-  fixado: boolean; achouSuperficie: boolean; visivel: boolean; cartaz: boolean; medidas: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
+  fixado: boolean; achouSuperficie: boolean; visivel: boolean; confirmado: boolean; cartaz: boolean; medidas: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
   triangulos: number; chamadas: number; sombraMapa: boolean; ancora: boolean; estavel: number
 }
 declare global { interface Window { __srAr?: () => EstadoAr } }
@@ -30,7 +30,7 @@ export function prepararAr(glb: string): Promise<THREE.Group> {
   return p
 }
 
-const MIN_DIST = 0.25, MAX_DIST = 3      // metros da câmera: nem colado, nem lá longe (onde o ARCore erra)
+const MIN_DIST = 0.25, MAX_DIST = 1.8      // metros da câmera: nem colado, nem lá longe (onde o ARCore erra)
 const QUADROS_ESTAVEIS = 4, TOLERANCIA = 0.03   // 4 quadros seguidos dentro de 3 cm travam o prato
 
 function texturaSombra(): THREE.Texture {
@@ -47,12 +47,12 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const ui = document.createElement('div'); ui.className = 'ra-overlay'
   ui.innerHTML = `<div class="ra-topo"><div><b>${esc(o.nome)}</b><small>${esc(o.medidas)}</small></div><button type="button" class="ra-x" aria-label="Fechar">✕</button></div>
     <div class="ra-captura" hidden></div>
-    <div class="ra-base"><p class="ra-msg" role="status"></p><div class="ra-botoes"><button type="button" class="ra-mover" hidden>Mover o prato</button><button type="button" class="ra-med" hidden>Tamanho ✓</button>${o.rotulo ? '<button type="button" class="ra-ing">Ingredientes ✓</button>' : ''}</div><small class="ra-nota">${esc(o.nota)}</small></div>`
+    <div class="ra-base"><p class="ra-msg" role="status"></p><div class="ra-botoes"><button type="button" class="ra-mover" hidden>Mover o prato</button><button type="button" class="ra-med" hidden>Tamanho ✓</button><button type="button" class="ra-fixar" hidden>Fixar aqui</button>${o.rotulo ? '<button type="button" class="ra-ing">Ingredientes ✓</button>' : ''}</div><small class="ra-nota">${esc(o.nota)}</small></div>`
   document.body.appendChild(ui)
   const q = <T extends HTMLElement>(s: string) => ui.querySelector(s) as T
-  const ing = ui.querySelector('.ra-ing') as HTMLButtonElement | null, med = ui.querySelector('.ra-med') as HTMLButtonElement
+  const ing = ui.querySelector('.ra-ing') as HTMLButtonElement | null, med = ui.querySelector('.ra-med') as HTMLButtonElement, fixar = ui.querySelector('.ra-fixar') as HTMLButtonElement
   const msg = q<HTMLElement>('.ra-msg'), captura = q<HTMLElement>('.ra-captura'), mover = q<HTMLButtonElement>('.ra-mover'), fechar = q<HTMLButtonElement>('.ra-x')
-  for (const b of [fechar, mover, captura, med, ...(ing ? [ing] : [])]) b.addEventListener('beforexrselect', e => e.preventDefault())
+  for (const b of [fechar, mover, captura, med, fixar, ...(ing ? [ing] : [])]) b.addEventListener('beforexrselect', e => e.preventDefault())
 
   let session: any
   try {
@@ -70,7 +70,10 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const sol = new THREE.DirectionalLight(0xffffff, 1.8); sol.position.set(0.6, 1.6, 0.8); scene.add(sol)
   const grupo = new THREE.Group(); grupo.visible = false; scene.add(grupo)       // prato + sombra falsa, movem juntos
   const modelo = await carregando; const cena = modelo.clone(true); cena.scale.setScalar(1)   // o arquivo já está em METROS
-  cena.traverse(n => { (n as THREE.Mesh).frustumCulled = false }); grupo.add(cena)
+  const mats: THREE.Material[] = []                                  // materiais próprios da sessão: o prato fica "fantasma" até a mesa ser confirmada
+  cena.traverse(n => { const me = n as THREE.Mesh; me.frustumCulled = false; if (me.isMesh) { me.material = Array.isArray(me.material) ? me.material.map(x => x.clone()) : me.material.clone(); mats.push(...(Array.isArray(me.material) ? me.material : [me.material])) } })
+  const fantasma = (on: boolean) => { for (const mt of mats) { mt.transparent = on; mt.opacity = on ? 0.5 : 1 } }
+  grupo.add(cena)
   const caixa = new THREE.Box3().setFromObject(cena); const raio = Math.max(caixa.max.x - caixa.min.x, caixa.max.z - caixa.min.z) * 0.9
   const sombra = new THREE.Mesh(new THREE.PlaneGeometry(raio * 2, raio * 2).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: texturaSombra(), transparent: true, depthWrite: false }))
   sombra.position.y = 0.0005; grupo.add(sombra)
@@ -107,27 +110,32 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const virar = () => { cartaz.rotation.y = cena.rotation.y; medidas.rotation.y = cena.rotation.y }          // o cartaz não gira junto com o prato
   const mira = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.045, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })); mira.visible = false; scene.add(mira)
 
-  let fixado = false, achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
+  let fixado = false, confirmado = false, desde = performance.now(), achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
   let acum = 0; const media = new THREE.Vector3(), alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
-  const texto = (t: string) => { msg.textContent = t }
-  const viewer = await session.requestReferenceSpace('viewer')
-  const abrirFonte = async () => {              // 'point' acha superfície antes de o celular andar para o lado (só 'plane' exige movimento)
+  const texto = (t: string) => { if (msg.textContent !== t) msg.textContent = t }
+  let viewer: any = null
+  const abrirFonte = async () => {
+    viewer ??= await session.requestReferenceSpace('viewer')              // 'point' acha superfície antes de o celular andar para o lado (só 'plane' exige movimento)
     try { fonte = await session.requestHitTestSource({ space: viewer, entityTypes: ['plane', 'point'] }) } catch { fonte = await session.requestHitTestSource({ space: viewer }) }
   }
   const fecharFonte = () => { try { fonte?.cancel() } catch { /* ignora */ } fonte = null }
 
   const reiniciar = async () => {                                   // volta a procurar superfície (primeira vez e "mover o prato")
-    fixado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false
+    fixado = false; confirmado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false; desde = performance.now(); fantasma(true); fixar.hidden = true
     try { ancora?.delete() } catch { /* ignora */ } ancora = null
     mover.hidden = true; captura.hidden = true; med.hidden = true; medidas.visible = false
     texto('Procurando a mesa… o prato se ajusta sozinho.')
-    await abrirFonte()
+    abrirFonte().catch(() => texto('Não consegui detectar a mesa neste aparelho. Toque em Fixar aqui.'))   // sem await: o prato não espera o ARCore ficar pronto
   }
   let x0: number | null = null                                      // girar com o dedo depois de fixado
   captura.addEventListener('pointerdown', e => { x0 = e.clientX; captura.setPointerCapture(e.pointerId) })
   captura.addEventListener('pointermove', e => { if (x0 === null) return; giro += (e.clientX - x0) * 0.012; x0 = e.clientX; cena.rotation.y = giro })
   captura.addEventListener('pointerup', () => { x0 = null })
   mover.addEventListener('click', () => { void reiniciar() })
+  fixar.addEventListener('click', () => {                           // plano B: mesa difícil de detectar (lisa, pouca luz) → fixa onde o prato está
+    fixado = true; fase = 'fixado-aprox'; fecharFonte(); fixar.hidden = true; mira.visible = false; mover.hidden = false; captura.hidden = false; fantasma(false)
+    texto('Prato fixado com distância estimada (a mesa não foi detectada). Se parecer fora do lugar, toque em Mover o prato.')
+  })
   med.addEventListener('click', () => { medLig = !medLig; medidas.visible = medLig; med.textContent = medLig ? 'Tamanho ✓' : 'Tamanho' })
   ing?.addEventListener('click', () => { cartaz.visible = !cartaz.visible; ing.textContent = cartaz.visible ? 'Ingredientes ✓' : 'Ingredientes' })
 
@@ -139,12 +147,12 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   session.addEventListener('end', encerrar)
 
   window.__srAr = () => ({
-    fixado, achouSuperficie: achou, visivel: grupo.visible, cartaz: cartaz.visible, medidas: medidas.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
+    fixado, achouSuperficie: achou, visivel: grupo.visible, confirmado, cartaz: cartaz.visible, medidas: medidas.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
     triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: !!ancora, estavel: acum,
   })
 
   const colocar = (pos: THREE.Vector3, hit: any) => {
-    fixado = true; achou = true; fase = 'fixado'; fecharFonte()
+    fixado = true; confirmado = true; achou = true; fase = 'fixado'; fecharFonte(); fantasma(false); fixar.hidden = true
     grupo.position.copy(pos); grupo.visible = true; mira.visible = false
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
     cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z); virar()
@@ -153,34 +161,39 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     if (session.enabledFeatures?.includes?.('anchors') && hit?.createAnchor) hit.createAnchor().then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora: fica estático */ })
   }
 
-  await reiniciar()
+  void reiniciar()
   renderer.setAnimationLoop((_t, frame) => {
     if (frame) {
       const ref = renderer.xr.getReferenceSpace()!
+      const vp = frame.getViewerPose(ref)
       if (fixado) {
         if (ancora) { const p = frame.getPose(ancora.anchorSpace, ref); if (p) { tmp.fromArray(p.transform.matrix); grupo.position.setFromMatrixPosition(tmp) } }   // o ARCore corrige a deriva
-      } else if (fonte) {
-        const r = frame.getHitTestResults(fonte); const pose = r.length ? r[0].getPose(ref) : null
-        let ok = false
-        if (pose) {
-          tmp.fromArray(pose.transform.matrix); alvo.setFromMatrixPosition(tmp)
-          cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld); const d = cam.distanceTo(alvo)
-          ok = tmp.elements[5] > 0.6 && d >= MIN_DIST && d <= MAX_DIST        // superfície quase horizontal (acha antes), a uma distância confiável
-        }
+      } else if (vp) {                                                    // só desenha quando o rastreamento do aparelho já tem posição
         cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)
+        let r: any[] = [], ok = false
+        if (fonte) {
+          r = frame.getHitTestResults(fonte); const pose = r.length ? r[0].getPose(ref) : null
+          if (pose) {
+            tmp.fromArray(pose.transform.matrix); alvo.setFromMatrixPosition(tmp); const d = cam.distanceTo(alvo)
+            ok = tmp.elements[5] > 0.6 && d >= MIN_DIST && d <= MAX_DIST      // superfície quase horizontal (acha antes), a uma distância confiável
+          }
+        }
         if (ok) {
-          if (!achou) { achou = true; grupo.position.copy(alvo) } else grupo.position.lerp(alvo, 0.5)   // vai para a superfície real
-          grupo.visible = true; mira.visible = false
+          if (!achou) { achou = true; texto('Mesa detectada, ajustando o prato…') }
+          grupo.position.lerp(alvo, 0.3); grupo.visible = true; mira.visible = false   // desliza do chute inicial até a superfície real
           if (acum === 0 || media.distanceTo(alvo) > TOLERANCIA) { media.copy(alvo); acum = 1 }   // pulou: recomeça a contar
           else { acum++; media.lerp(alvo, 1 / acum) }
-          if (acum >= QUADROS_ESTAVEIS) colocar(media.clone(), r[0])
+          if (acum >= QUADROS_ESTAVEIS && grupo.position.distanceTo(media) < 0.012) colocar(media.clone(), r[0])
         } else {
-          acum = 0; mira.visible = false
-          if (!achou) {                                                   // ainda sem superfície: o prato JÁ aparece à frente, na altura estimada da mesa
+          acum = 0
+          if (!achou) {                                                   // ainda sem superfície: o prato (fantasma) JÁ aparece à frente, na altura estimada da mesa
             const m = renderer.xr.getCamera().matrixWorld.elements; const dx = -m[8], dy = -m[9], dz = -m[10]
-            const k = dy < -0.15 ? Math.min(1.1, Math.max(0.45, 0.6 / -dy)) : 0.7      // chute: mesa ~60 cm abaixo do celular, a ~0,5–1 m (tamanho percebido próximo do real)
-            grupo.position.set(cam.x + dx * k, dy < -0.15 ? cam.y + dy * k : cam.y - 0.6, cam.z + dz * k); grupo.visible = true
+            const k = dy < -0.15 ? Math.min(1, Math.max(0.4, 0.5 / -dy)) : 0.8   // chute: mesa ~50 cm abaixo do celular
+            grupo.position.set(cam.x + dx * k, dy < -0.15 ? cam.y + dy * k : cam.y - 0.5, cam.z + dz * k); grupo.visible = true
             cena.rotation.y = Math.atan2(cam.x - grupo.position.x, cam.z - grupo.position.z); virar()
+            const t = performance.now() - desde
+            if (t > 5000 && fixar.hidden) fixar.hidden = false
+            texto(t > 7000 ? 'Mesa lisa? Aponte também para uma borda ou objeto e mova o celular devagar em círculo. Ou toque em Fixar aqui.' : 'Procurando a mesa… mova o celular devagar. O prato se ajusta sozinho.')
           }
         }
       }
