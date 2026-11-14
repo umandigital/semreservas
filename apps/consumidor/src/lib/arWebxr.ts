@@ -17,7 +17,7 @@ export async function suportaWebxrAr(): Promise<boolean> {
 export type Rotulo = { titulo: string; linhas: string[] }
 export type OpcoesAr = { rotulo?: Rotulo; glb: string; nome: string; medidas: string; nota: string; aoAbrir?: () => void; aoFechar?: () => void }
 export type EstadoAr = {
-  fixado: boolean; achouSuperficie: boolean; visivel: boolean; confirmado: boolean; cartaz: boolean; medidas: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
+  fixado: boolean; achouSuperficie: boolean; visivel: boolean; confirmado: boolean; profundidade: boolean; cartaz: boolean; medidas: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
   triangulos: number; chamadas: number; sombraMapa: boolean; ancora: boolean; estavel: number
 }
 declare global { interface Window { __srAr?: () => EstadoAr } }
@@ -56,7 +56,8 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
 
   let session: any
   try {
-    session = await xr()!.requestSession('immersive-ar', { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'light-estimation', 'anchors'], domOverlay: { root: ui } })
+    session = await xr()!.requestSession('immersive-ar', { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'light-estimation', 'anchors', 'depth-sensing'], domOverlay: { root: ui },
+      depthSensing: { usagePreference: ['cpu-optimized', 'gpu-optimized'], dataFormatPreference: ['luminance-alpha', 'float32'] } })   // profundidade: distância da mesa na hora, sem depender da textura
   } catch (e) { ui.remove(); throw e }          // recusou: o 3D do feed segue montado para o plano B (Scene Viewer)
   o.aoAbrir?.()                                  // sessão aberta: o feed desmonta o 3D dele (um só contexto WebGL)
 
@@ -107,6 +108,8 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     const rot = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.0375).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tx, transparent: true, toneMapped: false })); rot.position.set(0, 0.0015, zL + 0.032); medidas.add(rot)
   }
   let medLig = true
+  const amostras: number[] = [], pProf = new THREE.Vector3(), mProf = new THREE.Vector3(), vPos = new THREE.Vector3(), vFwd = new THREE.Vector3(), mv = new THREE.Matrix4()
+  let depthOk = true, usouProf = false, acumP = 0
   const virar = () => { cartaz.rotation.y = cena.rotation.y; medidas.rotation.y = cena.rotation.y }          // o cartaz não gira junto com o prato
   const mira = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.045, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })); mira.visible = false; scene.add(mira)
 
@@ -121,6 +124,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const fecharFonte = () => { try { fonte?.cancel() } catch { /* ignora */ } fonte = null }
 
   const reiniciar = async () => {                                   // volta a procurar superfície (primeira vez e "mover o prato")
+    amostras.length = 0; acumP = 0; usouProf = false
     fixado = false; confirmado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false; desde = performance.now(); fantasma(true); fixar.hidden = true
     try { ancora?.delete() } catch { /* ignora */ } ancora = null
     mover.hidden = true; captura.hidden = true; med.hidden = true; medidas.visible = false
@@ -147,18 +151,19 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   session.addEventListener('end', encerrar)
 
   window.__srAr = () => ({
-    fixado, achouSuperficie: achou, visivel: grupo.visible, confirmado, cartaz: cartaz.visible, medidas: medidas.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
+    fixado, achouSuperficie: achou, visivel: grupo.visible, confirmado, profundidade: usouProf, cartaz: cartaz.visible, medidas: medidas.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
     triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: !!ancora, estavel: acum,
   })
 
-  const colocar = (pos: THREE.Vector3, hit: any) => {
+  const colocar = (pos: THREE.Vector3, hit: any, quadro?: XRFrame, ref?: XRReferenceSpace) => {
     fixado = true; confirmado = true; achou = true; fase = 'fixado'; fecharFonte(); fantasma(false); fixar.hidden = true
     grupo.position.copy(pos); grupo.visible = true; mira.visible = false
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
     cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z); virar()
     mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig
     texto('Prato no tamanho real, fixado na mesa. Garfo e faca servem de comparação. Arraste para girar.')
-    if (session.enabledFeatures?.includes?.('anchors') && hit?.createAnchor) hit.createAnchor().then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora: fica estático */ })
+    if (!hit && quadro && ref && session.enabledFeatures?.includes?.('anchors') && (quadro as any).createAnchor) (quadro as any).createAnchor(new XRRigidTransform({ x: pos.x, y: pos.y, z: pos.z }), ref).then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora */ })
+    else if (session.enabledFeatures?.includes?.('anchors') && hit?.createAnchor) hit.createAnchor().then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora: fica estático */ })
   }
 
   void reiniciar()
@@ -186,7 +191,30 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
           if (acum >= QUADROS_ESTAVEIS && grupo.position.distanceTo(media) < 0.012) colocar(media.clone(), r[0])
         } else {
           acum = 0
-          if (!achou) {                                                   // ainda sem superfície: o prato (fantasma) JÁ aparece à frente, na altura estimada da mesa
+          let prof = false
+          if (!achou && depthOk) {                                        // profundidade do ARCore (sem depender de textura): ponto do centro da tela, em metros
+            try {
+              const v = vp.views[0]; const di = (frame as any).getDepthInformation?.(v)
+              if (di) {
+                const dm: number = di.getDepthInMeters(0.5, 0.5)
+                if (dm > 0.25 && dm < 2.2) {
+                  amostras.push(dm); if (amostras.length > 5) amostras.shift()
+                  const md = [...amostras].sort((a, b) => a - b)[amostras.length >> 1]
+                  mv.fromArray(v.transform.matrix); vPos.setFromMatrixPosition(mv); vFwd.set(-mv.elements[8], -mv.elements[9], -mv.elements[10])
+                  pProf.copy(vPos).addScaledVector(vFwd, md)
+                  if (pProf.y < vPos.y - 0.12) prof = true                  // ignora parede/teto: a mesa fica abaixo do celular
+                }
+              }
+            } catch { depthOk = false }
+          }
+          if (prof) {
+            usouProf = true; if (grupo.visible) grupo.position.lerp(pProf, 0.4); else grupo.position.copy(pProf); grupo.visible = true
+            cena.rotation.y = Math.atan2(cam.x - grupo.position.x, cam.z - grupo.position.z); virar()
+            if (acumP === 0 || mProf.distanceTo(pProf) > 0.04) { mProf.copy(pProf); acumP = 1 } else { acumP++; mProf.lerp(pProf, 0.2) }
+            texto('Medindo a distância da mesa…')
+            if (acumP >= 8 && grupo.position.distanceTo(mProf) < 0.02) colocar(mProf.clone(), null, frame, ref)
+          } else if (!achou) {                                            // sem superfície nem profundidade: o prato (fantasma) JÁ aparece à frente, na altura estimada da mesa
+            acumP = 0
             const m = renderer.xr.getCamera().matrixWorld.elements; const dx = -m[8], dy = -m[9], dz = -m[10]
             const k = dy < -0.15 ? Math.min(1, Math.max(0.4, 0.5 / -dy)) : 0.8   // chute: mesa ~50 cm abaixo do celular
             grupo.position.set(cam.x + dx * k, dy < -0.15 ? cam.y + dy * k : cam.y - 0.5, cam.z + dz * k); grupo.visible = true
