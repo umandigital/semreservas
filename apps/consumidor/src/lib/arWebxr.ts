@@ -17,7 +17,7 @@ export async function suportaWebxrAr(): Promise<boolean> {
 export type Rotulo = { titulo: string; linhas: string[] }
 export type OpcoesAr = { rotulo?: Rotulo; glb: string; nome: string; medidas: string; nota: string; aoAbrir?: () => void; aoFechar?: () => void }
 export type EstadoAr = {
-  fixado: boolean; achouSuperficie: boolean; visivel: boolean; cartaz: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
+  fixado: boolean; achouSuperficie: boolean; visivel: boolean; cartaz: boolean; medidas: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
   triangulos: number; chamadas: number; sombraMapa: boolean; ancora: boolean; estavel: number
 }
 declare global { interface Window { __srAr?: () => EstadoAr } }
@@ -47,12 +47,12 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const ui = document.createElement('div'); ui.className = 'ra-overlay'
   ui.innerHTML = `<div class="ra-topo"><div><b>${esc(o.nome)}</b><small>${esc(o.medidas)}</small></div><button type="button" class="ra-x" aria-label="Fechar">✕</button></div>
     <div class="ra-captura" hidden></div>
-    <div class="ra-base"><p class="ra-msg" role="status"></p><div class="ra-botoes"><button type="button" class="ra-mover" hidden>Mover o prato</button>${o.rotulo ? '<button type="button" class="ra-ing">Ingredientes ✓</button>' : ''}</div><small class="ra-nota">${esc(o.nota)}</small></div>`
+    <div class="ra-base"><p class="ra-msg" role="status"></p><div class="ra-botoes"><button type="button" class="ra-mover" hidden>Mover o prato</button><button type="button" class="ra-med" hidden>Tamanho ✓</button>${o.rotulo ? '<button type="button" class="ra-ing">Ingredientes ✓</button>' : ''}</div><small class="ra-nota">${esc(o.nota)}</small></div>`
   document.body.appendChild(ui)
   const q = <T extends HTMLElement>(s: string) => ui.querySelector(s) as T
-  const ing = ui.querySelector('.ra-ing') as HTMLButtonElement | null
+  const ing = ui.querySelector('.ra-ing') as HTMLButtonElement | null, med = ui.querySelector('.ra-med') as HTMLButtonElement
   const msg = q<HTMLElement>('.ra-msg'), captura = q<HTMLElement>('.ra-captura'), mover = q<HTMLButtonElement>('.ra-mover'), fechar = q<HTMLButtonElement>('.ra-x')
-  for (const b of [fechar, mover, captura, ...(ing ? [ing] : [])]) b.addEventListener('beforexrselect', e => e.preventDefault())
+  for (const b of [fechar, mover, captura, med, ...(ing ? [ing] : [])]) b.addEventListener('beforexrselect', e => e.preventDefault())
 
   let session: any
   try {
@@ -82,7 +82,29 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     const pl = new THREE.Mesh(new THREE.PlaneGeometry(larg, alt), new THREE.MeshBasicMaterial({ map: tx, transparent: true, toneMapped: false, side: THREE.DoubleSide }))
     pl.position.set(0, alt / 2 + 0.005, -(raio * 0.95)); pl.rotation.x = -0.22; cartaz.add(pl)
   }
-  const virar = () => { cartaz.rotation.y = cena.rotation.y }          // o cartaz não gira junto com o prato
+  // referência de tamanho: garfo e faca de tamanho real ao lado do prato + régua com a medida (só depois de a mesa ser confirmada)
+  const medidas = new THREE.Group(); medidas.visible = false; grupo.add(medidas)
+  {
+    const dimX = caixa.max.x - caixa.min.x, dimZ = caixa.max.z - caixa.min.z, R = Math.max(dimX, dimZ) / 2
+    const aco = new THREE.MeshStandardMaterial({ color: 0xd9dde2, metalness: 0.35, roughness: 0.32 })
+    const poli = (pts: [number, number][]) => { const sh = new THREE.Shape(); pts.forEach(([x, y], i) => i ? sh.lineTo(x, y) : sh.moveTo(x, y)); return new THREE.ExtrudeGeometry(sh, { depth: 0.002, bevelEnabled: false }).rotateX(-Math.PI / 2) }
+    const garfo = new THREE.Group()                                   // 19 cm
+    garfo.add(new THREE.Mesh(poli([[-0.005, 0], [0.005, 0], [0.0065, 0.115], [0.0175, 0.135], [-0.0175, 0.135], [-0.0065, 0.115]]), aco))
+    for (let k = 0; k < 4; k++) { const d = new THREE.Mesh(new THREE.BoxGeometry(0.0045, 0.002, 0.058), aco); d.position.set(-0.0135 + k * 0.009, 0.001, -(0.135 + 0.029)); garfo.add(d) }
+    const faca = new THREE.Group()                                    // 22 cm
+    faca.add(new THREE.Mesh(poli([[0.007, 0], [-0.007, 0], [-0.007, 0.105], [-0.0105, 0.108], [-0.0105, 0.19], [-0.005, 0.222], [0.007, 0.222]]), aco))
+    garfo.position.set(-(R + 0.045), 0.0006, 0.095); faca.position.set(R + 0.04, 0.0006, 0.11); medidas.add(garfo, faca)
+    const cm = Math.round(Math.max(dimX, dimZ) * 100)
+    const lin = new THREE.MeshBasicMaterial({ color: 0xffffff }); const zL = R + 0.04
+    const barra = new THREE.Mesh(new THREE.PlaneGeometry(2 * R, 0.003).rotateX(-Math.PI / 2), lin); barra.position.set(0, 0.001, zL)
+    medidas.add(barra); for (const sx of [-1, 1]) { const t = new THREE.Mesh(new THREE.PlaneGeometry(0.003, 0.02).rotateX(-Math.PI / 2), lin); t.position.set(sx * R, 0.001, zL); medidas.add(t) }
+    const c = document.createElement('canvas'); c.width = 256; c.height = 96; const g = c.getContext('2d')!
+    g.fillStyle = 'rgba(24,12,40,0.9)'; g.beginPath(); g.roundRect(0, 0, 256, 96, 28); g.fill(); g.fillStyle = '#fff'; g.font = '800 58px "Segoe UI", Roboto, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(`${cm} cm`, 128, 52)
+    const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace
+    const rot = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.0375).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tx, transparent: true, toneMapped: false })); rot.position.set(0, 0.0015, zL + 0.032); medidas.add(rot)
+  }
+  let medLig = true
+  const virar = () => { cartaz.rotation.y = cena.rotation.y; medidas.rotation.y = cena.rotation.y }          // o cartaz não gira junto com o prato
   const mira = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.045, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })); mira.visible = false; scene.add(mira)
 
   let fixado = false, achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
@@ -97,7 +119,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const reiniciar = async () => {                                   // volta a procurar superfície (primeira vez e "mover o prato")
     fixado = false; achou = false; acum = 0; fase = 'procurando'; grupo.visible = false; mira.visible = false
     try { ancora?.delete() } catch { /* ignora */ } ancora = null
-    mover.hidden = true; captura.hidden = true
+    mover.hidden = true; captura.hidden = true; med.hidden = true; medidas.visible = false
     texto('Procurando a mesa… o prato se ajusta sozinho.')
     await abrirFonte()
   }
@@ -106,6 +128,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   captura.addEventListener('pointermove', e => { if (x0 === null) return; giro += (e.clientX - x0) * 0.012; x0 = e.clientX; cena.rotation.y = giro })
   captura.addEventListener('pointerup', () => { x0 = null })
   mover.addEventListener('click', () => { void reiniciar() })
+  med.addEventListener('click', () => { medLig = !medLig; medidas.visible = medLig; med.textContent = medLig ? 'Tamanho ✓' : 'Tamanho' })
   ing?.addEventListener('click', () => { cartaz.visible = !cartaz.visible; ing.textContent = cartaz.visible ? 'Ingredientes ✓' : 'Ingredientes' })
 
   const encerrar = () => {
@@ -116,7 +139,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   session.addEventListener('end', encerrar)
 
   window.__srAr = () => ({
-    fixado, achouSuperficie: achou, visivel: grupo.visible, cartaz: cartaz.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
+    fixado, achouSuperficie: achou, visivel: grupo.visible, cartaz: cartaz.visible, medidas: medidas.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
     triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: !!ancora, estavel: acum,
   })
 
@@ -125,8 +148,8 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     grupo.position.copy(pos); grupo.visible = true; mira.visible = false
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
     cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z); virar()
-    mover.hidden = false; captura.hidden = false
-    texto('Prato fixado na mesa. Arraste o dedo para girar.')
+    mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig
+    texto('Prato no tamanho real, fixado na mesa. Garfo e faca servem de comparação. Arraste para girar.')
     if (session.enabledFeatures?.includes?.('anchors') && hit?.createAnchor) hit.createAnchor().then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora: fica estático */ })
   }
 
