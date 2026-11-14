@@ -110,7 +110,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
   const projetar = async () => {
     if (!i.modelo) return
     if (webxrAr) {
-      try { const { iniciarAr } = await import('../lib/arWebxr'); await iniciarAr({ glb: media(i.modelo.glbAr ?? i.modelo.glb), nome: i.nome, medidas: i.modelo.medidas, nota: i.modelo.nota, aoAbrir: () => definirRaAberta(true), aoFechar: () => definirRaAberta(false) }); setMsgRa(''); return }
+      try { const { iniciarAr } = await import('../lib/arWebxr'); await iniciarAr({ glb: media(i.modelo.glbAr ?? i.modelo.glb), nome: i.nome, medidas: i.modelo.medidas, nota: i.modelo.nota, rotulo: i.modelo.ingredientesRa ? { titulo: i.nome, linhas: i.ingredientes } : undefined, aoAbrir: () => definirRaAberta(true), aoFechar: () => definirRaAberta(false) }); setMsgRa(''); return }
       catch { setMsgRa('Não consegui abrir a câmera do navegador. Tentando o aplicativo do Google…') }
     }
     if (!mv.current) return; const r = await abrirRa(mv.current, setMsgRa); if (r !== 'aberto') setTimeout(() => setMsgRa(''), 9000)

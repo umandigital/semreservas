@@ -14,9 +14,10 @@ export async function suportaWebxrAr(): Promise<boolean> {
   try { return !!xr() && await xr()!.isSessionSupported('immersive-ar') } catch { return false }
 }
 
-export type OpcoesAr = { glb: string; nome: string; medidas: string; nota: string; aoAbrir?: () => void; aoFechar?: () => void }
+export type Rotulo = { titulo: string; linhas: string[] }
+export type OpcoesAr = { rotulo?: Rotulo; glb: string; nome: string; medidas: string; nota: string; aoAbrir?: () => void; aoFechar?: () => void }
 export type EstadoAr = {
-  fixado: boolean; achouSuperficie: boolean; visivel: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
+  fixado: boolean; achouSuperficie: boolean; visivel: boolean; cartaz: boolean; posicao: [number, number, number]; escala: number; giro: number; fase: string
   triangulos: number; chamadas: number; sombraMapa: boolean; ancora: boolean; estavel: number
 }
 declare global { interface Window { __srAr?: () => EstadoAr } }
@@ -29,7 +30,7 @@ export function prepararAr(glb: string): Promise<THREE.Group> {
   return p
 }
 
-const MIN_DIST = 0.35, MAX_DIST = 2.5      // metros da câmera: nem colado, nem lá longe (onde o ARCore erra)
+const MIN_DIST = 0.25, MAX_DIST = 3      // metros da câmera: nem colado, nem lá longe (onde o ARCore erra)
 const QUADROS_ESTAVEIS = 4, TOLERANCIA = 0.03   // 4 quadros seguidos dentro de 3 cm travam o prato
 
 function texturaSombra(): THREE.Texture {
@@ -46,18 +47,18 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const ui = document.createElement('div'); ui.className = 'ra-overlay'
   ui.innerHTML = `<div class="ra-topo"><div><b>${esc(o.nome)}</b><small>${esc(o.medidas)}</small></div><button type="button" class="ra-x" aria-label="Fechar">✕</button></div>
     <div class="ra-captura" hidden></div>
-    <div class="ra-base"><p class="ra-msg" role="status"></p><div class="ra-botoes"><button type="button" class="ra-mover" hidden>Mover o prato</button></div><small class="ra-nota">${esc(o.nota)}</small></div>`
+    <div class="ra-base"><p class="ra-msg" role="status"></p><div class="ra-botoes"><button type="button" class="ra-mover" hidden>Mover o prato</button>${o.rotulo ? '<button type="button" class="ra-ing">Ingredientes ✓</button>' : ''}</div><small class="ra-nota">${esc(o.nota)}</small></div>`
   document.body.appendChild(ui)
   const q = <T extends HTMLElement>(s: string) => ui.querySelector(s) as T
+  const ing = ui.querySelector('.ra-ing') as HTMLButtonElement | null
   const msg = q<HTMLElement>('.ra-msg'), captura = q<HTMLElement>('.ra-captura'), mover = q<HTMLButtonElement>('.ra-mover'), fechar = q<HTMLButtonElement>('.ra-x')
-  for (const b of [fechar, mover, captura]) b.addEventListener('beforexrselect', e => e.preventDefault())
+  for (const b of [fechar, mover, captura, ...(ing ? [ing] : [])]) b.addEventListener('beforexrselect', e => e.preventDefault())
 
   let session: any
   try {
     session = await xr()!.requestSession('immersive-ar', { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'light-estimation', 'anchors'], domOverlay: { root: ui } })
   } catch (e) { ui.remove(); throw e }          // recusou: o 3D do feed segue montado para o plano B (Scene Viewer)
   o.aoAbrir?.()                                  // sessão aberta: o feed desmonta o 3D dele (um só contexto WebGL)
-  await new Promise(r => setTimeout(r, 50))
 
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'high-performance' })
   renderer.setPixelRatio(1); renderer.xr.enabled = true; renderer.xr.setReferenceSpaceType('local')
@@ -73,8 +74,16 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   const caixa = new THREE.Box3().setFromObject(cena); const raio = Math.max(caixa.max.x - caixa.min.x, caixa.max.z - caixa.min.z) * 0.9
   const sombra = new THREE.Mesh(new THREE.PlaneGeometry(raio * 2, raio * 2).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: texturaSombra(), transparent: true, depthWrite: false }))
   sombra.position.y = 0.0005; grupo.add(sombra)
+  // cartaz com o nome e os ingredientes, de pé atrás do prato, virado para quem projetou
+  const cartaz = new THREE.Group(); grupo.add(cartaz); cartaz.visible = !!o.rotulo
+  if (o.rotulo) {
+    const cv = desenharCartaz(o.rotulo); const larg = 0.34, alt = larg * cv.height / cv.width
+    const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(larg, alt), new THREE.MeshBasicMaterial({ map: tx, transparent: true, toneMapped: false, side: THREE.DoubleSide }))
+    pl.position.set(0, alt / 2 + 0.005, -(raio * 0.95)); pl.rotation.x = -0.22; cartaz.add(pl)
+  }
+  const virar = () => { cartaz.rotation.y = cena.rotation.y }          // o cartaz não gira junto com o prato
   const mira = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.045, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })); mira.visible = false; scene.add(mira)
-  try { await renderer.compileAsync(scene, camera) } catch { /* aquecimento é opcional */ }
 
   let fixado = false, achou = false, giro = 0, fase = 'procurando', ancora: any = null, fonte: any = null
   let acum = 0; const media = new THREE.Vector3(), alvo = new THREE.Vector3(), tmp = new THREE.Matrix4(), cam = new THREE.Vector3()
@@ -97,6 +106,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   captura.addEventListener('pointermove', e => { if (x0 === null) return; giro += (e.clientX - x0) * 0.012; x0 = e.clientX; cena.rotation.y = giro })
   captura.addEventListener('pointerup', () => { x0 = null })
   mover.addEventListener('click', () => { void reiniciar() })
+  ing?.addEventListener('click', () => { cartaz.visible = !cartaz.visible; ing.textContent = cartaz.visible ? 'Ingredientes ✓' : 'Ingredientes' })
 
   const encerrar = () => {
     renderer.setAnimationLoop(null); fecharFonte(); try { ancora?.delete() } catch { /* ignora */ }
@@ -106,7 +116,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   session.addEventListener('end', encerrar)
 
   window.__srAr = () => ({
-    fixado, achouSuperficie: achou, visivel: grupo.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
+    fixado, achouSuperficie: achou, visivel: grupo.visible, cartaz: cartaz.visible, posicao: [grupo.position.x, grupo.position.y, grupo.position.z], escala: cena.scale.x, giro: cena.rotation.y, fase,
     triangulos: renderer.info.render.triangles, chamadas: renderer.info.render.calls, sombraMapa: renderer.shadowMap.enabled, ancora: !!ancora, estavel: acum,
   })
 
@@ -114,7 +124,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     fixado = true; achou = true; fase = 'fixado'; fecharFonte()
     grupo.position.copy(pos); grupo.visible = true; mira.visible = false
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
-    cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z)
+    cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z); virar()
     mover.hidden = false; captura.hidden = false
     texto('Prato fixado na mesa. Arraste o dedo para girar.')
     if (session.enabledFeatures?.includes?.('anchors') && hit?.createAnchor) hit.createAnchor().then((a: any) => { if (fixado) ancora = a; else a?.delete?.() }).catch(() => { /* sem âncora: fica estático */ })
@@ -132,7 +142,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
         if (pose) {
           tmp.fromArray(pose.transform.matrix); alvo.setFromMatrixPosition(tmp)
           cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld); const d = cam.distanceTo(alvo)
-          ok = tmp.elements[5] > 0.75 && d >= MIN_DIST && d <= MAX_DIST        // superfície horizontal, a uma distância confiável
+          ok = tmp.elements[5] > 0.6 && d >= MIN_DIST && d <= MAX_DIST        // superfície quase horizontal (acha antes), a uma distância confiável
         }
         cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)
         if (ok) {
@@ -145,9 +155,9 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
           acum = 0; mira.visible = false
           if (!achou) {                                                   // ainda sem superfície: o prato JÁ aparece à frente, na altura estimada da mesa
             const m = renderer.xr.getCamera().matrixWorld.elements; const dx = -m[8], dy = -m[9], dz = -m[10]
-            const k = dy < -0.15 ? Math.min(1.6, (-0.7) / dy) : 0.9
-            grupo.position.set(cam.x + dx * k, cam.y - 0.7, cam.z + dz * k); grupo.visible = true
-            cena.rotation.y = Math.atan2(cam.x - grupo.position.x, cam.z - grupo.position.z)
+            const k = dy < -0.15 ? Math.min(1.1, Math.max(0.45, 0.6 / -dy)) : 0.7      // chute: mesa ~60 cm abaixo do celular, a ~0,5–1 m (tamanho percebido próximo do real)
+            grupo.position.set(cam.x + dx * k, dy < -0.15 ? cam.y + dy * k : cam.y - 0.6, cam.z + dz * k); grupo.visible = true
+            cena.rotation.y = Math.atan2(cam.x - grupo.position.x, cam.z - grupo.position.z); virar()
           }
         }
       }
@@ -156,3 +166,18 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
   })
 }
 const esc = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
+
+/** Cartaz (textura) com nome e ingredientes: legível a ~1 m, fundo escuro translúcido. */
+function desenharCartaz(r: Rotulo): HTMLCanvasElement {
+  const W = 1024, pad = 56, fonte = '"Segoe UI", Roboto, Arial, sans-serif'
+  const medir = document.createElement('canvas').getContext('2d')!
+  const quebrar = (t: string, max: number, f: string) => { medir.font = f; const out: string[] = []; let l = ''; for (const w of t.split(' ')) { const x = l ? l + ' ' + w : w; if (medir.measureText(x).width > max && l) { out.push(l); l = w } else l = x } if (l) out.push(l); return out }
+  const tit = quebrar(r.titulo, W - 2 * pad, `800 80px ${fonte}`); const linhas = r.linhas.flatMap(t => quebrar(t, W - 2 * pad - 50, `600 56px ${fonte}`).map((x, i) => (i ? '   ' : '• ') + x))
+  const H = pad * 2 + tit.length * 92 + 70 + linhas.length * 74
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d')!
+  g.fillStyle = 'rgba(24,12,40,0.88)'; g.beginPath(); g.roundRect(0, 0, W, H, 56); g.fill()
+  g.fillStyle = '#ff9a3c'; g.font = `800 80px ${fonte}`; g.textBaseline = 'top'; let y = pad; for (const t of tit) { g.fillText(t, pad, y); y += 92 }
+  g.fillStyle = '#d9c8ff'; g.font = `700 44px ${fonte}`; g.fillText('INGREDIENTES', pad, y + 4); y += 70
+  g.fillStyle = '#ffffff'; g.font = `600 56px ${fonte}`; for (const t of linhas) { g.fillText(t, pad, y); y += 74 }
+  return c
+}

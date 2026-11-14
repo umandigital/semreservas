@@ -6,7 +6,7 @@ export type Item = {
 }
 /** Modelo 3D para "Projetar na mesa" (realidade aumentada). As medidas reais vêm do próprio arquivo (em metros). */
 export type Modelo3D = {
-  glb: string; glbAr?: string; poster: string          // poster = render com fundo transparente (aparece enquanto o 3D carrega)
+  glb: string; glbAr?: string; ingredientesRa?: boolean; poster: string          // poster = render com fundo transparente (aparece enquanto o 3D carrega)
   medidas: string                      // texto para o cliente
   tamanhoM: [number, number, number]   // largura × altura × profundidade REAIS, em metros: o teste confere com o arquivo
   nota: string; orbita?: string
@@ -26,7 +26,7 @@ export const ITENS: Item[] = [
   { id: 'p3', cat: 'Pizzas', nome: 'Quatro Queijos', preco: 5890, desc: 'Mussarela, provolone, gorgonzola e parmesão.', ingredientes: ['Massa', 'Mussarela', 'Provolone', 'Gorgonzola', 'Parmesão'], img: m('pizza.webp'), tags: ['vegetariano'] },
   { id: 'p4', cat: 'Pizzas', nome: 'Pizza do Pub', preco: 6190, desc: 'Costela desfiada, cheddar e cebola crispy.', ingredientes: ['Massa', 'Costela desfiada', 'Cheddar', 'Cebola crispy'], img: m('pizza.webp') },
   { id: 'p5', cat: 'Pizzas', nome: 'Meio a Meio', preco: 5690, desc: 'Metade mussarela com tomate-cereja e manjericão, metade calabresa.', ingredientes: ['Massa de fermentação lenta', 'Molho de tomate', 'Mussarela', 'Tomate-cereja', 'Manjericão', 'Calabresa'], img: m('pizza-meio-a-meio.webp'),
-    modelo: { glb: m('modelos/pizza-meio-a-meio.glb'), poster: m('modelos/pizza-meio-a-meio-poster.webp'), medidas: '32 cm de diâmetro', tamanhoM: [0.32, 0.0345, 0.32], orbita: '20deg 60deg auto', nota: 'Imagem ilustrativa em tamanho real. O prato servido pode ter pequenas diferenças.' } },
+    modelo: { glb: m('modelos/pizza-meio-a-meio.glb'), ingredientesRa: true, poster: m('modelos/pizza-meio-a-meio-poster.webp'), medidas: '32 cm de diâmetro', tamanhoM: [0.32, 0.0345, 0.32], orbita: '20deg 60deg auto', nota: 'Imagem ilustrativa em tamanho real. O prato servido pode ter pequenas diferenças.' } },
   { id: 'x1', cat: 'Testes', nome: 'Hot Roll (teste de RA)', preco: 3890, desc: 'Rolinhos empanados e crocantes, recheados com salmão e cream cheese.', ingredientes: ['Arroz', 'Salmão', 'Cream cheese', 'Alga nori', 'Empanado crocante'], img: m('modelos/hot-roll-poster.webp'),
     modelo: { glb: m('modelos/hot-roll.glb'), poster: m('modelos/hot-roll-poster.webp'), medidas: 'Prato de 20 cm · 6 cm de altura', tamanhoM: [0.2, 0.0574, 0.2], orbita: '25deg 62deg auto', nota: 'Imagem ilustrativa em tamanho real, com o prato. O prato servido pode ter pequenas diferenças.' } },
   { id: 'x2', cat: 'Testes', nome: 'Prato Fotográfico (teste de RA)', preco: 4290, desc: 'Prato de teste de modelo 3D gerado a partir de foto, em tamanho real.', ingredientes: ['Item de teste de realidade aumentada'], img: m('modelos/prato-fotografico-poster.webp'),
