@@ -1,5 +1,7 @@
 # Prompts para o ChatGPT (imagens e telas do layout final)
 
+> **Atenção:** o arquivo `PROMPT-ATUALIZACAO-CHATGPT.md` é a especificação completa e prevalece sobre este (abas, regras de visitante/logado, textos exatos e lista de proibições). Use este só como apoio.
+
 Como usar: abra uma conversa nova no ChatGPT (modelo com geração de imagens), **cole o BLOCO-BASE primeiro**, depois um prompt por vez. Peça sempre 2 variações. Revise os textos das imagens (a ferramenta erra acentos). Peça "sem logotipo, deixe um retângulo cinza escrito LOGO" e eu aplico o logo oficial depois (o logo aprovado não pode ser redesenhado).
 
 ## BLOCO-BASE (cole antes de tudo) — tema SemReservas GastroPub
