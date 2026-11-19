@@ -52,6 +52,6 @@ export const CONFIG = {
   fundo3d: 'radial-gradient(ellipse 85% 70% at 50% 46%, #fbf8f3 0%, #eee6da 52%, #d3c7b6 100%)',
   wifi: { ssid: 'GastroPub-Guest', senha: 'teste1234' },
   instagram: 'https://www.instagram.com/semreservasgastropub/' as string,
-  googleAvaliacao: '' as string,
+  googleAvaliacao: 'https://g.page/r/CSVWk2-qgiadECE/review' as string,  // teste: perfil da Uman Digital (restaurante fictício não tem perfil no Google)
   mesas: ['1', '2', '3'],
 }
