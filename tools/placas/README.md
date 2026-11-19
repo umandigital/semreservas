@@ -4,7 +4,7 @@ Cria as placas de um estabelecimento em lote: SQL, CSV para gravar as tags e fol
 
 ```bash
 cd tools/placas && npm install
-node gerar.mjs --slug gastropub --mesas "1..30" --base https://umandigital.com.br/semreservas --out ./saida-placas
+node gerar.mjs --slug gastropub --mesas "1..30" --base https://semreservas.com.br/semreservas --out ./saida-placas
 # ou rótulos livres: --mesas "Balcão,Varanda 1,Varanda 2"
 ```
 

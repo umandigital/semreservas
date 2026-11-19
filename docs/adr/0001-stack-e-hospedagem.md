@@ -38,6 +38,6 @@ Escolhida a opção, este ADR passa a ACEITO e `apps/api/README.md` ganha as ins
 ## Decisão (04/11/2026)
 Opção **B**: telas estáticas no Hostinger + Supabase (PostgreSQL, Auth, Realtime, Storage).
 
-- **Endereço de teste:** `https://umandigital.com.br/semreservas/` é a raiz. O caminho base é **configuração** (`BASE_PATH`), nunca fixo no código, para trocar por `semreservas.com.br` sem mexer nas telas.
+- **Endereço de teste (atualizado em 19/11/2026):** `https://semreservas.com.br/semreservas/` (migrado de `umandigital.com.br/semreservas`, que segue no ar em paralelo até a confirmação). O caminho base é **configuração** (`BASE_PATH`), nunca fixo no código, para trocar por `semreservas.com.br` sem mexer nas telas.
 - **Pendente de você:** criar o projeto Supabase (plano gratuito) e me passar a URL e a chave pública `anon`. A chave `service_role` nunca vai para o repositório.
 - **Deploy:** o repositório novo precisa do mesmo segredo SSH do site para publicar em `public_html/semreservas`. Nunca publicar fora dessa pasta.

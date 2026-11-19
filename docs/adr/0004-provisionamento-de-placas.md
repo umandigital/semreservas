@@ -21,7 +21,7 @@ O SemReservas **gera as placas sozinho**, para qualquer restaurante e qualquer n
 - **Teste:** 3 placas do GastroPub (mesas 1 a 3) servem para provar três chamadas simultâneas.
 
 ## Sobre o endereço gravado na tag
-A URL gravada é permanente depois que a tag é travada. Como o teste usa `umandigital.com.br/semreservas` e o domínio definitivo (`semreservas.com.br`) só vem depois da Pulpo:
+A URL gravada é permanente depois que a tag é travada. Como o teste usa `semreservas.com.br/semreservas` (caminho provisório; o definitivo será a raiz ou um endereço curto) e o endereço final só vem depois da Pulpo:
 - **Tags de teste (GastroPub e Pulpo): NÃO travar.** Se forem gravadas com o endereço provisório, ainda poderão ser regravadas com o definitivo.
 - **Tags de produção: gravar e travar só com o domínio definitivo.**
 - Se alguma tag com endereço provisório for travada, o endereço provisório precisa continuar redirecionando para sempre.

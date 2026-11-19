@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Gera placas em lote (ADR-0004): SQL, CSV para o app de gravação NFC e folha de QR para imprimir.
-//   node tools/placas/gerar.mjs --slug gastropub --mesas 1..3 --base https://umandigital.com.br/semreservas --out ./saida-placas
+//   node tools/placas/gerar.mjs --slug gastropub --mesas 1..3 --base https://semreservas.com.br/semreservas --out ./saida-placas
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import QRCode from 'qrcode'

@@ -1,4 +1,4 @@
-# CI em todo push e pull request. Publicação em public_html/semreservas/ só a
+# CI em todo push e pull request. Publicação em public_html/semreservas/ (nos domínios abaixo) só a
 # partir da main. Segurança do deploy:
 #  - só ENVIA (sem --delete) e só dentro de public_html/semreservas/;
 #  - na main, publica de verdade apenas se a variável do repositório
@@ -24,7 +24,6 @@ env:
   SERVIDOR: 89.116.115.238
   PORTA: "65002"
   USUARIO: u967848854
-  DESTINO: /home/u967848854/domains/umandigital.com.br/public_html/semreservas
 
 jobs:
   testar:
@@ -66,6 +65,17 @@ jobs:
     needs: testar
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    # O mesmo pacote (caminho base /semreservas/) sobe nos dois endereços. O domínio novo é o oficial do teste; o antigo
+    # fica no ar até o fundador confirmar a migração (depois, é só apagar a linha dele).
+    strategy:
+      fail-fast: false
+      matrix:
+        alvo:
+          - { nome: semreservas.com.br, raiz: /home/u967848854/domains/semreservas.com.br/public_html, url: "https://semreservas.com.br/semreservas/" }
+          - { nome: umandigital.com.br, raiz: /home/u967848854/domains/umandigital.com.br/public_html, url: "https://umandigital.com.br/semreservas/" }
+    name: publicar (${{ matrix.alvo.nome }})
+    env:
+      DESTINO: ${{ matrix.alvo.raiz }}/semreservas
     steps:
       - uses: actions/checkout@v4
         with:
@@ -99,8 +109,8 @@ jobs:
       - name: Testar o acesso e o destino
         run: |
           ssh -p "$PORTA" -o StrictHostKeyChecking=yes -o BatchMode=yes "$USUARIO@$SERVIDOR" \
-            "test -d '$DESTINO'" \
-            || { echo "::error::acesso recusado, ou a pasta $DESTINO não existe (crie public_html/semreservas no hPanel)."; exit 1; }
+            "test -d '${{ matrix.alvo.raiz }}' && mkdir -p '$DESTINO'" \
+            || { echo "::error::acesso recusado, ou o site ${{ matrix.alvo.nome }} não existe na hospedagem (esperado: ${{ matrix.alvo.raiz }}). Confira o domínio no hPanel."; exit 1; }
       - name: Enviar
         run: |
           SECO=""
@@ -126,3 +136,11 @@ jobs:
             ssh -n -p "$PORTA" -o StrictHostKeyChecking=yes "$USUARIO@$SERVIDOR" "rm -f -- '$DESTINO/$f'" && echo "removido (se existia): $f"   # -n: sem ele o ssh engole o resto da lista
           done < retirados-validos.txt
           echo "processados: $(wc -l < retirados-validos.txt) arquivo(s) da lista"
+      # Confere de fora que o endereço público responde e entrega o app (só quando o envio foi de verdade).
+      - name: Conferir o endereço público
+        if: env.SECO == ''
+        run: |
+          sleep 5
+          corpo=$(curl -fsS -m 30 -L "${{ matrix.alvo.url }}") || { echo "::error::${{ matrix.alvo.url }} não respondeu (domínio sem SSL ativo ou apontando para outra pasta?)."; exit 1; }
+          echo "$corpo" | grep -q 'id="root"' || { echo "::error::${{ matrix.alvo.url }} respondeu, mas não é o app (pasta errada?)."; exit 1; }
+          echo "::notice::OK: ${{ matrix.alvo.url }} entrega o app."

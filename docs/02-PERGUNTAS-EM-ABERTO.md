@@ -6,7 +6,7 @@ Marcadas **[BLOQUEIA]** impedem o início do código. As demais podem ser respon
 
 1. ~~**Stack.**~~ **Resolvido:** opção B (ADR-0001). Pendente: criar o projeto Supabase.
 2. ~~**Onde mora o código.**~~ **Resolvido:** repositório próprio `umandigital/semreservas`, migrado com o histórico.
-3. ~~**Endereço de teste.**~~ **Resolvido:** `umandigital.com.br/semreservas`; domínio `semreservas.com.br` só após a Pulpo (ADR-0004: não travar tags de teste).
+3. ~~**Endereço de teste.**~~ **Resolvido:** teste em `semreservas.com.br/semreservas` (migrado em 19/11/2026; o endereço antigo `umandigital.com.br/semreservas` segue no ar até a confirmação). Ainda vale a regra do ADR-0004: não travar tags de teste.
 4. ~~**Como o sistema sabe a mesa.**~~ **Resolvido:** placa numerada por mesa (`adr/0003-placa-numerada-por-mesa.md`). GastroPub: **3 placas de teste** (mesas 1 a 3).
 
 ## Para responder na Fase 1
