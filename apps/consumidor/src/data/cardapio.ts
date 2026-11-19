@@ -51,7 +51,7 @@ export const CONFIG = {
   // Fundo padrão do restaurante para os pratos em 3D (qualquer CSS de background: cor, gradiente ou imagem).
   fundo3d: 'radial-gradient(ellipse 85% 70% at 50% 46%, #fbf8f3 0%, #eee6da 52%, #d3c7b6 100%)',
   wifi: { ssid: 'GastroPub-Guest', senha: 'teste1234' },
-  instagram: '' as string,
+  instagram: 'https://www.instagram.com/semreservasgastropub/' as string,
   googleAvaliacao: '' as string,
   mesas: ['1', '2', '3'],
 }

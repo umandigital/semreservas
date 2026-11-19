@@ -38,28 +38,30 @@ Documento de trabalho: cada item do `Ajuste_MVP_Sem_Reservas.docx` com **decisã
 ### Toque Premiado (itens 3, 4, 5, 6, 8, 9 e 10)
 Tudo é **configurável pelo proprietário** e **auditável**: cada ponto vira uma linha de extrato (quem, quando, ação, valor) e o painel do dono lista as ações e filtra por pessoa. Valores abaixo são **exemplos** para o dono ajustar.
 
-**Como ganhar pontos (extrato de ações)**
-| Ação | Pontos (exemplo) | Regra antifraude |
+**Como ganhar pontos (proposta para o GastroPub; o dono ajusta tudo)**
+| Ação | Pontos | Regra antifraude |
 |---|---|---|
 | Cadastrar-se | 50 | 1 vez por pessoa |
-| Visita (tocar a placa) | 20 | 1 por dia, só com login |
-| Seguir no Instagram (clique) | 30 | 1 vez; o clique é a intenção, não se prova a ação (disclaimer ao dono) |
-| Avaliar no Google (clique) | 100 | 1 vez por pessoa; idem |
-| Avaliar na pesquisa interna | 20 | 1 por visita |
-| Compartilhar/postar com marca | 30 | limite por semana |
-| Aniversário (visita no mês) | prêmio especial | validado pelo garçom |
+| Visita (tocar a placa, logado) | 40 | 1 por dia |
+| Bônus de frequência: 3 visitas no mesmo mês | 60 | 1 por mês |
+| Seguir no Instagram (clique) | 30 | 1 vez; o clique é a intenção, não se prova a ação |
+| Avaliar no Google (clique) | 100 | 1 vez; idem |
+| Responder a pesquisa da visita | 20 | 1 por visita |
+| Compartilhar/postar com a marca | 30 | máximo 1 por semana |
 
 **Níveis e prêmios (barra de progresso na tela)**
-| Pontos | Prêmio (exemplo) |
-|---|---|
-| 100 | Cafezinho |
-| 250 | Sobremesa da casa |
-| 500 | Bebida ou entrada |
-| 1000 | **Prato à escolha grátis** (máximo) |
+| Pontos | Prêmio sugerido | Por quê |
+|---|---|---|
+| 100 | Cafezinho | Barato para o pub e alcançado já na 1ª visita (cadastro + Instagram + visita = 120): o cliente sente o prêmio logo e volta |
+| 300 | Sobremesa da casa | Ponto de retorno: pede uma 2ª e 3ª visita |
+| 600 | Chope ou refrigerante, ou uma porção de entrada | Incentiva trazer a mesa |
+| 1000 | **Prato à escolha** (com teto de valor definido pelo dono) | Topo; custo real do pub costuma ser ~30% do preço do prato |
+
+Ritmo de quem vem 1 vez por semana: ~220 pontos por mês, então a sobremesa chega em ~1,5 mês, a bebida em ~3 e o prato em ~5 meses. Para o pub, o cliente que chega aos 1000 pontos já gerou ao menos 15 a 20 visitas. Valores e prêmios entram no sistema como dado, nada fixo no código.
 
 - Tela: saldo, **barra** até o próximo prêmio, lista dos prêmios com o que falta, extrato.
 - **Resgate**: o cliente gera um cupom (código curto, uso único, vale 24 h). O garçom confere e **dá baixa no painel da equipe** (campo "validar cupom"). Esse é o único acréscimo ao painel simples da equipe.
-- **Aniversário** (item 4): dois modos, o dono escolhe: (a) **Traga 5 acompanhantes e seu prato é de graça**; (b) **sobremesa da casa**, validada pelo garçom que confere a identidade. A data de aniversário é pedida no cadastro; o benefício vale na semana do aniversário.
+- **Aniversário** (item 4), regra definida para o teste: **50% de desconto na comida do pedido do aniversariante**, com **no mínimo 5 acompanhantes**, **não vale para bebida**, válido na **semana do aniversário**, mediante **documento** conferido pelo garçom. O cupom mostra essas regras e um código de uso único; o garçom dá a baixa e aplica o desconto na conta. ⏳ Confirmar: "seu pedido" é só o do aniversariante (assumi que sim).
 - **Cliente do mês** (item 8): ranking por **dias com visita** no mês, não por gasto. Prêmio especial (camiseta, caneca…) e **divulgação nas redes só com autorização dada no cadastro** (LGPD).
 - Painel do proprietário: tela **Toque Premiado** para editar ações, valores, prêmios, aniversário e ver extrato, resgates e ranking.
 
@@ -83,8 +85,8 @@ Sugestão do que entra: **Wi-Fi** (nome e senha com copiar), **Siga no Instagram
 4. **Bloco D:** pós-conta (pontos), ranking mensal, pedidos adicionais.
 
 ## Pendente de você ⏳
-- Logo vetorial do SemReservas (o arquivo veio cortado) e logo Uman para o rodapé.
-- Instagram e link de avaliação do Google do GastroPub; Wi-Fi guest.
-- Prêmios e valores reais do Toque Premiado do GastroPub; regra do aniversário (a ou b).
+- ✅ Logo do GastroPub recebido (paleta vinho/terracota/creme). ⏳ Logo Uman para o rodapé e, se existir, o arquivo vetorial (SVG) do GastroPub.
+- ✅ Instagram: `instagram.com/semreservasgastropub`. ⏳ Link de avaliação do Google (passo a passo no chat) e Wi-Fi guest.
+- Aprovar os prêmios e valores sugeridos acima e o teto de valor do prato grátis.
 - Texto da **legenda** de cada prato (posso redigir uma versão de teste).
 - Revisão jurídica do regulamento do clube e da política de privacidade (já pendente da Fase 2).
