@@ -57,7 +57,7 @@ Tudo é **configurável pelo proprietário** e **auditável**: cada ponto vira u
 | 600 | Chope ou refrigerante, ou uma porção de entrada | Incentiva trazer a mesa |
 | 1000 | **Prato à escolha** (com teto de valor definido pelo dono) | Topo; custo real do pub costuma ser ~30% do preço do prato |
 
-Ritmo de quem vem 1 vez por semana: ~220 pontos por mês, então a sobremesa chega em ~1,5 mês, a bebida em ~3 e o prato em ~5 meses. Para o pub, o cliente que chega aos 1000 pontos já gerou ao menos 15 a 20 visitas. Valores e prêmios entram no sistema como dado, nada fixo no código.
+Ritmo de quem vem 1 vez por semana: ~220 pontos por mês, então a sobremesa chega em ~1 mês, a bebida em ~2,5 e o prato em ~4,5 meses. Para o pub, o cliente que chega aos 1000 pontos já gerou ao menos 15 a 20 visitas. Valores e prêmios entram no sistema como dado, nada fixo no código.
 
 - Tela: saldo, **barra** até o próximo prêmio, lista dos prêmios com o que falta, extrato.
 - **Resgate**: o cliente gera um cupom (código curto, uso único, vale 24 h). O garçom confere e **dá baixa no painel da equipe** (campo "validar cupom"). Esse é o único acréscimo ao painel simples da equipe.
