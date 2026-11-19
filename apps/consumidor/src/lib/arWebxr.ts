@@ -87,18 +87,10 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     const pl = new THREE.Mesh(new THREE.PlaneGeometry(larg, alt), new THREE.MeshBasicMaterial({ map: tx, transparent: true, toneMapped: false, side: THREE.DoubleSide }))
     pl.position.set(0, alt / 2 + 0.005, -(raio * 0.95)); pl.rotation.x = -0.22; cartaz.add(pl)
   }
-  // referência de tamanho: garfo e faca de tamanho real ao lado do prato + régua com a medida (só depois de a mesa ser confirmada)
+  // referência de tamanho: régua com a medida do prato (só depois de a mesa ser confirmada)
   const medidas = new THREE.Group(); medidas.visible = false; grupo.add(medidas)
   {
     const dimX = caixa.max.x - caixa.min.x, dimZ = caixa.max.z - caixa.min.z, R = Math.max(dimX, dimZ) / 2
-    const aco = new THREE.MeshStandardMaterial({ color: 0xd9dde2, metalness: 0.35, roughness: 0.32 })
-    const poli = (pts: [number, number][]) => { const sh = new THREE.Shape(); pts.forEach(([x, y], i) => i ? sh.lineTo(x, y) : sh.moveTo(x, y)); return new THREE.ExtrudeGeometry(sh, { depth: 0.002, bevelEnabled: false }).rotateX(-Math.PI / 2) }
-    const garfo = new THREE.Group()                                   // 19 cm
-    garfo.add(new THREE.Mesh(poli([[-0.005, 0], [0.005, 0], [0.0065, 0.115], [0.0175, 0.135], [-0.0175, 0.135], [-0.0065, 0.115]]), aco))
-    for (let k = 0; k < 4; k++) { const d = new THREE.Mesh(new THREE.BoxGeometry(0.0045, 0.002, 0.058), aco); d.position.set(-0.0135 + k * 0.009, 0.001, -(0.135 + 0.029)); garfo.add(d) }
-    const faca = new THREE.Group()                                    // 22 cm
-    faca.add(new THREE.Mesh(poli([[0.007, 0], [-0.007, 0], [-0.007, 0.105], [-0.0105, 0.108], [-0.0105, 0.19], [-0.005, 0.222], [0.007, 0.222]]), aco))
-    garfo.position.set(-(R + 0.045), 0.0006, 0.095); faca.position.set(R + 0.04, 0.0006, 0.11); medidas.add(garfo, faca)
     const cm = Math.round(Math.max(dimX, dimZ) * 100)
     const lin = new THREE.MeshBasicMaterial({ color: 0xffffff }); const zL = R + 0.04
     const barra = new THREE.Mesh(new THREE.PlaneGeometry(2 * R, 0.003).rotateX(-Math.PI / 2), lin); barra.position.set(0, 0.001, zL)
@@ -191,7 +183,7 @@ export async function iniciarAr(o: OpcoesAr): Promise<void> {
     cam.setFromMatrixPosition(renderer.xr.getCamera().matrixWorld)       // nasce de frente para quem olha
     cena.rotation.y = giro = Math.atan2(cam.x - pos.x, cam.z - pos.z); virar()
     mover.hidden = false; captura.hidden = false; med.hidden = false; medidas.visible = medLig; ajustes.forEach(b => { b.hidden = false })
-    texto('Prato no tamanho real, fixado na mesa. Garfo e faca servem de comparação. Arraste para girar.')
+    texto('Prato no tamanho real, fixado na mesa. A régua mostra a medida. Arraste para girar.')
   }
 
   void reiniciar()
