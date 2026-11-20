@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { brl, CATEGORIAS, CONFIG, ITENS, type Item } from '../data/cardapio'
+import { brl, CATEGORIAS, CONFIG, ITENS_FEED, type Item } from '../data/cardapio'
 import { useEsgotados } from '../lib/hooks'
 import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
 import { useRaAberta, definirRaAberta } from '../lib/raAberta'
@@ -17,7 +17,7 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
   const [dica, setDica] = useState(() => { try { return !localStorage.getItem('sr-dica') } catch { return true } })
   const [h, setH] = useState<number | null>(null); const wrap = useRef<HTMLDivElement>(null); const rolo = useRef<HTMLDivElement>(null)
   const base = import.meta.env.BASE_URL
-  const itens = useMemo(() => ITENS.filter(i => (cat === 'Todos' || i.cat === cat) && (!q || norm(i.nome + ' ' + i.desc + ' ' + i.ingredientes.join(' ')).includes(norm(q)))), [cat, q])
+  const itens = useMemo(() => ITENS_FEED.filter(i => (cat === 'Todos' || i.cat === cat) && (!q || norm(i.nome + ' ' + i.desc + ' ' + i.ingredientes.join(' ')).includes(norm(q)))), [cat, q])
 
   // a área do feed ocupa a tela toda entre o cabeçalho e a barra de baixo, seja qual for o aparelho
   useLayoutEffect(() => {

@@ -39,3 +39,17 @@ describe('modelos 3D do cardápio', () => {
     it('unidade plausível para um prato (entre 5 cm e 60 cm)', () => { const c = caixa(glb(m.glb)); expect(Math.max(...c.dim)).toBeGreaterThan(0.05); expect(Math.max(...c.dim)).toBeLessThan(0.6) })
   })
 })
+
+import { ITENS_FEED, CATEGORIAS } from './cardapio'
+describe('ordem do feed e vídeos reais', () => {
+  it('3D primeiro, depois vídeos reais, depois o resto', () => {
+    const r = ITENS_FEED.map(i => (i.modelo ? 0 : i.real && i.video ? 1 : 2))
+    expect(r).toEqual([...r].sort((a, b) => a - b))
+    expect(r.filter(x => x === 0).length).toBeGreaterThan(0); expect(r.filter(x => x === 1).length).toBe(3)
+  })
+  for (const i of ITENS.filter(x => x.real && x.video)) it(`vídeo real de ${i.nome}: arquivos existem, até 3 MB, sem áudio pesado`, () => {
+    expect(existsSync(arquivo(i.video!))).toBe(true); expect(existsSync(arquivo(i.img))).toBe(true)
+    expect(statSync(arquivo(i.video!)).size).toBeLessThanOrEqual(3 * 1024 * 1024)
+  })
+  it('toda categoria usada existe em CATEGORIAS', () => { for (const i of ITENS) expect(CATEGORIAS as readonly string[]).toContain(i.cat) })
+})

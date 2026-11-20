@@ -3,6 +3,7 @@ export type Item = {
   id: string; cat: string; nome: string; preco: number // centavos
   desc: string; ingredientes: string[]; img: string; video?: string; tags?: string[]
   modelo?: Modelo3D
+  real?: boolean                       // mídia REAL do restaurante (vídeo próprio); os de teste com foto ilustrativa ficam depois no feed
 }
 /** Modelo 3D para "Projetar na mesa" (realidade aumentada). As medidas reais vêm do próprio arquivo (em metros). */
 export type Modelo3D = {
@@ -11,7 +12,7 @@ export type Modelo3D = {
   tamanhoM: [number, number, number]   // largura × altura × profundidade REAIS, em metros: o teste confere com o arquivo
   nota: string; orbita?: string
 }
-export const CATEGORIAS = ['Hambúrgueres', 'Pizzas', 'Testes', 'Porções', 'Bebidas', 'Sobremesas'] as const
+export const CATEGORIAS = ['Hambúrgueres', 'Pizzas', 'Massas', 'Testes', 'Porções', 'Bebidas', 'Sobremesas'] as const
 
 const m = (f: string) => `media/${f}`
 export const ITENS: Item[] = [
@@ -20,13 +21,16 @@ export const ITENS: Item[] = [
   { id: 'h3', cat: 'Hambúrgueres', nome: 'Bacon BBQ', preco: 3990, desc: 'Bacon crocante e molho barbecue defumado.', ingredientes: ['Pão brioche', 'Blend 160 g', 'Bacon', 'Molho barbecue', 'Cebola roxa'], img: m('burger.webp') },
   { id: 'h5', cat: 'Hambúrgueres', nome: 'Burger Quádruplo', preco: 6290, desc: 'Quatro carnes, cheddar, bacon e creme no pão brilhante.', ingredientes: ['Pão brioche', '4 carnes', 'Cheddar', 'Bacon', 'Creme da casa'], img: m('modelos/hamburguer-4-carnes-poster.webp'),
     modelo: { glb: m('modelos/hamburguer-4-carnes.glb'), glbAr: m('modelos/hamburguer-4-carnes-ar.glb'), poster: m('modelos/hamburguer-4-carnes-poster.webp'), medidas: 'Prato de 22 cm · 16 cm de altura', tamanhoM: [0.218, 0.157, 0.218], orbita: '30deg 68deg auto', nota: 'Imagem ilustrativa em tamanho real, com o prato. O lanche servido pode ter pequenas diferenças.' } },
+  { id: 'h6', cat: 'Hambúrgueres', nome: 'Burger Rústico', preco: 4890, desc: 'Hambúrguer no pão achatado grelhado, com queijo derretido, alface, tomate e pepino.', ingredientes: ['Pão achatado grelhado', 'Hambúrguer bovino', 'Queijo derretido', 'Alface', 'Tomate', 'Pepino'], img: m('videos/burger-rustico-poster.webp'), video: m('videos/burger-rustico.mp4'), real: true },
   { id: 'h4', cat: 'Hambúrgueres', nome: 'Veggie de Grão-de-bico', preco: 3690, desc: 'Burger vegetal com tahine e folhas.', ingredientes: ['Pão brioche', 'Burger de grão-de-bico', 'Tahine', 'Rúcula', 'Tomate'], img: m('burger.webp'), tags: ['vegetariano'] },
+  { id: 'p6', cat: 'Pizzas', nome: 'Pizza Carne e Abobrinha', preco: 5990, desc: 'Carne temperada, muita mussarela e abobrinha fatiada, finalizada com pimenta-do-reino.', ingredientes: ['Massa de fermentação lenta', 'Mussarela', 'Carne temperada', 'Abobrinha', 'Pimenta-do-reino'], img: m('videos/pizza-carne-abobrinha-poster.webp'), video: m('videos/pizza-carne-abobrinha.mp4'), real: true },
   { id: 'p1', cat: 'Pizzas', nome: 'Margherita', preco: 4990, desc: 'Molho de tomate, mussarela e manjericão.', ingredientes: ['Massa de fermentação lenta', 'Molho de tomate', 'Mussarela', 'Manjericão'], img: m('pizza.webp'), tags: ['vegetariano'] },
   { id: 'p2', cat: 'Pizzas', nome: 'Calabresa', preco: 5290, desc: 'Calabresa fatiada e cebola.', ingredientes: ['Massa', 'Mussarela', 'Calabresa', 'Cebola'], img: m('pizza.webp') },
   { id: 'p3', cat: 'Pizzas', nome: 'Quatro Queijos', preco: 5890, desc: 'Mussarela, provolone, gorgonzola e parmesão.', ingredientes: ['Massa', 'Mussarela', 'Provolone', 'Gorgonzola', 'Parmesão'], img: m('pizza.webp'), tags: ['vegetariano'] },
   { id: 'p4', cat: 'Pizzas', nome: 'Pizza do Pub', preco: 6190, desc: 'Costela desfiada, cheddar e cebola crispy.', ingredientes: ['Massa', 'Costela desfiada', 'Cheddar', 'Cebola crispy'], img: m('pizza.webp') },
   { id: 'p5', cat: 'Pizzas', nome: 'Meio a Meio', preco: 5690, desc: 'Metade mussarela com tomate-cereja e manjericão, metade calabresa.', ingredientes: ['Massa de fermentação lenta', 'Molho de tomate', 'Mussarela', 'Tomate-cereja', 'Manjericão', 'Calabresa'], img: m('pizza-meio-a-meio.webp'),
     modelo: { glb: m('modelos/pizza-meio-a-meio.glb'), ingredientesRa: true, poster: m('modelos/pizza-meio-a-meio-poster.webp'), medidas: '32 cm de diâmetro', tamanhoM: [0.32, 0.0345, 0.32], orbita: '20deg 60deg auto', nota: 'Imagem ilustrativa em tamanho real. O prato servido pode ter pequenas diferenças.' } },
+  { id: 'm1', cat: 'Massas', nome: 'Fettuccine à Bolonhesa', preco: 4690, desc: 'Fettuccine fresco com molho bolonhesa de carne e lascas de parmesão.', ingredientes: ['Fettuccine', 'Molho bolonhesa', 'Carne moída', 'Tomate', 'Parmesão'], img: m('videos/fettuccine-bolonhesa-poster.webp'), video: m('videos/fettuccine-bolonhesa.mp4'), real: true },
   { id: 'x1', cat: 'Testes', nome: 'Hot Roll (teste de RA)', preco: 3890, desc: 'Rolinhos empanados e crocantes, recheados com salmão e cream cheese.', ingredientes: ['Arroz', 'Salmão', 'Cream cheese', 'Alga nori', 'Empanado crocante'], img: m('modelos/hot-roll-poster.webp'),
     modelo: { glb: m('modelos/hot-roll.glb'), poster: m('modelos/hot-roll-poster.webp'), medidas: 'Prato de 20 cm · 6 cm de altura', tamanhoM: [0.2, 0.0574, 0.2], orbita: '25deg 62deg auto', nota: 'Imagem ilustrativa em tamanho real, com o prato. O prato servido pode ter pequenas diferenças.' } },
   { id: 'x2', cat: 'Testes', nome: 'Prato Fotográfico (teste de RA)', preco: 4290, desc: 'Prato de teste de modelo 3D gerado a partir de foto, em tamanho real.', ingredientes: ['Item de teste de realidade aumentada'], img: m('modelos/prato-fotografico-poster.webp'),
@@ -44,6 +48,11 @@ export const ITENS: Item[] = [
   { id: 's3', cat: 'Sobremesas', nome: 'Gelato do Dia', preco: 1490, desc: 'Duas bolas do sabor do dia.', ingredientes: ['Leite', 'Açúcar', 'Sabor do dia'], img: m('gelato.webp'), tags: ['vegetariano'] },
   { id: 's4', cat: 'Sobremesas', nome: 'Torta de Limão', preco: 1690, desc: 'Torta gelada com merengue.', ingredientes: ['Limão', 'Leite condensado', 'Merengue', 'Biscoito'], img: m('dessert.webp'), tags: ['vegetariano'] },
 ]
+
+/** Ordem do feed: 1º pratos com realidade aumentada (3D), 2º pratos com vídeo REAL do restaurante, 3º o resto (fotos e mídias de exemplo).
+ *  Dentro de cada grupo vale a ordem de cadastro. O dono edita só os cadastros; a regra é esta. */
+const rank = (i: Item) => (i.modelo ? 0 : i.real && i.video ? 1 : 2)
+export const ITENS_FEED: Item[] = ITENS.map((it, n) => ({ it, n })).sort((a, b) => rank(a.it) - rank(b.it) || a.n - b.n).map(x => x.it)
 export const brl = (c: number) => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 // Configuração do estabelecimento (teste). Campo vazio = ação não aparece (nunca inventar destino).
