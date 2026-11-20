@@ -19,9 +19,10 @@ Plataforma SaaS de marketing de relacionamento gastronômico. O cliente encosta 
 5. **Migração**: o fundador aplica cada migração **colando no SQL Editor do Supabase**. Entregue o arquivo completo, idempotente quando possível, **sem** alterar migrações antigas, e diga na entrega qual migração precisa ser aplicada **antes** do merge.
 6. **Segredos**: nunca no repositório. Só a chave pública (`anon`) vai ao front. `tools/verificar-pacote.mjs` roda no CI e barra segredos.
 7. **Auditoria**: toda ação sensível grava em `audit_logs` (quem, quando, o quê, antes e depois).
-8. **Honestidade das métricas**: o sistema mede aberturas, interações, atendimento, pontos e resgates. **Nunca** mostra faturamento do restaurante, seguidores ganhos nem avaliações publicadas (só cliques de saída). Única exceção: o **consumo dos membros do clube**, que aparece **rotulado como "valor lançado pela equipe"** (ver `docs/10-TOQUE-PREMIADO-DEFINICAO.md`). Percentual sem amostra mínima mostra "dados insuficientes". Use mediana, não média.
+8. **Honestidade das métricas**: o sistema mede aberturas, interações, atendimento, pontos e resgates. **Nunca** mostra faturamento do restaurante, seguidores ganhos nem avaliações publicadas (só cliques de saída). Pontos por valor da conta **não existem no MVP** (ver `docs/10-TOQUE-PREMIADO-DEFINICAO.md`, seção 3); só se o módulo `loyalty_spend` for ligado no futuro o consumo apareceria, rotulado como "valor lançado". Percentual sem amostra mínima mostra "dados insuficientes". Use mediana, não média.
 9. **Tudo é dado**: tipos de restaurante, módulos, prêmios, ações, textos e cores são configuração. Nada de `if (restaurante == "x")`.
-10. **Pontos**: pertencem à pessoa logada (nunca à mesa nem ao aparelho); extrato imutável e idempotente; reserva de pontos no cupom.
+10. **Pontos**: pertencem à pessoa logada (nunca à mesa nem ao aparelho); extrato imutável e idempotente; **débito na troca** (cancelamento em 2 min).
+11. **Nenhuma ação obrigatória da equipe do restaurante**: o painel do garçom é opcional e o clube, a visita e a troca funcionam sem ele. Sem integração com caixa/PDV. Só pontua o que o sistema verifica sozinho; o que for intenção (toque em link) é rotulado e tem teto.
 
 ## Como trabalhar
 - Comece **propondo um plano curto** (arquivos, migrações, testes) e espere confirmação se houver decisão de produto em aberto. Decisões de produto estão em `docs/07`; não invente.

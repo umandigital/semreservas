@@ -14,7 +14,7 @@ Versão 1, 20/11/2026. Layout simples; esta especificação define **o que exist
 |---|:-:|:-:|:-:|
 | Resumo e métricas | ✅ | ✅ | — |
 | Fila de atendimento (assumir/concluir/trote) | ✅ | ✅ | ✅ |
-| Validar cupom (digitar código) | ✅ | ✅ | ✅ |
+| Concluir ou recusar resgate na fila (opcional) | ✅ | ✅ | ✅ |
 | "Acabou hoje" | ✅ | ✅ | — |
 | Cardápio (editar, mídia, preços) | ✅ | ✅ | — |
 | Toque Premiado: configurar ações, prêmios, campanhas | ✅ | — | — |
@@ -190,7 +190,7 @@ Comentários enviados e publicados · tempo até moderar · nota média da pesqu
 Placas sem leitura há X dias · pratos sem mídia · mesas sem vínculo · aparelhos da equipe sem conexão · último acesso ao painel da equipe.
 
 ### 4.10 O que o portal **não** mostra
-Faturamento do restaurante, seguidores ganhos, avaliações publicadas, "aumento de vendas por causa do app", nome de clientes de outros restaurantes. **Exceção:** o consumo dos membros do clube é mostrado como "valor lançado pela equipe" (ver `docs/10-TOQUE-PREMIADO-DEFINICAO.md`, seção 9), nunca como faturamento.
+Faturamento do restaurante, seguidores ganhos, avaliações publicadas, "aumento de vendas por causa do app", nome de clientes de outros restaurantes. Valores de venda do clube **não existem no MVP** (módulo `loyalty_spend` desligado; ver `docs/10-TOQUE-PREMIADO-DEFINICAO.md`, seção 3).
 
 ---
 ## 5. Alertas e notificações do proprietário

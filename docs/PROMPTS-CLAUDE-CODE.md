@@ -2,16 +2,16 @@
 
 Como usar: abra o Claude Code **na pasta do repositório** `umandigital/semreservas` (ele lê o `CLAUDE.md` sozinho) e envie **um prompt por vez**, na ordem. Só passe ao próximo quando o anterior estiver entregue, testado e com a migração aplicada.
 
-## Decisões assumidas (confirme ou corrija antes de enviar o P5 e o P6)
-Os prompts P1 a P4 e M1 **não dependem** destas. Elas valem para o Toque Premiado (P5) e para o que o toca.
+## Decisões (a fonte da verdade é `docs/10-TOQUE-PREMIADO-DEFINICAO.md`)
+Os prompts P1 a P4 e M1 não dependem destas. Valem para o Toque Premiado (P5):
 1. Login do cliente: **e-mail com código** (Supabase Auth).
-2. Pontos: **saldo que se gasta**; barra mostra o próximo prêmio.
-3. Visita só conta **ao pedir a conta**.
-4. Validade dos pontos: **12 meses sem atividade**; qualquer visita renova.
-5. Resgate: pontos **reservados** ao gerar o cupom, **devolvidos** se vencer, **descontados** na validação do garçom; cupom de 24 h, uso único, 1 por visita.
-6. Garçom valida o cupom no painel da equipe (campo "Validar cupom").
-7. Aniversário: 50% na comida do pedido do aniversariante, mínimo de 5 acompanhantes, não vale bebida, semana do aniversário, data editável 1 vez e cadastrada 30 dias antes.
-8. Sessão de 90 min por placa, renova a cada toque (máx. 3 por aparelho/dia); distância desligada.
+2. **Sem pontos por valor da conta** no MVP; **nenhuma ação obrigatória da equipe**; painel do garçom opcional.
+3. Pontos principais: **visita completa** (sessão ≥ 30 min e ≥ 3 pratos vistos, 1 por dia), retorno, indicação e ações de intenção com teto.
+4. Dois contadores: **saldo** (desce ao trocar) e **acumulado na vida** (nunca desce); catálogo com preço em pontos.
+5. Troca: **débito ao gerar o cupom**, cancelamento em 2 min, "Já recebi" pelo cliente, cupom de 24 h, 1 troca por visita; confirmação da equipe opcional.
+6. Validade dos pontos: 12 meses sem atividade.
+7. Aniversário: 50% na comida do pedido do aniversariante, mínimo de 5 acompanhantes, não vale bebida, semana do aniversário.
+8. Sessão de 90 min por placa, renova a cada toque (máx. 3 por aparelho por dia); distância desligada.
 
 ---
 ## P0. Alinhamento (sempre o primeiro; sem código)
@@ -83,7 +83,7 @@ Plano primeiro, aguarde confirmação.
 > A fonte da verdade é **docs/10-TOQUE-PREMIADO-DEFINICAO.md** (substitui as decisões assumidas 2, 3, 5 e 6 do topo deste arquivo).
 
 ```
-Objetivo: implementar docs/10-TOQUE-PREMIADO-DEFINICAO.md por inteiro (saldo e acumulado na vida, catálogo com preço em pontos, consumo lançado pelo garçom, resgate como item da fila da equipe, teto sem consumo, retorno efetivo); docs/08 seções 3.5 e 4.6 e docs/07 servem de apoio. As decisões de produto estão no topo de docs/PROMPTS-CLAUDE-CODE.md (decisões assumidas 1 a 8); use-as e pergunte se algo faltar.
+Objetivo: implementar docs/10-TOQUE-PREMIADO-DEFINICAO.md por inteiro (saldo e acumulado na vida, catálogo com preço em pontos, visita completa verificada pela atividade da sessão, troca com débito imediato e cancelamento em 2 min, teto das ações de intenção). **Sem pontos por valor da conta e sem nenhuma ação obrigatória da equipe**; docs/08 seções 3.5 e 4.6 e docs/07 servem de apoio. As decisões de produto estão no topo de docs/PROMPTS-CLAUDE-CODE.md (decisões assumidas 1 a 8); use-as e pergunte se algo faltar.
 Branch portal-p5.
 Entregue em duas etapas, com confirmação entre elas:
 Etapa A (banco e regras):

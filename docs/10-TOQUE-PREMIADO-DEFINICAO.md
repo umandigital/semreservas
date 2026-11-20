@@ -1,189 +1,192 @@
-# Toque Premiado: definição final proposta (mecânica, dinâmica e fluxo)
+# Toque Premiado: definição final proposta (versão 2, 20/11/2026)
 
-Versão 20/11/2026. Reúne o que você definiu agora com o que já estava decidido. **Substitui** o que for conflitante em `docs/06`, `07` e `08` (a lista está na seção 13). Valores abaixo são **de teste para o GastroPub**; a dinâmica é fixa e todo parâmetro é do proprietário.
+Reúne o que você definiu com o que já estava decidido. **Substitui** o que for conflitante em `docs/06`, `07` e `08` (seção 12). Valores são **de teste para o GastroPub**; a dinâmica é fixa e todo parâmetro é do proprietário.
+
+## 0. Princípios (nascem da sua última decisão)
+1. **Nenhuma ação obrigatória da equipe.** O painel do garçom é **opcional**; o clube funciona sem ele.
+2. **Sem integração com caixa/PDV** e sem depender de equipamento do garçom.
+3. **Só pontua o que o sistema consegue verificar sozinho.** O que for apenas intenção (toque num link) é rotulado como tal e tem teto.
+4. **O custo do restaurante é sempre limitado por regra** (limites por dia, mês e prêmio), nunca por confiança.
+5. **Pontos por valor da conta ficam FORA do MVP.** Não existe hoje caminho confiável e autônomo (seção 3); voltam como módulo opcional, desligado, quando houver.
 
 ## 1. A dinâmica em 6 linhas
-1. O cliente **acumula pontos** por **consumo** (R$ da conta) e por **ações que beneficiam o restaurante** (venda ou divulgação).
-2. Os pontos formam um **saldo** que **só sobe até o cliente decidir trocar**.
-3. Existe um **catálogo de prêmios com preço em pontos** (sorvete, bebida, petisco, sobremesa, desconto na conta, pizza…). Cada produto tem seu valor em pontos.
+1. O cliente **acumula pontos** por **presença (visita completa)** e por **ações que beneficiam o restaurante** (retorno, indicação, divulgação).
+2. Os pontos formam um **saldo**.
+3. Existe um **catálogo de prêmios com preço em pontos** (sorvete, bebida, petisco, sobremesa, desconto na conta, pizza…).
 4. Ao alcançar o preço de um prêmio, ele fica **liberado**; o cliente **troca agora ou continua somando** para prêmios maiores.
 5. **Trocar desconta** os pontos do saldo; o contador de **pontos acumulados na vida** nunca diminui.
-6. Para trocar, o cliente mostra o pedido ao garçom; ele **confirma no sistema** e o proprietário vê tudo no painel dele.
+6. Para trocar, o cliente **mostra o cupom ao garçom**; **não precisa de nenhuma ação dele no sistema**. O proprietário vê cada troca no portal.
 
 ## 2. O que você trouxe, batido com o que já havia
-| Sua ideia | Já estava definido? | Resultado |
+| Sua ideia | Estava definido? | Resultado |
 |---|---|---|
-| Pontos por consumo, conforme o valor | **Não.** Só havia visita e ações | **Novo.** Entra como principal fonte de pontos (seção 4) |
-| Ações que dão pontos (venda ou divulgação) | Sim: 7 ações | **Mantido e ampliado** com indicação de amigo e campanhas; valores recalibrados |
-| Prêmios intermediários e prêmio máximo | Sim: 100/300/600/1000 | **Substituído** pelo seu exemplo (200 sorvete, 500 desconto, 1000 pizza) como configuração de teste |
-| Não zerar o contador | Parcial ("saldo que se gasta") | **Refinado:** dois contadores, saldo (gasta) e acumulado na vida (nunca diminui) |
-| Cada produto com valor em pontos; cliente escolhe trocar ou somar | Parcial (prêmios por nível) | **Novo:** catálogo com preço em pontos; troca por escolha |
-| Dificuldade considerável nos prêmios grandes | Parcial | **Detalhado** (seção 7): preço, teto, visitas mínimas e limite de pontos sem consumo |
-| Bebidas, sobremesas, petiscos no catálogo | Parcial | **Mantido** |
-| Pontos descontados ao trocar | Sim | **Mantido** |
-| Proprietário vê o pedido na plataforma; cliente mostra ao garçom, que confirma | Parcial (campo "Validar cupom") | **Melhorado:** o resgate **aparece na fila do painel da equipe** como um chamado, o garçom só toca **Concluir** |
-| Dashboard do proprietário | Sim | **Ampliado** com consumo dos membros e retorno do clube (seção 9) |
-| Aniversário e cliente do mês | Sim | **Mantidos à parte**, não dependem de pontos |
+| Pontos por **valor consumido** | Não | **Fora do MVP** (seção 3). Fica como módulo futuro |
+| Ações que dão pontos (venda ou divulgação) | Sim: 7 ações | **Mantido**, só com ações **verificáveis**; entram **indicação de amigo** e **campanhas** |
+| Prêmios no caminho e prêmio máximo | Sim: 100/300/600/1000 | **Substituído** pelo seu exemplo (200 sorvete, 500 desconto, 1000 pizza) |
+| Não zerar o contador | Parcial | **Dois contadores:** saldo (desce ao trocar) e acumulado na vida (nunca desce) |
+| Cada produto com valor em pontos; trocar ou somar | Parcial | **Catálogo com preço em pontos**; troca por escolha do cliente |
+| Dificuldade considerável nos prêmios grandes | Parcial | Detalhado na seção 7 (preço, visitas mínimas, tetos) |
+| Bebidas, sobremesas, petiscos no catálogo | Parcial | Mantido |
+| Pontos descontados ao trocar; proprietário vê o pedido | Sim | Mantido; **o garçom não precisa confirmar** (seção 6) |
+| Dashboard do proprietário | Sim | Ampliado (seção 9), **sem valores de venda** |
+| Aniversário e cliente do mês | Sim | Mantidos à parte |
+| Equipe: nada de trabalho extra, painel opcional | Parcial | **Regra de projeto** (seção 0) |
 
-## 3. Os conceitos
-- **Saldo**: pontos disponíveis para trocar. Sobe com ganhos; **desce ao trocar**.
-- **Acumulado na vida**: soma de tudo que o cliente já ganhou. **Nunca desce.** Base para níveis futuros e para métricas.
-- **Catálogo de prêmios**: lista do proprietário. Cada prêmio tem **nome, descrição, imagem, preço em pontos, tipo** (produto, desconto na conta, brinde), **teto** (se for desconto), **conta mínima**, **visitas mínimas** (opcional), **limite por mês** (estoque), **validade do cupom**, **dias e horários em que vale**, ativo/inativo.
-- **Marcos**: os 3 ou 4 prêmios que o proprietário destaca na barra de progresso (ex.: 200, 500, 1000). São só vitrine do catálogo, **não são regras separadas**.
-- **Prêmio liberado**: o saldo já cobre o preço. Aparece em "Você pode trocar".
-- **Resgate**: o pedido de troca, com estados (seção 6).
+## 3. Por que não "pontos por valor da conta" agora
+Olhei todos os caminhos possíveis. Nenhum é, ao mesmo tempo, **confiável** e **autônomo**:
 
-## 4. Como se ganha pontos
-Regra de ouro: **venda vale muito mais que divulgação**. O consumo é a fonte principal; as ações sem consumo têm **teto mensal**.
+| Caminho | Autônomo? | Confiável? | Problema |
+|---|:-:|:-:|---|
+| Garçom digita o valor | Não | Sim | É o atrito que você quer evitar |
+| Cliente informa o valor | Sim | Não | Qualquer um digita um valor alto |
+| Pontos pelo **pedido montado no app** | Sim | Não | O pedido é intenção, não venda, e exige validação |
+| Integração com caixa/PDV | Sim | Sim | Complexa, cada sistema é diferente (Fase 3, contrato à parte) |
+| **QR da nota fiscal (NFC-e)** lido pelo cliente | Quase | Boa | Só existe se o cliente recebe a nota; ler o valor exige consultar a página da Sefaz de cada estado, que muda e pode bloquear. A chave da nota já prova o CNPJ do restaurante, a data e evita nota repetida |
+| Foto da conta com leitura de texto | Sim | Média | Fácil de fraudar e de errar |
+**Decisão proposta:** **eliminar** esse tipo de pontuação no MVP. Fica previsto o módulo **`loyalty_spend` (desligado)**, a ser ligado quando houver PDV integrado ou a leitura da nota fiscal (ver seção 12).
 
-### 4.1 Consumo (vendas) , principal
-| Regra de teste | Valor |
-|---|---|
-| Pontos por consumo | **1 ponto por R$ 1,00** da conta (parâmetro do dono) |
-| Base de cálculo | valor **pago**, **sem a taxa de serviço** e **sem a parte paga com prêmio** |
-| Multiplicador por categoria (opcional) | ex.: sobremesa ×2 para estimular; bebida ×1 |
-| Quem recebe | o **cliente que pediu a conta** (ver 5.2) |
-| Verificação | **o garçom informa o valor** ao concluir a conta |
+## 4. Como se ganha pontos (tudo verificável pelo sistema)
+### 4.1 Presença: a fonte principal
+**Visita completa: +60 pontos, 1 por dia.** Conta quando, com o cliente **logado** e numa **mesa com placa**:
+- a sessão tem **pelo menos 30 minutos** entre o primeiro toque na placa e a última interação (cardápio, pedido, RA, conta); e
+- há **interação real** no cardápio (ao menos 3 pratos vistos).
+Os pontos são creditados **ao fim da sessão** (ou ao pedir a conta, se pedir). **Não dependem do garçom.** Se o restaurante desligar o módulo de chamada de garçom, a visita continua valendo.
 
-### 4.2 Ações de venda
+### 4.2 Retorno e frequência
 | Ação | Pontos (teste) | Limite | Verificação |
 |---|---|---|---|
-| Provar um prato marcado como "novidade" | +30 | 1 por prato novo | garçom confirma |
-| Mesa grande: 5 ou mais pessoas na conta | +50 | 1 por visita | garçom informa o nº de pessoas |
-| Voltar em até 7 dias | +50 | 1 por semana | automática |
-| Visita em dia de baixo movimento (campanha) | +30 | por campanha | automática |
-| Bônus de frequência: 3 visitas no mês | +50 | 1 por mês | automática |
+| Voltar em até 7 dias (visita completa) | +40 | 1 por semana | automática |
+| Bônus de frequência: 3 visitas completas no mês | +60 | 1 por mês | automática |
+| Visita completa em dia de baixo movimento (campanha do dono) | +30 | por campanha | automática |
+| Mesa cheia: 3 ou mais membros logados na mesma mesa | +20 para cada | 1 por visita | automática |
 
-### 4.3 Divulgação
+### 4.3 Divulgação e indicação
 | Ação | Pontos (teste) | Limite | Verificação |
 |---|---|---|---|
-| Seguir no Instagram | +20 | 1 vez | toque no link (intenção) |
-| Avaliar no Google | +50 | 1 vez | toque no link (intenção) |
-| Compartilhar com a marca | +10 | 1 por semana | toque (intenção) |
-| **Indicar um amigo** | +100 | por amigo | **automática**: o amigo se cadastra pelo link **e** tem a primeira conta lançada |
+| **Indicar um amigo** | +100 | por amigo | **automática**: o amigo se cadastra pelo link e completa a **primeira visita** |
+| Seguir no Instagram | +20 | 1 vez | toque no link (**intenção**) |
+| Avaliar no Google | +50 | 1 vez | toque no link (**intenção**) |
+| Compartilhar com a marca | +10 | 1 por semana | toque (**intenção**) |
 
 ### 4.4 Relacionamento
-Cadastro +30 (1 vez) · Responder à pesquisa da visita +10 (1 por visita) · Completar o perfil (aniversário) +20 (1 vez).
+Cadastro +30 (1 vez) · Completar o perfil (aniversário) +20 (1 vez) · Responder à pesquisa da visita +10 (1 por visita).
 
-### 4.5 Teto das ações sem consumo
-**No máximo 150 pontos por mês** vêm de ações que não sejam consumo (exceto indicação confirmada). Impede subir de nível sem comprar.
+### 4.5 Tetos
+- Ações de **intenção** (Instagram, Google, compartilhar, pesquisa): **no máximo 150 pontos por mês**.
+- Presença e frequência não têm teto diário além de "1 visita completa por dia".
 
-## 5. O fluxo da conta (como o consumo vira pontos)
-1. O cliente (logado) toca **Pedir a conta**. Vira um chamado na fila da equipe.
-2. O garçom leva a conta e, no painel, toca **Concluir**.
-3. O painel abre um campo opcional **"Valor da conta (R$)"** com teclado numérico, e **"Pessoas na mesa"** (opcional, para o bônus de mesa grande).
-4. Ao confirmar, o sistema credita os pontos ao cliente que pediu a conta e avisa no app: "**Conta de R$ 240,00: você ganhou 240 pontos**". Se deixar em branco, **não há pontos de consumo** (só ações automáticas).
-5. Se o cliente que pediu a conta **não** estiver logado, o app mostra o convite ao cadastro; **não há pontos retroativos** por conta não vinculada.
+## 5. O fluxo da visita (sem a equipe)
+1. O cliente encosta na placa: abre a sessão de **90 minutos** (renova a cada toque).
+2. Navega, vê pratos, monta o pedido, usa a RA. O app registra a **atividade da sessão**.
+3. Ao fim da sessão, ou ao pedir a conta, se a sessão teve **30 minutos e 3 pratos vistos**, o sistema credita a **visita completa** e avisa no app: "**Visita registrada: +60 pontos**".
+4. Se o cliente **não estava logado**, o app mostra "Cadastre-se para pontuar" ao fim; **não há pontos retroativos**.
+5. Tudo gera uma **linha no extrato** (imutável) e aparece no portal do dono.
 
-### 5.1 Se o valor lançado estiver errado
-O gerente corrige no portal (**estorno** da linha antiga e **nova linha** de crédito, ambas registradas). Nada é apagado.
-### 5.2 Mesa com várias pessoas
-No começo, **os pontos vão para quem pediu a conta**. Dividir a conta entre os presentes fica como evolução (cada pessoa confirma sua parte), para não permitir que todos reclamem a conta inteira.
-### 5.3 Esforço da equipe
-O passo extra do garçom é **um campo numérico** em uma tela que ele já usa. Se ele não preencher, o sistema funciona, apenas sem os pontos. Integração com o caixa/PDV tira esse passo (Fase 3).
+## 6. O fluxo de troca de pontos (sem a equipe)
+1. Na aba **Prêmios**: saldo, **barra com marcos**, **Você pode trocar** (prêmios liberados) e o catálogo com o que falta.
+2. O cliente escolhe um prêmio e toca **Trocar**. O app mostra as regras (conta mínima, teto, validade) e pede **confirmação**.
+3. Ao confirmar, os pontos são **debitados na hora** e nasce o **cupom**: nome do prêmio, **código grande**, **contagem regressiva** (24 h) e botão **Mostrar ao garçom**.
+4. O cliente mostra a tela ao garçom, que **só olha** (a tela é animada, o que dificulta usar foto). Não há nada a digitar nem confirmar no sistema.
+5. Depois de receber, o cliente toca **Já recebi**: o cupom vira `USADO`. Sem toque, ele vira `VENCIDO` em 24 h, **sem devolução automática**.
+6. **Arrependimento:** nos **2 primeiros minutos** o cliente pode **cancelar** e os pontos voltam. Se houve problema (prêmio indisponível), o cliente toca **Não consegui receber** e o proprietário decide a devolução.
+7. **Se o restaurante usa o painel da equipe (opcional):** o resgate aparece na fila como "**Mesa 3 · Resgate: Sorvete · K7QM**"; o garçom pode **Concluir** (marca "confirmado pela equipe") ou **Recusar** (os pontos voltam). É um recurso extra, nunca uma exigência.
+8. O proprietário vê **todo resgate no portal em tempo real**, com a marca "autoconfirmado" ou "confirmado pela equipe".
 
-## 6. O fluxo de troca de pontos
-1. Na aba **Prêmios**, o cliente vê **Seu saldo**, a **barra com os marcos**, a lista **Você pode trocar** (prêmios liberados) e o catálogo completo com o que falta para cada um.
-2. Ele escolhe um prêmio e toca **Trocar**. O app mostra as regras (conta mínima, teto, validade) e pede confirmação.
-3. O sistema **reserva** os pontos e cria o **resgate**, que **aparece na fila do painel da equipe** como: "**Mesa 3 · Resgate: Sorvete 2 bolas · K7QM**".
-4. O cliente mostra o cupom ao garçom (código grande, contagem regressiva de 24 h).
-5. O garçom toca **Assumir** e, ao entregar (ou aplicar o desconto na conta), **Concluir**. Os pontos são **descontados de vez** e o resgate fica registrado.
-6. **Cancelar** ou **vencer** sem uso: os pontos **voltam** ao saldo, automaticamente.
-7. O proprietário vê o resgate no portal em tempo real, com quem confirmou e quando.
+**Níveis de confirmação por prêmio (o dono escolhe):** prêmios baratos podem ser **autoconfirmados**; prêmios caros (pizza, desconto) podem exigir **confirmação da equipe**, para quem usa o painel.
+**Regras:** troca só com **sessão de mesa ativa**; **1 troca por visita**; não acumula com a promoção de aniversário; prêmio de **desconto na conta** é aplicado pelo garçom no caixa.
 
-**Estados do resgate:** `RESERVADO → ASSUMIDO → CONCLUÍDO`, ou `CANCELADO`, ou `VENCIDO` (devolve).
-**Regras:** só com **sessão de mesa ativa** (o cliente precisa estar no restaurante); **1 resgate por visita**; não acumula com a promoção de aniversário; prêmio de **desconto na conta** é aplicado pelo garçom no caixa, e a base dos pontos dessa conta **desconta** o valor do próprio desconto.
+## 7. A economia: como o prêmio grande fica difícil
+Sem valor de conta, o custo do restaurante é **por visita**. O **ritmo** passa a ser a alavanca.
 
-## 7. A economia: como fazer o prêmio grande ser difícil
-### 7.1 O seu exemplo com números de teste (1 ponto = R$ 1)
-| Prêmio | Pontos | Valor do prêmio | **Retorno nominal** (valor ÷ gasto necessário) | **Custo real** para o restaurante |
-|---|---:|---|---:|---|
-| Sorvete com 2 bolas | 200 | R$ 12 (preço) | 6,0% | ~R$ 4 (≈ 2%): custo do produto |
-| 30% de desconto na conta | 500 | R$ 45 numa conta de R$ 150 | 9,0% | **R$ 45 (9%)**: desconto é custo cheio |
-| Pizza à escolha | 1000 | R$ 65 (preço) | 6,5% | ~R$ 20 (≈ 2%): custo do produto |
+### 7.1 O seu exemplo com os pontos de teste
+| Prêmio | Pontos | Valor do prêmio | Custo real para o restaurante |
+|---|---:|---|---|
+| Sorvete com 2 bolas | 200 | R$ 12 (preço) | ~R$ 4 (custo do produto) |
+| 30% de desconto na conta (teto R$ 30, conta mínima R$ 80) | 500 | até R$ 30 | **até R$ 30**: desconto é custo cheio |
+| Pizza à escolha | 1000 | R$ 65 (preço) | ~R$ 20 (custo do produto) |
+O **desconto na conta é o mais caro**: o dono deve ter **teto e conta mínima**.
 
-**Leitura:** os prêmios em **produto** custam ~2% da venda gerada; o **desconto na conta** é o mais caro. Por isso recomendo:
-- **Teto no desconto**: "30% até R$ 30" e **conta mínima de R$ 80** (retorno efetivo ~6%).
-- Manter o **retorno nominal entre 5% e 8%** (faixa comum em programas de fidelidade). O portal **calcula e avisa** quando um prêmio passa de um limite que o proprietário define (padrão 10%).
+### 7.2 Quanto o programa custa por visita
+Cada visita completa vale 60 pontos. Pelo custo real dos prêmios acima, 1000 pontos custam ao restaurante em torno de R$ 20 em produto: **cerca de R$ 1,20 por visita** em prêmios de produto (mais se o cliente preferir o desconto). O portal mostra o **custo médio por visita** e avisa quando passa de um limite que o dono define.
 
-### 7.2 Alavancas de dificuldade (todas parâmetros do dono)
-1. **Preço em pontos** crescente e não linear (o prêmio grande custa mais por real do que o pequeno).
-2. **Visitas mínimas** em prêmios altos (ex.: pizza exige 6 visitas diferentes): uma única conta gigante não compra o prêmio máximo.
-3. **Teto mensal de pontos sem consumo** (150).
-4. **Limite de resgates** por visita (1) e por mês (estoque por prêmio).
-5. **Validade dos pontos**: 12 meses sem atividade; qualquer visita renova.
+### 7.3 Alavancas de dificuldade (todas parâmetros do dono)
+1. **Preço em pontos** crescente e não linear.
+2. **Visitas mínimas** nos prêmios grandes (a pizza exige 8 visitas completas diferentes): não dá para ganhar com ações de intenção.
+3. **Teto de 150 pontos por mês** para ações de intenção.
+4. **1 troca por visita** e **estoque mensal** por prêmio.
+5. **Validade dos pontos**: 12 meses sem atividade.
 6. **Conta mínima e teto** nos descontos.
 
-### 7.3 Ritmo com os valores de teste
-Cliente que gasta R$ 80 por visita e vem 1 vez por semana ganha cerca de 320 pontos/mês.
-- Sorvete (200): ~3 semanas · 30% de desconto (500): ~6 semanas · Pizza (1000): **~3 meses**, com 6+ visitas.
-- Se trocar o sorvete aos 200, a pizza se afasta em ~2,5 semanas. É a escolha do cliente: **trocar já ou ir somando**.
+### 7.4 Ritmo com os pontos de teste
+Cadastro, perfil, Instagram e Google somam **100 pontos** logo no começo.
+- **1 visita por semana** (≈ 60 + bônus mensal): sorvete (200) na **3ª visita**; desconto (500) com cerca de **8 visitas** (~2 meses); pizza (1000) com cerca de **15 visitas** (~3,5 meses).
+- **2 visitas por semana**: pizza em cerca de **2 meses**.
+- Trocar o sorvete aos 200 afasta a pizza em ~3 visitas. A escolha é do cliente: **trocar já ou continuar somando**.
 
-## 8. Antifraude e conciliação
-- **Garçom lança o valor**: cada lançamento guarda **aparelho (rótulo), horário, mesa e valor**; o portal mostra por aparelho: contas lançadas, valor médio e **desvios** (valores muito acima da média, muitos pontos para a mesma pessoa).
-- **Conciliação diária**: "total lançado no clube hoje" para o dono comparar com o caixa; divergência grande vira alerta.
-- **Pontos só com sessão de mesa e login**; equipe do restaurante **não pontua**.
-- **Uma conta por e-mail confirmado**, no máximo 2 contas por aparelho.
-- **Extrato imutável e idempotente**: o mesmo evento nunca pontua duas vezes; estorno é nova linha.
-- **Alertas**: muitos pontos em pouco tempo, indicação em ciclo (A indica B, B indica A), ajuste manual frequente, resgates concentrados.
-- Ajuste manual de pontos: gerente com **teto** e **justificativa obrigatória**; acima do teto, só o proprietário.
+## 8. Antifraude (sem a equipe)
+- **Presença física:** só pontua com **sessão de placa** (NFC/QR da mesa) e **login**.
+- **Tempo e interação mínimos** para a visita completa; **1 por dia**.
+- **Uma conta por e-mail confirmado**; no máximo 2 contas por aparelho.
+- **Equipe do restaurante não pontua.**
+- **Extrato imutável e idempotente**: o mesmo evento nunca pontua duas vezes.
+- **Cupom** de uso único, 24 h, tela animada; troca limitada a **1 por visita**.
+- **Alertas no portal:** muitas visitas por pouco tempo, mesma pessoa em muitas contas, indicações em ciclo (A indica B e B indica A), resgates concentrados, **cupons gerados sem "Já recebi"**.
+- **Ajuste manual** de pontos: gerente com teto e justificativa obrigatória.
+- **Limite de dano:** como cada risco é limitado por regra, o pior caso de uma fraude é um prêmio isolado, nunca um prejuízo aberto.
 
 ## 9. Dashboard do proprietário (clube)
-**Importante:** como a equipe lança o valor das contas dos membros, o portal **passa a mostrar o consumo dos membros** rotulado como **"valor lançado pela equipe"**. É uma exceção consciente à regra de não mostrar vendas, e **não é o faturamento do restaurante**.
-
+Sem valores de venda. Mede o clube pelo que o sistema vê.
 | Bloco | Métricas |
 |---|---|
-| **Adesão** | cadastros no mês, membros ativos (visita nos últimos 30 dias), taxa de cadastro sobre sessões, indicações confirmadas |
-| **Consumo dos membros** | valor lançado, contas lançadas, **ticket médio dos membros**, frequência (visitas por membro), retorno em 7 e 30 dias |
-| **Pontos** | emitidos (por consumo, por venda, divulgação, relacionamento), trocados, **saldo em carteira**, vencendo nos próximos 30 dias |
-| **Resgates** | por prêmio, taxa de troca, tempo até a troca, devolvidos e vencidos, quem confirmou |
-| **Economia** | **retorno efetivo** (custo dos prêmios ÷ consumo lançado), **passivo de pontos** (saldo × custo médio), custo por prêmio, prêmios fora da faixa de retorno |
-| **Qualidade** | contas sem valor lançado (pontos perdidos), por aparelho; divergência com o caixa; alertas de fraude |
-| **Ranking** | cliente do mês (dias com visita) e top consumo (só para o proprietário, com autorização de divulgação para o público) |
+| **Adesão** | cadastros, membros ativos (visita nos últimos 30 dias), taxa de cadastro, indicações confirmadas |
+| **Presença** | visitas completas, visitas por membro, retorno em 7 e 30 dias, novos × recorrentes, **mapa de horário e dia** |
+| **Pontos** | emitidos por tipo (presença, retorno, indicação, divulgação, relacionamento), trocados, **saldo em carteira**, vencendo em 30 dias |
+| **Resgates** | por prêmio, taxa de troca, tempo até a troca, autoconfirmados × confirmados pela equipe, "Não consegui receber" |
+| **Economia** | **custo médio por visita**, **passivo de pontos** (saldo × custo médio por ponto), custo dos prêmios trocados, prêmios acima do limite de retorno |
+| **Qualidade** | alertas de fraude, cupons sem "Já recebi", contas suspeitas |
+| **Ranking** | cliente do mês (dias com visita); divulgação só com autorização |
 Cada número com definição visível e "dados insuficientes" abaixo da amostra mínima.
 
 ## 10. Regras de borda
-- **Conta corrigida:** estorno + novo crédito, ambos no extrato.
-- **Cupom vencido:** pontos voltam; o resgate fica como `VENCIDO`.
-- **Prêmio sem estoque no mês:** o cliente vê "esgotado neste mês" e os pontos ficam.
-- **Troca sem mesa/sessão:** bloqueada com a mensagem "aproxime o celular da placa da sua mesa".
-- **Pontos expirando:** aviso no app 30 dias antes.
-- **Cliente excluído (LGPD):** apaga dados pessoais; o extrato permanece anonimizado.
-- **Mudança de regras pelo dono:** vale daí em diante; **não altera** pontos já ganhos nem resgates em andamento.
-- **Mudança de preço de um prêmio:** resgates já reservados mantêm o preço da reserva.
+- **Cupom vencido sem "Já recebi":** fica `VENCIDO`, sem devolução; o dono pode devolver manualmente.
+- **Prêmio sem estoque no mês:** "esgotado neste mês"; os pontos ficam.
+- **Troca sem mesa ou sessão:** bloqueada ("aproxime o celular da placa da sua mesa").
+- **Pontos expirando:** aviso 30 dias antes.
+- **Cliente excluído (LGPD):** dados pessoais apagados; extrato fica anonimizado.
+- **Mudança de regras pelo dono:** vale daí em diante; não altera pontos ganhos nem cupons em andamento.
+- **Mudança de preço de um prêmio:** cupons já gerados mantêm o preço.
+- **Painel da equipe desligado ou sem uso:** nada deixa de funcionar.
 
 ## 11. O que o proprietário configura (e o que é fixo)
-**Fixo (a dinâmica):** saldo e acumulado; catálogo com preço em pontos; troca por escolha; reserva e devolução; resgate na fila da equipe; extrato imutável; auditoria.
-**Parâmetro do dono:** pontos por R$ e multiplicadores, valor e limite de cada ação, campanhas com prazo, catálogo de prêmios (preço, teto, conta mínima, visitas mínimas, estoque, validade, horários), marcos da barra, validade dos pontos, teto sem consumo, retorno efetivo máximo, aniversário, cliente do mês, nome do programa, texto do regulamento.
+**Fixo:** saldo e acumulado; catálogo com preço em pontos; troca por escolha; débito na troca; extrato imutável; auditoria; verificação automática da visita.
+**Parâmetro do dono:** pontos de cada ação e limites; campanhas com prazo; critérios da visita completa (tempo e pratos vistos); catálogo de prêmios (preço, teto, conta mínima, visitas mínimas, estoque, validade, horários, nível de confirmação); marcos da barra; validade dos pontos; teto das ações de intenção; limite de custo por visita; aniversário; cliente do mês; nome do programa; regulamento.
 
 ## 12. Configuração de teste para o GastroPub
 | Item | Valor |
 |---|---|
-| Pontos por consumo | 1 por R$ 1,00 (sem taxa de serviço) |
+| Visita completa | +60 (1 por dia; sessão ≥ 30 min e ≥ 3 pratos vistos) |
+| Voltar em 7 dias / bônus de 3 visitas no mês | +40 / +60 |
+| Mesa cheia (3+ membros logados) | +20 cada |
+| Indicar amigo (após a 1ª visita dele) | +100 |
 | Cadastro / perfil completo | +30 / +20 |
-| Instagram / Google / compartilhar | +20 / +50 / +10 |
-| Indicar amigo (após 1ª conta) | +100 |
-| Bônus 3 visitas no mês / voltar em 7 dias | +50 / +50 |
-| Teto sem consumo | 150 por mês |
-| Prêmios | **200** Sorvete 2 bolas · **350** Refrigerante ou entrada · **500** 30% de desconto na conta (teto R$ 30, conta mínima R$ 80) · **1000** Pizza à escolha (6 visitas mínimas) |
+| Instagram / Google / compartilhar / pesquisa | +20 / +50 / +10 / +10 (teto 150 por mês) |
+| Prêmios | **200** Sorvete 2 bolas · **350** Refrigerante ou entrada · **500** 30% de desconto na conta (teto R$ 30, conta mínima R$ 80) · **1000** Pizza à escolha (8 visitas mínimas) |
 | Marcos na barra | 200, 500, 1000 |
 | Validade dos pontos | 12 meses sem atividade |
-| Cupom | 24 h, uso único, 1 por visita |
-Os preços dos produtos (sorvete, entrada, pizza) são **suposições** a trocar pelos reais.
+| Cupom | 24 h, uso único, 1 troca por visita, cancelamento em até 2 min |
+Os preços dos produtos são **suposições** a trocar pelos reais.
 
-## 13. O que muda nos outros documentos e no sistema
+## 13. O que muda nos outros documentos
 | Onde | Mudança |
 |---|---|
-| `docs/06` e `docs/07` | Tabelas de pontos e prêmios (100/300/600/1000) substituídas por esta definição |
-| Painel da equipe | **Concluir** conta passa a abrir "Valor da conta" (opcional); **resgates entram na fila** como chamados; sai o campo "Validar cupom" (fica só como alternativa pelo código) |
-| Regra 8 do `CLAUDE.md` e `docs/08` §4.10 | Passam a permitir **"valor lançado pela equipe"** dos membros, rotulado, sem afirmar faturamento |
-| `docs/08` §3.5 e §4.6 | Ampliados com consumo, catálogo com preço, saldo e acumulado, indicação |
-| Banco | Novas tabelas e funções do P5 (extrato, saldo, acumulado, catálogo, resgate como tipo de chamado, indicação, teto sem consumo) |
+| `docs/06`, `docs/07` | Tabelas de pontos e prêmios antigas substituídas por esta definição |
+| Painel da equipe | **Nada obrigatório.** Opcional: resgates na fila (concluir ou recusar). Sai "Validar cupom" e **não entra** "Valor da conta" |
+| `CLAUDE.md` regra 8 e `docs/08` | Voltam a **não mostrar valores de venda**; a exceção do "valor lançado pela equipe" só vale se o módulo `loyalty_spend` for ligado no futuro |
+| `docs/09` (Master) | Módulo `loyalty_spend` listado, **desligado** por padrão |
+| Banco (P5) | Saldo e acumulado, catálogo, cupom com débito na troca e janela de arrependimento, visita completa por atividade de sessão, indicação, tetos |
 
-## 14. Decisões que ainda preciso de você
-1. **Como o valor da conta chega ao sistema** (garçom digita no painel é a recomendação).
-2. **Quem recebe os pontos da mesa** (quem pediu a conta, sem divisão no começo).
-3. **Base dos pontos**: sem taxa de serviço e sem a parte paga com prêmio. Bebida alcoólica pontua igual?
-4. **Teto no desconto de 30%** (R$ 30 e conta mínima R$ 80) e faixa de retorno de 5% a 8%.
-5. **Visitas mínimas** nos prêmios grandes (ex.: pizza exige 6 visitas).
-6. **Teto de 150 pontos por mês** para ações sem consumo.
+## 14. Decisões que preciso de você
+1. **Confirmar que os pontos por valor da conta ficam fora do MVP.**
+2. **Visita completa:** 30 minutos de sessão e 3 pratos vistos, 1 por dia. Serve?
+3. **Troca sem a equipe:** pontos debitados ao gerar o cupom, cancelamento em 2 minutos e "Já recebi" pelo cliente. Serve?
+4. **Prêmios e pontos de teste** da seção 12, em especial o **desconto de 30% com teto de R$ 30** e a **pizza com 8 visitas mínimas**.
