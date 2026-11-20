@@ -1,4 +1,4 @@
-# Toque Premiado: definição final (versão 5, 20/11/2026)
+# Toque Premiado: definição final (versão 6, 20/11/2026)
 
 Reúne o que você definiu com o que já estava decidido. **Substitui** o que for conflitante em `docs/06`, `07` e `08` (seção 12). Valores são **de teste para o GastroPub**; a dinâmica é fixa e todo parâmetro é do proprietário.
 
@@ -57,6 +57,19 @@ Olhei todos os caminhos possíveis. Nenhum é, ao mesmo tempo, **confiável** e 
 - **Atenção:** o modo B é um **sinal**, não uma **prova** (o app não enxerga o caixa; quem quiser fraudar pode apertar "Pedir a conta"). Ele serve para tornar o abuso **mais trabalhoso** e para o painel medir "check-ins com consumo provável".
 **Risco aceito (modo A):** alguém pode encostar na placa e ir embora. O custo é de **30 pontos por dia por pessoa**; o portal mostra **"check-ins sem nenhuma interação"** para o dono perceber abuso. (Versão anterior exigia 30 minutos e 3 pratos; foi retirada por ser complexa. Se o dono quiser, ela volta como parâmetro opcional "tempo mínimo na mesa".)
 
+### 4.1.1 Prova de presença: "Estou no restaurante" (resolve o QR fotografado)
+**O problema:** a placa é um link fixo; se alguém fotografa o QR ou manda o link, dá para abrir a sessão de casa e pontuar sem ir ao restaurante.
+**A solução, que não dá trabalho ao proprietário:** **confirmar a localização uma vez por sessão**, **só para pontuar** (nunca para usar o app).
+- O app **continua funcionando normalmente** sem localização: cardápio, RA, pedido, chamar garçom. Ninguém é bloqueado.
+- Para **ganhar pontos que dependem de estar lá**, o cliente toca em **"Confirmar que estou no restaurante"**. O navegador pergunta a localização **uma vez**, o servidor calcula a distância até o restaurante e **guarda só o veredito** (perto ou longe) e a distância, **nunca as coordenadas**. A confirmação vale **a sessão inteira (90 min)**.
+- **Dentro do raio** (padrão **150 m**, ajustável): sessão **verificada**, os pontos saem. **Fora do raio ou sem permissão:** o app explica ("Para ganhar pontos precisamos confirmar que você está no restaurante") e **oferece tentar de novo**; o restante do app segue.
+- **Quais ações exigem sessão verificada:** check-in e tudo que depende dele (retorno, bônus, sequência, mesa cheia, campanha), **trocar pontos por prêmio**, pedido pelo app, RA, nota do prato, curtir pós-conta. **Não exigem** (podem ser feitas de qualquer lugar, uma vez só): cadastro, perfil, Instagram, Google, instalar o app, avisos, outros canais, indicação, comentário e sugestão.
+- **Esforço do proprietário:** informar **uma vez** onde fica o restaurante, com um botão **"Usar minha localização agora"** (ele clica estando lá) ou buscando o endereço. O GastroPub **já tem as coordenadas** (do teste de presença). O raio e o interruptor ficam nas configurações.
+- **Infraestrutura já existe:** o cálculo de distância e as políticas de presença estão na migração `0004`; o P5 só reaproveita.
+- **Quem quiser burlar** teria de **falsificar o GPS** do celular (aplicativos específicos, com várias etapas) para ganhar 30 pontos por dia: **o custo supera o ganho** e o portal alerta repetições.
+- **Privacidade (LGPD):** finalidade única (provar presença para pontuar), pedido claro na tela, **sem guardar coordenadas**, e o regulamento do clube explica o uso.
+- **Dentro de shopping ou prédio**, o GPS pode errar; por isso o raio é **configurável** (ex.: 250 m) e o teste de campo valida.
+
 ### 4.2 Retorno e frequência
 | Ação | Pontos (teste) | Limite | Verificação |
 |---|---|---|---|
@@ -95,7 +108,7 @@ Cadastro +30 (1 vez) · Completar o perfil (aniversário) +20 (1 vez).
 
 ### 4.5 Tetos e travas
 - **Interações recorrentes e saídas** (comentar, curtir, moldura, nota, sugestão, pedido pelo app, RA, compartilhar, pesquisa) somam **no máximo 200 pontos por mês**. Ações **de uma vez só** (cadastro, perfil, Instagram, Google, instalar, avisos, outros canais) e **check-in, retorno, sequência e indicação** ficam fora do teto, porque já são limitadas por natureza.
-- **Check-in:** 1 por dia, **só no horário de funcionamento** (mais 2 horas de tolerância) e **só nos dias em que o restaurante abre** (GastroPub: terça a domingo; segunda fechado).
+- **Check-in:** 1 por dia, **só no horário de funcionamento** e **só nos dias em que o restaurante abre** (GastroPub: **terça a domingo, das 19h00 às 23h30**, com 30 minutos de tolerância no fim para quem pede a conta na saída; segunda fechado). Exige **sessão verificada** (4.1.1).
 - **Limite por pessoa nos prêmios** (parâmetro por prêmio): ex.: pizza **1 por mês por pessoa**; sorvete 4 por mês. Impede que um cliente muito frequente esvazie o estoque.
 - Cada ação tem seu limite e pode ser **desligada** pelo dono (inclusive só na prática, depois de testar).
 
@@ -161,21 +174,23 @@ Cadastro, perfil, Instagram e Google somam **100 pontos** logo no começo.
 - **Cliente que vem todos os dias** (≈ 26 por mês, terça a domingo): ~780 de check-in + retorno e sequência + até 200 de interações → **~1.100 pontos por mês**: a pizza **sai em cerca de um mês**. É **intencional**: quem vem tanto está gastando muito (por exemplo R$ 60 por dia ≈ R$ 1.500 por mês) e **o custo do programa é de uns R$ 20 a R$ 30 de produto**, algo como 2% do que ele gastou. O que impede abuso é o **limite por pessoa por prêmio** (pizza 1 por mês), o estoque mensal e a **visita mínima**.
 - Trocar o sorvete aos 200 afasta a pizza em ~3 visitas. A escolha é do cliente: **trocar já ou continuar somando**.
 
-## 8. Antifraude (sem a equipe)
-**Qual a chance de alguém ir ao restaurante só para juntar pontos e sair?** **Muito baixa**, porque o ganho não compensa: o check-in vale **30 pontos por dia**, e **1.000 pontos custam ao restaurante cerca de R$ 20 em produto**. Quem fizesse **só** isso precisaria de **34 dias seguidos de deslocamento, mesa, login e placa** para ganhar uma pizza que custa R$ 20 ao restaurante. Na prática, quem faz isso **está consumindo**.
+## 8. Antifraude (sem a equipe e com o mínimo de trabalho para o dono)
+**Qual a chance de alguém ir ao restaurante só para juntar pontos e sair?** **Muito baixa**: o check-in vale **30 pontos por dia** e **1.000 pontos custam ao restaurante cerca de R$ 20 em produto**; quem fizesse só isso precisaria de **34 dias seguidos** de deslocamento, mesa e login para uma pizza que custa R$ 20. Na prática, quem faz isso está consumindo.
 
-**O risco de verdade é outro: usar o check-in sem estar lá.** A placa é um link fixo (NFC ou QR); alguém pode **fotografar o QR** ou **mandar o link** e fazer check-in de casa, todos os dias. Defesas:
-- **Horário e dias de funcionamento:** check-in fora do horário não vale (e vira alerta).
-- **Modo B (sinal de consumo)** como padrão de teste: pedir a conta ou enviar o pedido exige interação real, embora não seja prova.
-- **Uma conta por e-mail confirmado**; no máximo **2 contas por aparelho**; limite de check-ins por aparelho e por rede.
-- **Link da placa rastreável:** o app registra a placa de cada check-in; o portal mostra **check-ins por placa, hora e aparelho**, e **muitos check-ins de uma placa fora do salão** (por exemplo, sempre do mesmo aparelho em horários sem movimento) viram alerta. O dono pode **trocar o link da placa** (token), invalidando o antigo.
-- **Reforço futuro, opcional:** tags **NTAG 424 DNA**, que geram um link **novo e assinado a cada toque**, impedindo copiar ou mandar o link (custo maior por tag; vale decidir quando houver caso real).
+**O risco de verdade é pontuar sem estar lá** (QR fotografado ou link enviado). Camadas, da mais forte à mais leve:
+1. **Sessão verificada por localização** (4.1.1): é a trava principal e **não exige nada do proprietário** depois da configuração inicial.
+2. **Horário e dias de funcionamento:** check-in fora de terça a domingo, 19h00 às 23h30 (+30 min) não vale e vira alerta.
+3. **Uma conta por e-mail confirmado**; no máximo **2 contas por aparelho**; limite de check-ins por aparelho e por rede.
+4. **Troca de pontos só com sessão verificada** e **1 por visita**; **limite por pessoa por prêmio**.
+5. **Link da placa trocável**: se um QR vazar, o dono (ou o Master) gera um novo e o antigo deixa de valer, sem regravar tag (o vínculo é no servidor).
+6. **Modo B** (sinal de consumo): pedir a conta, enviar o pedido ou 45 minutos com interações.
+7. **Reforço futuro, só se houver caso real:** tags **NTAG 424 DNA** (link novo e assinado a cada toque) e placas com **QR que muda**, por custo maior.
 
 Outras travas:
 - **Equipe do restaurante não pontua.**
 - **Extrato imutável e idempotente**: o mesmo evento nunca pontua duas vezes.
-- **Comprovante de troca** com código e tela animada, válido 30 min; troca **1 por visita** e **limite por pessoa por prêmio**.
-- **Alertas no portal:** muitos check-ins por pouco tempo, mesma pessoa em muitas contas, indicações em ciclo (A indica B e B indica A), trocas concentradas por membro, mesa ou horário, **check-ins sem interação**, check-ins fora do horário.
+- **Comprovante de troca** com código e tela animada, válido 30 min.
+- **Alertas no portal** (sem o dono precisar vigiar): muitos check-ins por pouco tempo, mesma pessoa em muitas contas, indicações em ciclo, trocas concentradas por membro, mesa ou horário, check-ins sem interação, **check-ins sem localização confirmada** e fora do horário.
 - **Ajuste manual** de pontos: gerente com teto e justificativa obrigatória.
 - **Limite de dano:** cada risco é limitado por regra; o pior caso é um prêmio isolado, nunca um prejuízo aberto.
 
@@ -222,7 +237,8 @@ Cada número com definição visível e "dados insuficientes" abaixo da amostra 
 | Item | Valor |
 |---|---|
 | Check-in (encostar na placa, logado) | +30 (1 por dia), **modo B** (com sinal de consumo) |
-| Dias de funcionamento | terça a domingo (segunda fechado); horários a informar |
+| Dias e horário de funcionamento | **terça a domingo, 19h00 às 23h30** (+30 min de tolerância); segunda fechado |
+| Prova de presença | **localização**, uma vez por sessão, raio **150 m**, só para pontuar |
 | Voltar em 7 dias / bônus de 3 check-ins no mês | +20 / +40 |
 | Mesa cheia (3+ membros logados) | +15 cada |
 | Indicar amigo (após a 1ª visita dele) | +100 |
@@ -252,9 +268,9 @@ Os preços dos produtos são **suposições** a trocar pelos reais.
 | Banco (P5) | Saldo e acumulado, catálogo, **troca imediata com débito**, estorno, check-in, indicação, tetos, benefícios de aniversário (eventos), conferência |
 
 ## 14. Pendências e premissas
-1. **Horários de funcionamento** do GastroPub (os **dias** já estão: terça a domingo; segunda fechado).
-2. **Modo do check-in:** adotei o **modo B** (com sinal de consumo) no teste. Se na prática atrapalhar, **muda para o modo A** com um interruptor.
-3. **Ações:** entram **todas** as da seção 4 (cada uma com interruptor); só **WhatsApp** fica desligada.
-4. **Valores de teste:** aceitos.
-5. **Troca, aniversário (só no dia; fechado, no próximo dia aberto), hashtags (Fase 3):** aceitos.
-6. **Espaço Kids:** fica para depois (`docs/11-ESPACO-KIDS.md`).
+1. **Horário:** definido, terça a domingo, 19h00 às 23h30.
+2. **Prova de presença por localização** (4.1.1): adotada no teste. Se o teste de campo mostrar GPS ruim no local, ajusta-se o raio.
+3. **Modo do check-in:** modo B no teste, trocável por interruptor.
+4. **Ações:** todas ligadas, cada uma com interruptor; só **WhatsApp** desligada.
+5. **Valores, troca, aniversário e hashtags:** aceitos.
+6. **Espaço Kids:** depois (`docs/11-ESPACO-KIDS.md`).
