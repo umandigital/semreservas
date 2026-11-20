@@ -79,9 +79,11 @@ Entregue:
 Plano primeiro, aguarde confirmação.
 ```
 
-### P5. Toque Premiado (motor e portal) , só depois de confirmar as 8 decisões
+### P5. Toque Premiado (motor e portal) , só depois de confirmar as decisões da seção 14 de docs/10
+> A fonte da verdade é **docs/10-TOQUE-PREMIADO-DEFINICAO.md** (substitui as decisões assumidas 2, 3, 5 e 6 do topo deste arquivo).
+
 ```
-Objetivo: docs/08 seção 3.5 e 4.6, e docs/07 partes 2 e 3. As decisões de produto estão no topo de docs/PROMPTS-CLAUDE-CODE.md (decisões assumidas 1 a 8); use-as e pergunte se algo faltar.
+Objetivo: implementar docs/10-TOQUE-PREMIADO-DEFINICAO.md por inteiro (saldo e acumulado na vida, catálogo com preço em pontos, consumo lançado pelo garçom, resgate como item da fila da equipe, teto sem consumo, retorno efetivo); docs/08 seções 3.5 e 4.6 e docs/07 servem de apoio. As decisões de produto estão no topo de docs/PROMPTS-CLAUDE-CODE.md (decisões assumidas 1 a 8); use-as e pergunte se algo faltar.
 Branch portal-p5.
 Entregue em duas etapas, com confirmação entre elas:
 Etapa A (banco e regras):

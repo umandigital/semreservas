@@ -3,7 +3,7 @@
 Plataforma SaaS de marketing de relacionamento gastronômico. O cliente encosta o celular numa placa NFC na mesa e abre o app do restaurante. Três interfaces: **app do cliente**, **portal do proprietário** e **portal SemReservas (Master)**.
 
 ## Leia antes de qualquer tarefa
-`README.md`, `docs/adr/` (decisões), `docs/06` a `docs/09` (ajustes, indefinições, portais), `docs/design/TEMA-DO-RESTAURANTE.md`. Os docs `08` e `09` são **especificações**: o que está marcado como Fase 1/2/3 **ainda não existe**, salvo o que estiver marcado **[existe]**.
+`README.md`, `docs/adr/` (decisões), `docs/06` a `docs/10` (ajustes, indefinições, portais e **definição do Toque Premiado**, que prevalece sobre os valores antigos de pontos e prêmios), `docs/design/TEMA-DO-RESTAURANTE.md`. Os docs `08` e `09` são **especificações**: o que está marcado como Fase 1/2/3 **ainda não existe**, salvo o que estiver marcado **[existe]**.
 
 ## Stack e comandos
 - Front: Vite + React 19 + TypeScript em `apps/consumidor` (rotas por `#/`, telas carregadas sob demanda). `npm run typecheck`, `npm test` (vitest), `npm run build`.
@@ -19,7 +19,7 @@ Plataforma SaaS de marketing de relacionamento gastronômico. O cliente encosta 
 5. **Migração**: o fundador aplica cada migração **colando no SQL Editor do Supabase**. Entregue o arquivo completo, idempotente quando possível, **sem** alterar migrações antigas, e diga na entrega qual migração precisa ser aplicada **antes** do merge.
 6. **Segredos**: nunca no repositório. Só a chave pública (`anon`) vai ao front. `tools/verificar-pacote.mjs` roda no CI e barra segredos.
 7. **Auditoria**: toda ação sensível grava em `audit_logs` (quem, quando, o quê, antes e depois).
-8. **Honestidade das métricas**: o sistema mede aberturas, interações, atendimento, pontos e resgates. **Nunca** mostra vendas, seguidores ganhos nem avaliações publicadas (só cliques de saída). Percentual sem amostra mínima mostra "dados insuficientes". Use mediana, não média.
+8. **Honestidade das métricas**: o sistema mede aberturas, interações, atendimento, pontos e resgates. **Nunca** mostra faturamento do restaurante, seguidores ganhos nem avaliações publicadas (só cliques de saída). Única exceção: o **consumo dos membros do clube**, que aparece **rotulado como "valor lançado pela equipe"** (ver `docs/10-TOQUE-PREMIADO-DEFINICAO.md`). Percentual sem amostra mínima mostra "dados insuficientes". Use mediana, não média.
 9. **Tudo é dado**: tipos de restaurante, módulos, prêmios, ações, textos e cores são configuração. Nada de `if (restaurante == "x")`.
 10. **Pontos**: pertencem à pessoa logada (nunca à mesa nem ao aparelho); extrato imutável e idempotente; reserva de pontos no cupom.
 

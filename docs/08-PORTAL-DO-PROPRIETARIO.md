@@ -62,6 +62,7 @@ Resumo · Atendimento · Cardápio · Desempenho dos pratos · Toque Premiado ·
 Funil por prato e por categoria: **visto → legenda aberta ("mais") → adicionado ao pedido → (RA aberta → RA fixada)**. Ranking, comparação com o período anterior, e listas prontas: "chamam atenção mas ninguém adiciona", "adicionados mas pouco vistos", "nunca vistos". Detalhes na seção 4.
 
 ### 3.5 Toque Premiado [Fase 1/2]
+> A definição final (consumo, saldo e acumulado, catálogo com preço em pontos, resgate na fila da equipe) está em **`docs/10-TOQUE-PREMIADO-DEFINICAO.md`** e prevalece sobre esta seção.
 A **dinâmica é fixa**; o proprietário define os parâmetros.
 - **Ações que dão pontos**: ligar/desligar, valor, limite (por pessoa, por dia, por mês), janela de validade; hoje: cadastro, visita, bônus de frequência, Instagram, Google, pesquisa, compartilhar.
 - **Campanhas com prazo**: pontos em dobro em dias ou horários, bônus por prato novo, mês de aniversário. É uma ação com início e fim, com prévia do custo estimado.
@@ -189,7 +190,7 @@ Comentários enviados e publicados · tempo até moderar · nota média da pesqu
 Placas sem leitura há X dias · pratos sem mídia · mesas sem vínculo · aparelhos da equipe sem conexão · último acesso ao painel da equipe.
 
 ### 4.10 O que o portal **não** mostra
-Vendas, faturamento, ticket médio real, seguidores ganhos, avaliações publicadas, "aumento de vendas por causa do app", nome de clientes de outros restaurantes.
+Faturamento do restaurante, seguidores ganhos, avaliações publicadas, "aumento de vendas por causa do app", nome de clientes de outros restaurantes. **Exceção:** o consumo dos membros do clube é mostrado como "valor lançado pela equipe" (ver `docs/10-TOQUE-PREMIADO-DEFINICAO.md`, seção 9), nunca como faturamento.
 
 ---
 ## 5. Alertas e notificações do proprietário
