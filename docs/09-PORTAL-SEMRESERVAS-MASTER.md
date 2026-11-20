@@ -44,7 +44,7 @@ Passos, cada um com **tempo gasto registrado**:
 Saída: **tempo total de onboarding** e número de correções (métrica de sustentabilidade).
 
 ### 3.4 Módulos e funcionalidades [Fase 1]
-- **Interruptores por restaurante** (fonte da verdade do que aparece e do que a API aceita): `menu_feed`, `selection_for_waiter`, `waiter_call`, `kitchen_request`, `order_whatsapp`, `daily_board`, `ar_3d`, `loyalty`, `birthday`, `comments`, `surveys`, `wifi`, `instagram`, `google_link`, `photo_frames`, `loyalty_spend` (**desligado**: pontos por valor da conta, só com PDV integrado ou leitura da nota fiscal).
+- **Interruptores por restaurante** (fonte da verdade do que aparece e do que a API aceita): `menu_feed`, `selection_for_waiter`, `waiter_call`, `kitchen_request`, `order_whatsapp`, `daily_board`, `ar_3d`, `loyalty`, `birthday`, `comments`, `surveys`, `wifi`, `instagram`, `google_link`, `photo_frames`, `kids` (**desligado**, ver `docs/11-ESPACO-KIDS.md`), `loyalty_spend` (**desligado**: pontos por valor da conta, só com PDV integrado ou leitura da nota fiscal).
 - **Limites**: máximo de pratos em 3D, de banners, de usuários, de placas.
 - **Dependências** (ex.: `birthday` exige `loyalty`) e **efeito imediato**: ao desligar um módulo, o botão some no cliente **e** a API recusa novas chamadas; histórico preservado.
 - **Pacotes por tipo** (à la carte, delivery, rodízio, buffet) como modelos aplicáveis.
