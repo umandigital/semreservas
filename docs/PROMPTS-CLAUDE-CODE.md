@@ -8,7 +8,7 @@ Os prompts P1 a P4 e M1 não dependem destas. Valem para o Toque Premiado (P5):
 2. **Sem pontos por valor da conta** no MVP; **nenhuma ação obrigatória da equipe**; painel do garçom opcional.
 3. Pontos principais: **visita completa** (sessão ≥ 30 min e ≥ 3 pratos vistos, 1 por dia), retorno, indicação e ações de intenção com teto.
 4. Dois contadores: **saldo** (desce ao trocar) e **acumulado na vida** (nunca desce); catálogo com preço em pontos.
-5. Troca: **débito ao gerar o cupom**, cancelamento em 2 min, "Já recebi" pelo cliente, cupom de 24 h, 1 troca por visita; confirmação da equipe opcional.
+5. Troca **imediata e final**: pontos debitados ao confirmar, comprovante de 30 min com código e animação, 1 troca por visita, **conferência no portal do proprietário** (tela Resgates ao vivo; aba só de leitura no link da equipe); estorno pelo gerente com justificativa.
 6. Validade dos pontos: 12 meses sem atividade.
 7. Aniversário: 50% na comida do pedido do aniversariante, mínimo de 5 acompanhantes, não vale bebida, semana do aniversário.
 8. Sessão de 90 min por placa, renova a cada toque (máx. 3 por aparelho por dia); distância desligada.
