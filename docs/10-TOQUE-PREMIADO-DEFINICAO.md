@@ -62,13 +62,16 @@ Olhei todos os caminhos possíveis. Nenhum é, ao mesmo tempo, **confiável** e 
 **A solução, que não dá trabalho ao proprietário:** **confirmar a localização uma vez por sessão**, **só para pontuar** (nunca para usar o app).
 - O app **continua funcionando normalmente** sem localização: cardápio, RA, pedido, chamar garçom. Ninguém é bloqueado.
 - Para **ganhar pontos que dependem de estar lá**, o cliente toca em **"Confirmar que estou no restaurante"**. O navegador pergunta a localização **uma vez**, o servidor calcula a distância até o restaurante e **guarda só o veredito** (perto ou longe) e a distância, **nunca as coordenadas**. A confirmação vale **a sessão inteira (90 min)**.
-- **Dentro do raio** (padrão **150 m**, ajustável): sessão **verificada**, os pontos saem. **Fora do raio ou sem permissão:** o app explica ("Para ganhar pontos precisamos confirmar que você está no restaurante") e **oferece tentar de novo**; o restante do app segue.
+- **Dentro do raio** (padrão de teste **80 m**, ajustável de 30 a 250 m; o servidor desconta a **precisão** que o aparelho informa): sessão **verificada**, os pontos saem. **Fora do raio ou sem permissão:** o app explica ("Para ganhar pontos precisamos confirmar que você está no restaurante") e **oferece tentar de novo**; o restante do app segue.
 - **Quais ações exigem sessão verificada:** check-in e tudo que depende dele (retorno, bônus, sequência, mesa cheia, campanha), **trocar pontos por prêmio**, pedido pelo app, RA, nota do prato, curtir pós-conta. **Não exigem** (podem ser feitas de qualquer lugar, uma vez só): cadastro, perfil, Instagram, Google, instalar o app, avisos, outros canais, indicação, comentário e sugestão.
 - **Esforço do proprietário:** informar **uma vez** onde fica o restaurante, com um botão **"Usar minha localização agora"** (ele clica estando lá) ou buscando o endereço. O GastroPub **já tem as coordenadas** (do teste de presença). O raio e o interruptor ficam nas configurações.
 - **Infraestrutura já existe:** o cálculo de distância e as políticas de presença estão na migração `0004`; o P5 só reaproveita.
 - **Quem quiser burlar** teria de **falsificar o GPS** do celular (aplicativos específicos, com várias etapas) para ganhar 30 pontos por dia: **o custo supera o ganho** e o portal alerta repetições.
 - **Privacidade (LGPD):** finalidade única (provar presença para pontuar), pedido claro na tela, **sem guardar coordenadas**, e o regulamento do clube explica o uso.
-- **Dentro de shopping ou prédio**, o GPS pode errar; por isso o raio é **configurável** (ex.: 250 m) e o teste de campo valida.
+- **Por que não 20 m ao redor da placa:** o GPS erra **de 5 a 10 m ao ar livre e de 15 a 40 m dentro do salão**; um raio de 20 m **barraria clientes de verdade**. Além disso, um raio **por mesa** exigiria cadastrar a posição de cada placa (trabalho para o dono) e o GPS **não distingue mesas**: quem diz a mesa é a **placa**. O raio vale para o **restaurante inteiro**.
+- **Ir ao banheiro não desloga ninguém:** a localização é conferida **só nos momentos de pontuar**, **nunca acompanhada em segundo plano** (sem rastrear movimento, sem gastar bateria, e o navegador nem permite com a tela apagada). A sessão de 90 minutos continua; vencida, basta **encostar de novo na placa**.
+- **Troca de pontos:** exige uma confirmação **recente** (feita nos últimos 2 minutos), por ser a ação de maior valor.
+- **Calibração com dados reais:** o servidor guarda também a **precisão informada** (não as coordenadas). O portal mostra "precisão média e % de confirmações que falharam por distância", e o dono (ou o Master) **aperta o raio** quando os números mostrarem que o GPS do local é bom.
 
 ### 4.2 Retorno e frequência
 | Ação | Pontos (teste) | Limite | Verificação |
@@ -238,7 +241,7 @@ Cada número com definição visível e "dados insuficientes" abaixo da amostra 
 |---|---|
 | Check-in (encostar na placa, logado) | +30 (1 por dia), **modo B** (com sinal de consumo) |
 | Dias e horário de funcionamento | **terça a domingo, 19h00 às 23h30** (+30 min de tolerância); segunda fechado |
-| Prova de presença | **localização**, uma vez por sessão, raio **150 m**, só para pontuar |
+| Prova de presença | **localização**, uma vez por sessão (troca: confirmação dos últimos 2 min), raio **80 m**, só para pontuar |
 | Voltar em 7 dias / bônus de 3 check-ins no mês | +20 / +40 |
 | Mesa cheia (3+ membros logados) | +15 cada |
 | Indicar amigo (após a 1ª visita dele) | +100 |

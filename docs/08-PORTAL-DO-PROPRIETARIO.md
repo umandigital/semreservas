@@ -105,7 +105,7 @@ Usuários do portal (proprietário, gerente) com convite por e-mail; redefinir s
 Relatório mensal em linguagem simples (processo e revisão humana no portal Master): período, o que aconteceu, 3 oportunidades, o que não foi medido. Histórico, PDF e e-mail. Exportações CSV.
 
 ### 3.13 Configurações [Fase 1]
-- **Localização do restaurante e prova de presença:** botão "Usar minha localização agora" (o dono clica estando lá) ou busca de endereço; raio (padrão 150 m); interruptor da prova de presença; **dias e horário de funcionamento**; **trocar o link das placas** (invalida o antigo).
+- **Localização do restaurante e prova de presença:** botão "Usar minha localização agora" (o dono clica estando lá) ou busca de endereço; raio (padrão de teste 80 m; mostra a precisão média do local para ajustar); interruptor da prova de presença; **dias e horário de funcionamento**; **trocar o link das placas** (invalida o antigo).
 Dados do restaurante, horário de funcionamento, alertas (som, e-mail), política de privacidade e termo (versão vigente), plano e fatura (somente leitura), módulos ligados (somente leitura; mudar pede ao Master).
 
 ### 3.14 Ajuda [Fase 2]
