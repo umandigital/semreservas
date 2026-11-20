@@ -64,4 +64,10 @@ Refaça nesta ordem, uma por vez, esperando "próxima": T1, T2 (visitante) e T2 
 ════════════════ 5. LISTA DO QUE É PROIBIDO ════════════════
 Sino de notificação; curtir/comentar/salvar/compartilhar no cardápio; lista de ingredientes no cardápio; dois botões no Pedido; preços na tela do garçom; "Contato SemReservas" como tela; "Chamar garçom" dentro de Serviços; ações com pontos para visitante; pontos por valor da conta, campo de valor da conta, pagamento, entrega, reserva de mesa, chat, roleta, conquistas extras, ranking com nomes de outros clientes; telefone, endereço, e-mail ou números que não estejam nesta especificação; qualquer logo redesenhado.
 
-Confirme em UMA frase que entendeu e comece pela T1.
+════════════════ 6. FORMATO DA ENTREGA (para eu poder implementar depois) ════════════════
+- Cada tela em PNG 1080x2340 (a do painel do dono em 1920x1080), com nome no formato "T01-entrada-v1", "T02-home-visitante-v1", "T02-home-logado-v1" e assim por diante. Se eu pedir ajuste, suba a versão (v2, v3).
+- Antes da primeira tela, me entregue uma TABELA de inventário com todas as telas T1 a T17 e, para cada uma, o status: "já existe e está correta", "existe mas precisa ser refeita (diga o que diverge)" ou "ainda não existe".
+- Ao final, me entregue uma lista com o nome do arquivo final aprovado de cada tela e, para cada tela, a lista dos textos exatos que aparecem nela.
+- Mantenha o MESMO estilo visual em todas as telas (mesma paleta, mesmos botões, mesmos ícones, mesma tipografia). Se uma tela anterior divergir do estilo, refaça.
+
+Confirme em UMA frase que entendeu, entregue a tabela de inventário e comece pela T1.
