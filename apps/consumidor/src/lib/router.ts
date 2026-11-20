@@ -10,13 +10,28 @@ export function useRota(): [string, (r: string) => void] {
   useEffect(() => { const f = () => setR(a => atual(a)); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
   return [r, (n: string) => { location.hash = n }]
 }
+// Sessão da mesa: guardada no aparelho por 90 minutos (renova a cada toque na placa), para valer entre abas e depois de fechar o navegador.
+// Vencida, o app pede para encostar de novo na placa. (A validação no servidor entra com a migração de sessões.)
+export const SESSAO_MS = 90 * 60 * 1000
+export const lerSessao = (k: string): string | null => {
+  try {
+    const r = localStorage.getItem('sr:' + k); if (!r) return null
+    const o = JSON.parse(r) as { v: string; ate: number }
+    if (!o || typeof o.ate !== 'number' || Date.now() > o.ate) { localStorage.removeItem('sr:' + k); return null }
+    return o.v
+  } catch { try { return sessionStorage.getItem(k) } catch { return null } }
+}
+export const gravarSessao = (k: string, v: string | null) => {
+  try { if (v) localStorage.setItem('sr:' + k, JSON.stringify({ v, ate: Date.now() + SESSAO_MS })); else localStorage.removeItem('sr:' + k) }
+  catch { try { v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k) } catch { /* ignora */ } }
+}
 const MESA = 'sr-mesa'
-export const getMesa = (): string | null => { try { return sessionStorage.getItem(MESA) } catch { return null } }
-export const setMesa = (m: string | null) => { try { m ? sessionStorage.setItem(MESA, m) : sessionStorage.removeItem(MESA) } catch { /* ignora */ } }
+export const getMesa = (): string | null => lerSessao(MESA)
+export const setMesa = (m: string | null) => gravarSessao(MESA, m)
 
 const TOKEN = 'sr-placa', FIX = 'sr-mesa-fix', SLUG = 'sr-slug'
-const ss = (k: string) => { try { return sessionStorage.getItem(k) } catch { return null } }
-const sset = (k: string, v: string | null) => { try { v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k) } catch { /* ignora */ } }
+const ss = lerSessao
+const sset = gravarSessao
 export const getToken = () => ss(TOKEN)
 export const setToken = (t: string | null) => sset(TOKEN, t)
 export const getMesaFix = () => ss(FIX)
