@@ -6,9 +6,9 @@ Como usar: abra o Claude Code **na pasta do repositório** `umandigital/semreser
 Os prompts P1 a P4 e M1 não dependem destas. Valem para o Toque Premiado (P5):
 1. Login do cliente: **e-mail com código** (Supabase Auth).
 2. **Sem pontos por valor da conta** no MVP; **nenhuma ação obrigatória da equipe**; painel do garçom opcional.
-3. Pontos principais: **visita completa** (sessão ≥ 30 min e ≥ 3 pratos vistos, 1 por dia), retorno, indicação e ações de intenção com teto.
+3. Pontos principais: **check-in** (+30, 1 por dia, só encostar na placa logado), retorno, indicação e toda interação do app (moldura, comentário, curtir, Instagram, Google) com teto mensal de 150 para interações e saídas. **Cliques em Instagram e Google pontuam na hora.**
 4. Dois contadores: **saldo** (desce ao trocar) e **acumulado na vida** (nunca desce); catálogo com preço em pontos.
-5. Troca **imediata e final**: pontos debitados ao confirmar, comprovante de 30 min com código e animação, 1 troca por visita, **conferência no portal do proprietário** (tela Resgates ao vivo; aba só de leitura no link da equipe); estorno pelo gerente com justificativa.
+5. Troca **imediata e final**: pontos debitados ao confirmar, comprovante ("arte gerada") de 30 min com código e animação, 1 troca por visita; **nenhuma verificação pela equipe e nada no link da equipe**; histórico em tempo real no portal do proprietário; estorno pelo gerente com justificativa.
 6. Validade dos pontos: 12 meses sem atividade.
 7. Aniversário: 50% na comida do pedido do aniversariante, mínimo de 5 acompanhantes, não vale bebida, semana do aniversário.
 8. Sessão de 90 min por placa, renova a cada toque (máx. 3 por aparelho por dia); distância desligada.
@@ -83,7 +83,7 @@ Plano primeiro, aguarde confirmação.
 > A fonte da verdade é **docs/10-TOQUE-PREMIADO-DEFINICAO.md** (substitui as decisões assumidas 2, 3, 5 e 6 do topo deste arquivo).
 
 ```
-Objetivo: implementar docs/10-TOQUE-PREMIADO-DEFINICAO.md por inteiro (saldo e acumulado na vida, catálogo com preço em pontos, visita completa verificada pela atividade da sessão, troca com débito imediato e cancelamento em 2 min, teto das ações de intenção). **Sem pontos por valor da conta e sem nenhuma ação obrigatória da equipe**; docs/08 seções 3.5 e 4.6 e docs/07 servem de apoio. As decisões de produto estão no topo de docs/PROMPTS-CLAUDE-CODE.md (decisões assumidas 1 a 8); use-as e pergunte se algo faltar.
+Objetivo: implementar docs/10-TOQUE-PREMIADO-DEFINICAO.md por inteiro (saldo e acumulado na vida, catálogo com preço em pontos, check-in na placa, troca com débito imediato e cancelamento em 2 min, teto das ações de intenção). **Sem pontos por valor da conta e sem nenhuma ação obrigatória da equipe**; docs/08 seções 3.5 e 4.6 e docs/07 servem de apoio. As decisões de produto estão no topo de docs/PROMPTS-CLAUDE-CODE.md (decisões assumidas 1 a 8); use-as e pergunte se algo faltar.
 Branch portal-p5.
 Entregue em duas etapas, com confirmação entre elas:
 Etapa A (banco e regras):

@@ -57,7 +57,13 @@ Depois, se houver uso: **ligue os pontos / labirinto**, **diferenças entre duas
 3. **Depois do clube e dos portais:** se houver interesse real, construir a **versão 0** com os 3 jogos.
 4. **Antes de ligar em qualquer restaurante:** **revisão jurídica** (LGPD e proteção de crianças) e texto claro na tela de Pais.
 
-## 8. Decisões que preciso de você
+## 8. Decisão de 20/11/2026: fica para mais tarde
+Adiado. Quando voltarmos, o planejamento começa por duas perguntas:
+1. **O que o Espaço Kids traz ao restaurante?** (mesa mais tempo, mais sobremesa e bebida, fidelização da família, diferencial na hora de escolher onde comer; como medir sem atribuir venda ao jogo).
+2. **Como é a dinâmica com os celulares?** O de quem? Os pais passam o próprio celular? O restaurante tem tablets? A criança chega a abrir o app sozinha? Como evitar que ela toque em Chamar garçom, pedidos ou links? Como combinar com a regra de cada restaurante sobre telas na mesa?
+O módulo `kids` continua reservado, desligado.
+
+## 9. Decisões que ficaram (para quando retomar)
 1. **Quer reservar o módulo `kids` desligado agora**, sem construir nada?
 2. **Valida primeiro com a Pulpo** (perguntar e testar a folha de atividades impressa) ou prefere já planejar a versão 0?
 3. **Faixa etária inicial:** 4 a 9 anos serve?

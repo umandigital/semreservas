@@ -14,7 +14,7 @@ Versão 1, 20/11/2026. Layout simples; esta especificação define **o que exist
 |---|:-:|:-:|:-:|
 | Resumo e métricas | ✅ | ✅ | — |
 | Fila de atendimento (assumir/concluir/trote) | ✅ | ✅ | ✅ |
-| Ver Resgates e marcar "Conferido" (opcional) | ✅ | ✅ | ✅ (aba de leitura) |
+| Ver histórico de Resgates | ✅ | ✅ | — |
 | "Acabou hoje" | ✅ | ✅ | — |
 | Cardápio (editar, mídia, preços) | ✅ | ✅ | — |
 | Toque Premiado: configurar ações, prêmios, campanhas | ✅ | — | — |
@@ -76,7 +76,7 @@ A **dinâmica é fixa**; o proprietário define os parâmetros.
 - **Regulamento e consentimentos**: texto versionado, quem aceitou qual versão, opt-in de divulgação.
 
 ### 3.5.1 Resgates ao vivo, Meu aniversário e Redes e alcance [Fase 1/2/3]
-- **Resgates ao vivo**: troca imediata aparece na hora (mesa, prêmio, código, horário); busca pelo código; marcar "Conferido"; **estornar** com justificativa; trocas não conferidas viram indicador.
+- **Resgates ao vivo**: troca imediata aparece na hora (mesa, prêmio, código, horário, membro); busca pelo código; **estornar** com justificativa; alertas de padrões estranhos.
 - **Meu aniversário**: configurar mimo, condição para convidados, janela, texto e link público; métricas de acessos e benefícios mostrados.
 - **Redes e alcance**: fotos com moldura (geradas, baixadas, compartilhadas), cliques de saída e, na Fase 3, "publicações encontradas com a #" pela API oficial do Instagram (não é alcance real).
 
