@@ -62,20 +62,27 @@ Os pontos são creditados **ao fim da sessão** (ou ao pedir a conta, se pedir).
 | Visita completa em dia de baixo movimento (campanha do dono) | +30 | por campanha | automática |
 | Mesa cheia: 3 ou mais membros logados na mesma mesa | +20 para cada | 1 por visita | automática |
 
-### 4.3 Divulgação e indicação
-| Ação | Pontos (teste) | Limite | Verificação |
+### 4.3 Interações no app (todas pontuam; o sistema vê o evento)
+Princípio alinhado: **toda interação do cliente no app que ajuda o restaurante gera pontos**, cada uma com um valor e um limite. O que o sistema **vê** é pontuado automaticamente; o que só **sai do app** (toque em link) é pontuado como **intenção**, rotulado e com teto.
+| Interação | Pontos (teste) | Limite | Como o sistema verifica |
 |---|---|---|---|
+| **Foto com moldura**: gerar e baixar | +15 | 1 por dia | evento do app (`photo_downloaded`); **não prova** que foi publicada |
+| Compartilhar a foto com moldura | +10 | 1 por semana | início do compartilhamento (**intenção**) |
+| **Comentário em prato** | +20 | 1 por prato, 3 por visita | texto com 20 ou mais caracteres, sem links, passa no filtro automático; **vai só ao dono** (não precisa moderação para pontuar) |
+| **Curtir pratos** (na tela pós-conta) | +5 | 3 por visita | evento do app |
+| Responder à pesquisa da visita | +10 | 1 por visita | pesquisa enviada |
+| **Seguir no Instagram** | +20 | 1 vez | toque no link (**intenção**) |
+| **Avaliar no Google** | +50 | 1 vez | toque no link (**intenção**) |
+| Compartilhar prato ou app | +10 | 1 por semana | toque (**intenção**) |
 | **Indicar um amigo** | +100 | por amigo | **automática**: o amigo se cadastra pelo link e completa a **primeira visita** |
-| Seguir no Instagram | +20 | 1 vez | toque no link (**intenção**) |
-| Avaliar no Google | +50 | 1 vez | toque no link (**intenção**) |
-| Compartilhar com a marca | +10 | 1 por semana | toque (**intenção**) |
 
 ### 4.4 Relacionamento
-Cadastro +30 (1 vez) · Completar o perfil (aniversário) +20 (1 vez) · Responder à pesquisa da visita +10 (1 por visita).
+Cadastro +30 (1 vez) · Completar o perfil (aniversário) +20 (1 vez).
 
 ### 4.5 Tetos
-- Ações de **intenção** (Instagram, Google, compartilhar, pesquisa): **no máximo 150 pontos por mês**.
-- Presença e frequência não têm teto diário além de "1 visita completa por dia".
+- **Interações e saídas** (tudo de 4.3 exceto indicação) somam **no máximo 200 pontos por mês**.
+- **Presença, retorno e indicação** não entram nesse teto; a visita completa é **1 por dia**.
+- Cada ação tem seu próprio limite (coluna "Limite") e pode ser **desligada** pelo dono.
 
 ## 5. O fluxo da visita (sem a equipe)
 1. O cliente encosta na placa: abre a sessão de **90 minutos** (renova a cada toque).
@@ -100,7 +107,7 @@ Funciona **sem cadastro e sem pontos**. É divulgado **antes de tudo**, para nin
 - **Onde aparece:** cartão de destaque no **topo da Home**, item exclusivo **"Meu aniversário"** no app, e uma **página pública** (`/#/aniversario`) para o restaurante **divulgar nas redes sociais** antes da visita, com o link e a regra. O onboarding orienta o estabelecimento a divulgar.
 - **Mimo para quem faz aniversário** (configurável; teste: **sobremesa da casa**), mediante **documento** conferido pelo garçom.
 - **Condição para os convidados** (configurável; teste: **50% de desconto na comida do pedido do aniversariante** com **no mínimo 5 acompanhantes**, **não vale bebida**). Pode ser desligada.
-- **Janela:** no dia do aniversário (teste: na semana do aniversário). Configurável.
+- **Janela:** **somente no dia do aniversário**. Se o restaurante **estiver fechado nesse dia** (pelos dias de funcionamento configurados), vale no **próximo dia aberto** (em geral, o dia seguinte).
 - **Como usa:** na mesa, o cliente toca **Mostrar ao garçom** na tela "Meu aniversário" (animada, com a regra) e o garçom confere o **documento**. O uso aparece em **Resgates** do portal como "Aniversário · Mesa 3 · hora", para entrar nos números.
 - **Não acumula** com troca de pontos e **não dá pontos**.
 - A tela mostra as regras completas antes de qualquer botão, e a página pública deixa claro "**válido mediante documento e condições do restaurante**".
@@ -194,7 +201,9 @@ Cada número com definição visível e "dados insuficientes" abaixo da amostra 
 | Mesa cheia (3+ membros logados) | +20 cada |
 | Indicar amigo (após a 1ª visita dele) | +100 |
 | Cadastro (já dá pontos) / perfil completo | +30 / +20 |
-| Instagram / Google / compartilhar / pesquisa | +20 / +50 / +10 / +10 (teto 150 por mês) |
+| Foto com moldura baixada / comentário em prato / curtir prato | +15 / +20 / +5 |
+| Instagram / Google / compartilhar / pesquisa | +20 / +50 / +10 / +10 |
+| Teto mensal das interações e saídas | 200 pontos |
 | Prêmios | **200** Sorvete 2 bolas · **350** Refrigerante ou entrada · **500** 30% de desconto na conta (teto R$ 30, conta mínima R$ 80) · **1000** Pizza à escolha (8 visitas mínimas) |
 | Marcos na barra | 200, 500, 1000 |
 | Validade dos pontos | 12 meses sem atividade |
@@ -217,5 +226,5 @@ Os preços dos produtos são **suposições** a trocar pelos reais.
 2. **Indicar amigo +100** (idem, mantido).
 3. **Comprovante de troca válido 30 min** e **sem cancelamento** (troca final; estorno pelo gerente).
 4. **Conferência dos resgates:** no portal do proprietário/gerente e na aba **Resgates** do link da equipe (leitura). Alguém precisa olhar uma tela no momento da entrega; é isso que impede comprovante falso.
-5. **Meu aniversário:** mimo (sobremesa) mais promoção para convidados, ambos configuráveis; **dia** ou **semana** do aniversário.
+5. **Meu aniversário:** só no dia; se o restaurante estiver fechado, no próximo dia aberto (exige cadastrar os **dias de funcionamento**).
 6. **Varredura de hashtags:** Fase 3, só com conta Instagram Business e aprovação da Meta, medindo "publicações encontradas", não alcance.
