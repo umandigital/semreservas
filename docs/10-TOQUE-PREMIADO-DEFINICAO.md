@@ -1,4 +1,4 @@
-# Toque Premiado: definição final (versão 4, 20/11/2026)
+# Toque Premiado: definição final (versão 5, 20/11/2026)
 
 Reúne o que você definiu com o que já estava decidido. **Substitui** o que for conflitante em `docs/06`, `07` e `08` (seção 12). Valores são **de teste para o GastroPub**; a dinâmica é fixa e todo parâmetro é do proprietário.
 
@@ -51,7 +51,11 @@ Olhei todos os caminhos possíveis. Nenhum é, ao mesmo tempo, **confiável** e 
 ### 4.1 Check-in: cada retorno ao restaurante gera pontos
 **Check-in: +30 pontos, 1 por dia.** Acontece quando o cliente **logado encosta o celular na placa da mesa** (ou lê o QR). É simples de propósito: **não exige tempo mínimo nem prato visto** e não depende de ninguém da equipe.
 **Para que serve:** (1) premia **cada volta** ao restaurante; (2) é o **marcador de "visita"** do sistema: base do bônus de frequência, do "voltar em 7 dias", do cliente do mês, das visitas mínimas dos prêmios grandes e das métricas do dono; (3) é a **única prova automática de presença** (a placa só abre na mesa).
-**Risco aceito:** alguém pode encostar na placa e ir embora. O custo é de **30 pontos por dia por pessoa**; o portal mostra **"check-ins sem nenhuma interação"** para o dono perceber abuso. (Versão anterior exigia 30 minutos e 3 pratos; foi retirada por ser complexa. Se o dono quiser, ela volta como parâmetro opcional "tempo mínimo na mesa".)
+**Condição do check-in (parâmetro do dono, com 2 modos):**
+- **Modo A, simples:** os pontos saem **assim que o cliente logado encosta na placa**.
+- **Modo B, com sinal de consumo** (padrão de teste): os pontos saem quando o app **vê um sinal de que a pessoa consumiu**: (1) **enviou o pedido ao garçom**, ou (2) **pediu a conta**, ou (3) ficou **45 minutos na sessão com 3 ou mais interações**. Se o cliente ainda não pontuou, aos 45 minutos o app lembra: "Já terminou? Peça a conta pelo app e receba seus pontos."
+- **Atenção:** o modo B é um **sinal**, não uma **prova** (o app não enxerga o caixa; quem quiser fraudar pode apertar "Pedir a conta"). Ele serve para tornar o abuso **mais trabalhoso** e para o painel medir "check-ins com consumo provável".
+**Risco aceito (modo A):** alguém pode encostar na placa e ir embora. O custo é de **30 pontos por dia por pessoa**; o portal mostra **"check-ins sem nenhuma interação"** para o dono perceber abuso. (Versão anterior exigia 30 minutos e 3 pratos; foi retirada por ser complexa. Se o dono quiser, ela volta como parâmetro opcional "tempo mínimo na mesa".)
 
 ### 4.2 Retorno e frequência
 | Ação | Pontos (teste) | Limite | Verificação |
@@ -74,38 +78,34 @@ Princípio alinhado: **toda interação do cliente no app que ajuda o restaurant
 | **Avaliar no Google** | +50 | 1 vez | toque no link (**intenção**) |
 | Compartilhar prato ou app | +10 | 1 por semana | toque (**intenção**) |
 | **Indicar um amigo** | +100 | por amigo | **automática**: o amigo se cadastra pelo link e faz o **primeiro check-in** |
+| **Fazer o pedido pelo app** e chamar o garçom | +10 | 1 por visita | evento `order_intent_prepared` |
+| **Usar a realidade aumentada** e fixar o prato | +5 | 3 por visita | evento `ar_fixed` |
+| **Dar nota ao prato** (depois da conta) | +5 | 3 por visita | evento do app |
+| **Deixar uma sugestão** | +10 | 1 por visita | texto válido |
+| **Instalar o app** na tela inicial | +20 | 1 vez | evento `appinstalled` |
+| **Ativar avisos** do restaurante | +10 | 1 vez | permissão concedida |
+| **Seguir outros canais** (TikTok, Facebook, canal do WhatsApp) | +10 cada | 1 vez por canal | toque no link (intenção) |
+| **Sequência**: check-in em 4 semanas seguidas | +50 | a cada sequência | automática |
+| **Participar de evento** do restaurante | definido na campanha | por evento | check-in no dia do evento |
 
 > **Saídas contam ao clicar.** Quem toca em "Seguir no Instagram" ou "Avaliar no Google" **ganha os pontos na hora**, mesmo que a ação não se conclua do outro lado (é raro, e o custo é pequeno e limitado). O portal rotula esses números como **cliques**.
 
 ### 4.4 Relacionamento
 Cadastro +30 (1 vez) · Completar o perfil (aniversário) +20 (1 vez).
 
-### 4.5 Tetos
-- **Interações e saídas** (tudo de 4.3 exceto indicação) somam **no máximo 150 pontos por mês**.
-- **Check-in, retorno e indicação** não entram nesse teto; o check-in é **1 por dia**.
-- Cada ação tem seu próprio limite (coluna "Limite") e pode ser **desligada** pelo dono.
+### 4.5 Tetos e travas
+- **Interações recorrentes e saídas** (comentar, curtir, moldura, nota, sugestão, pedido pelo app, RA, compartilhar, pesquisa) somam **no máximo 200 pontos por mês**. Ações **de uma vez só** (cadastro, perfil, Instagram, Google, instalar, avisos, outros canais) e **check-in, retorno, sequência e indicação** ficam fora do teto, porque já são limitadas por natureza.
+- **Check-in:** 1 por dia, **só no horário de funcionamento** (mais 2 horas de tolerância) e **só nos dias em que o restaurante abre** (GastroPub: terça a domingo; segunda fechado).
+- **Limite por pessoa nos prêmios** (parâmetro por prêmio): ex.: pizza **1 por mês por pessoa**; sorvete 4 por mês. Impede que um cliente muito frequente esvazie o estoque.
+- Cada ação tem seu limite e pode ser **desligada** pelo dono (inclusive só na prática, depois de testar).
 
-### 4.6 O que mais pode dar pontos (ideias para você escolher; ainda **não** incluídas nos valores de teste)
-Todas só pontuam com **evento que o app vê**. Sugestão de valor entre parênteses, a ser testada.
-| Ideia | O que gera de valor ao restaurante | Verificação |
-|---|---|---|
-| **Fazer o pedido pelo app** e chamar o garçom (+10, 1 por visita) | mais pedidos organizados pelo app | evento `order_intent_prepared` |
-| **Usar a realidade aumentada** e fixar o prato (+5, 3 por visita) | mostra o diferencial e vende o prato | evento `ar_fixed` |
-| **Instalar o app na tela inicial** (+20, 1 vez) | cliente volta mais | evento `appinstalled` |
-| **Ativar avisos** do restaurante (+10, 1 vez) | canal direto com o cliente (com consentimento próprio) | permissão concedida |
-| **Dar nota ao prato** depois da conta (+5, 3 por visita) | feedback de produto | evento do app |
-| **Deixar uma sugestão** ao restaurante (+10, 1 por visita) | melhoria contínua | texto válido |
-| **Sequência de semanas**: check-in em 4 semanas seguidas (+50) | hábito | automática |
-| **Participar de evento** do restaurante (noite do chope, aniversário da casa) | enche dias fracos | campanha com check-in |
-| **Seguir outros canais** (TikTok, Facebook, canal do WhatsApp) (+10 cada) | divulgação | toque no link |
-| **Foto com moldura publicada com a #** | divulgação real | só na Fase 3, pela API do Instagram |
-| **Aceitar receber ofertas por WhatsApp** | marketing | **cuidado**: consentimento precisa ser livre; oferecer pontos exige revisão jurídica |
-Se você aprovar, eu somo à tabela do teto mensal e ajusto os valores.
+### 4.6 Quais ações ficam ligadas no teste
+Entram **todas** as ações das tabelas acima, **cada uma com interruptor**: se na prática alguma não render, o dono **desliga** sem apagar o histórico. **Ficam desligadas até revisão jurídica:** pontos por **aceitar ofertas por WhatsApp** (o consentimento precisa ser livre). **Só na Fase 3:** foto com moldura publicada com a # (depende da API do Instagram).
 
 ## 5. O fluxo do check-in (sem a equipe)
-1. O cliente encosta na placa: abre a sessão de **90 minutos** (renova a cada toque).
-2. Se estiver **logado**, o app credita o **check-in (+30)** e avisa: "**Bem-vindo de volta! +30 pontos**" (uma vez por dia). Se houver "voltar em 7 dias" ou campanha, soma e mostra tudo na mesma mensagem.
-3. Se **não estiver logado**, a sessão funciona normalmente (cardápio, pedido, chamar garçom), mas **não há clube**: o app mostra o convite ao cadastro e **não há pontos retroativos**.
+1. O cliente encosta na placa: abre a sessão de **90 minutos** (renova a cada toque), **se o restaurante estiver aberto**.
+2. Se estiver **logado**, o app registra a presença. No **modo A** credita **+30** na hora. No **modo B**, credita ao primeiro sinal de consumo (pedido, conta ou 45 minutos com interações) e avisa: "**Check-in confirmado! +30 pontos**" (uma vez por dia, junto com retorno, sequência ou campanha, se houver).
+3. Se **não estiver logado**, a sessão funciona (cardápio, pedido, chamar garçom), mas **não há clube**: o app mostra o convite ao cadastro e **não há pontos retroativos**.
 4. Cada linha vai ao **extrato** (imutável) e ao portal do dono.
 
 ## 6. O fluxo de troca de pontos (imediata)
@@ -158,18 +158,26 @@ Um cliente ativo ganha em média **uns 70 pontos por visita** (30 de check-in ma
 Cadastro, perfil, Instagram e Google somam **100 pontos** logo no começo.
 - **1 visita por semana** (≈ 60 + bônus mensal): sorvete (200) na **3ª visita**; desconto (500) com cerca de **8 visitas** (~2 meses); pizza (1000) com cerca de **15 visitas** (~3,5 meses).
 - **2 visitas por semana**: pizza em cerca de **2 meses**.
+- **Cliente que vem todos os dias** (≈ 26 por mês, terça a domingo): ~780 de check-in + retorno e sequência + até 200 de interações → **~1.100 pontos por mês**: a pizza **sai em cerca de um mês**. É **intencional**: quem vem tanto está gastando muito (por exemplo R$ 60 por dia ≈ R$ 1.500 por mês) e **o custo do programa é de uns R$ 20 a R$ 30 de produto**, algo como 2% do que ele gastou. O que impede abuso é o **limite por pessoa por prêmio** (pizza 1 por mês), o estoque mensal e a **visita mínima**.
 - Trocar o sorvete aos 200 afasta a pizza em ~3 visitas. A escolha é do cliente: **trocar já ou continuar somando**.
 
 ## 8. Antifraude (sem a equipe)
-- **Presença física:** só pontua com **sessão de placa** (NFC/QR da mesa) e **login**.
-- **Check-in só na placa da mesa, com login, 1 por dia**; o portal mostra check-ins sem nenhuma interação.
-- **Uma conta por e-mail confirmado**; no máximo 2 contas por aparelho.
+**Qual a chance de alguém ir ao restaurante só para juntar pontos e sair?** **Muito baixa**, porque o ganho não compensa: o check-in vale **30 pontos por dia**, e **1.000 pontos custam ao restaurante cerca de R$ 20 em produto**. Quem fizesse **só** isso precisaria de **34 dias seguidos de deslocamento, mesa, login e placa** para ganhar uma pizza que custa R$ 20 ao restaurante. Na prática, quem faz isso **está consumindo**.
+
+**O risco de verdade é outro: usar o check-in sem estar lá.** A placa é um link fixo (NFC ou QR); alguém pode **fotografar o QR** ou **mandar o link** e fazer check-in de casa, todos os dias. Defesas:
+- **Horário e dias de funcionamento:** check-in fora do horário não vale (e vira alerta).
+- **Modo B (sinal de consumo)** como padrão de teste: pedir a conta ou enviar o pedido exige interação real, embora não seja prova.
+- **Uma conta por e-mail confirmado**; no máximo **2 contas por aparelho**; limite de check-ins por aparelho e por rede.
+- **Link da placa rastreável:** o app registra a placa de cada check-in; o portal mostra **check-ins por placa, hora e aparelho**, e **muitos check-ins de uma placa fora do salão** (por exemplo, sempre do mesmo aparelho em horários sem movimento) viram alerta. O dono pode **trocar o link da placa** (token), invalidando o antigo.
+- **Reforço futuro, opcional:** tags **NTAG 424 DNA**, que geram um link **novo e assinado a cada toque**, impedindo copiar ou mandar o link (custo maior por tag; vale decidir quando houver caso real).
+
+Outras travas:
 - **Equipe do restaurante não pontua.**
 - **Extrato imutável e idempotente**: o mesmo evento nunca pontua duas vezes.
-- **Comprovante** com código e tela animada, válido 30 min; o garçom **confere no sistema**; troca limitada a **1 por visita**.
-- **Alertas no portal:** muitas visitas por pouco tempo, mesma pessoa em muitas contas, indicações em ciclo (A indica B e B indica A), trocas concentradas por membro, mesa ou horário, **check-ins sem interação**.
+- **Comprovante de troca** com código e tela animada, válido 30 min; troca **1 por visita** e **limite por pessoa por prêmio**.
+- **Alertas no portal:** muitos check-ins por pouco tempo, mesma pessoa em muitas contas, indicações em ciclo (A indica B e B indica A), trocas concentradas por membro, mesa ou horário, **check-ins sem interação**, check-ins fora do horário.
 - **Ajuste manual** de pontos: gerente com teto e justificativa obrigatória.
-- **Limite de dano:** como cada risco é limitado por regra, o pior caso de uma fraude é um prêmio isolado, nunca um prejuízo aberto.
+- **Limite de dano:** cada risco é limitado por regra; o pior caso é um prêmio isolado, nunca um prejuízo aberto.
 
 ## 9. Dashboard do proprietário (clube)
 Sem valores de venda. Mede o clube pelo que o sistema vê.
@@ -213,14 +221,19 @@ Cada número com definição visível e "dados insuficientes" abaixo da amostra 
 ## 12. Configuração de teste para o GastroPub
 | Item | Valor |
 |---|---|
-| Check-in (encostar na placa, logado) | +30 (1 por dia) |
+| Check-in (encostar na placa, logado) | +30 (1 por dia), **modo B** (com sinal de consumo) |
+| Dias de funcionamento | terça a domingo (segunda fechado); horários a informar |
 | Voltar em 7 dias / bônus de 3 check-ins no mês | +20 / +40 |
 | Mesa cheia (3+ membros logados) | +15 cada |
 | Indicar amigo (após a 1ª visita dele) | +100 |
 | Cadastro (já dá pontos) / perfil completo | +30 / +20 |
 | Foto com moldura baixada / comentário em prato / curtir prato | +15 / +20 / +5 |
 | Instagram / Google / compartilhar / pesquisa | +20 / +50 / +10 / +10 |
-| Teto mensal das interações e saídas | 150 pontos |
+| Teto mensal das interações recorrentes e saídas | 200 pontos |
+| Pedido pelo app / RA / nota do prato / sugestão | +10 / +5 / +5 / +10 |
+| Instalar app / ativar avisos / outros canais | +20 / +10 / +10 cada |
+| Sequência de 4 semanas | +50 |
+| Limite por pessoa | pizza 1 por mês; desconto 2 por mês; sorvete 4 por mês |
 | Prêmios | **200** Sorvete 2 bolas · **350** Refrigerante ou entrada · **500** 30% de desconto na conta (teto R$ 30, conta mínima R$ 80) · **1000** Pizza à escolha (8 visitas mínimas) |
 | Marcos na barra | 200, 500, 1000 |
 | Validade dos pontos | 12 meses sem atividade |
@@ -239,10 +252,9 @@ Os preços dos produtos são **suposições** a trocar pelos reais.
 | Banco (P5) | Saldo e acumulado, catálogo, **troca imediata com débito**, estorno, check-in, indicação, tetos, benefícios de aniversário (eventos), conferência |
 
 ## 14. Pendências e premissas
-1. **Dias e horários de funcionamento** do GastroPub (para o aniversário no próximo dia aberto).
-2. **Valores de teste recalibrados** (confirme): check-in **+30**, voltar em 7 dias **+20**, bônus de 3 check-ins no mês **+40**, teto de interações **150/mês**. Com eles, quem vem toda semana junta ~280 pontos por mês: sorvete (200) no primeiro mês, desconto (500) em ~2 meses, pizza (1000) em ~3,5 meses (14 visitas, com o mínimo de 8 check-ins).
-3. **Quais ideias de 4.6** entram nos pontos (pedido pelo app, RA, instalar o app, avisos, nota do prato, sugestão, sequência, eventos, outros canais).
-4. **Comprovante de troca** válido 30 minutos, troca final, estorno pelo gerente (aceito).
-5. **Meu aniversário**: só no dia; se fechado, no próximo dia aberto (aceito).
-6. **Varredura de hashtags:** Fase 3, medindo "publicações encontradas" (aceito).
-7. **Espaço Kids:** fica para depois (ver `docs/11-ESPACO-KIDS.md`).
+1. **Horários de funcionamento** do GastroPub (os **dias** já estão: terça a domingo; segunda fechado).
+2. **Modo do check-in:** adotei o **modo B** (com sinal de consumo) no teste. Se na prática atrapalhar, **muda para o modo A** com um interruptor.
+3. **Ações:** entram **todas** as da seção 4 (cada uma com interruptor); só **WhatsApp** fica desligada.
+4. **Valores de teste:** aceitos.
+5. **Troca, aniversário (só no dia; fechado, no próximo dia aberto), hashtags (Fase 3):** aceitos.
+6. **Espaço Kids:** fica para depois (`docs/11-ESPACO-KIDS.md`).

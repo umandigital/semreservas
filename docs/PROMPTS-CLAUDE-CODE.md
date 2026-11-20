@@ -6,7 +6,7 @@ Como usar: abra o Claude Code **na pasta do repositório** `umandigital/semreser
 Os prompts P1 a P4 e M1 não dependem destas. Valem para o Toque Premiado (P5):
 1. Login do cliente: **e-mail com código** (Supabase Auth).
 2. **Sem pontos por valor da conta** no MVP; **nenhuma ação obrigatória da equipe**; painel do garçom opcional.
-3. Pontos principais: **check-in** (+30, 1 por dia, só encostar na placa logado), retorno, indicação e toda interação do app (moldura, comentário, curtir, Instagram, Google) com teto mensal de 150 para interações e saídas. **Cliques em Instagram e Google pontuam na hora.**
+3. Pontos principais: **check-in** (+30, 1 por dia, só no horário e dias de funcionamento, só logado) com **dois modos**: A (ao encostar na placa) e B (padrão de teste: ao primeiro sinal de consumo, ou seja, pedido enviado, conta pedida, ou 45 min com 3 interações); retorno, sequência, indicação e **todas** as interações do app (moldura, comentário, curtir, nota, sugestão, pedido pelo app, RA, instalar, avisos, canais, Instagram, Google), cada uma com interruptor; teto mensal de 200 para interações recorrentes; **limite por pessoa por prêmio**. Cliques em Instagram e Google pontuam na hora.
 4. Dois contadores: **saldo** (desce ao trocar) e **acumulado na vida** (nunca desce); catálogo com preço em pontos.
 5. Troca **imediata e final**: pontos debitados ao confirmar, comprovante ("arte gerada") de 30 min com código e animação, 1 troca por visita; **nenhuma verificação pela equipe e nada no link da equipe**; histórico em tempo real no portal do proprietário; estorno pelo gerente com justificativa.
 6. Validade dos pontos: 12 meses sem atividade.
