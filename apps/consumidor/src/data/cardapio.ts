@@ -12,7 +12,7 @@ export type Modelo3D = {
   tamanhoM: [number, number, number]   // largura × altura × profundidade REAIS, em metros: o teste confere com o arquivo
   nota: string; orbita?: string
 }
-export const CATEGORIAS = ['Hambúrgueres', 'Pizzas', 'Massas', 'Testes', 'Porções', 'Bebidas', 'Sobremesas'] as const
+export const CATEGORIAS = ['Hambúrgueres', 'Pizzas', 'Massas', 'Testes', 'Petiscos', 'Porções', 'Bebidas', 'Sobremesas'] as const
 
 const m = (f: string) => `media/${f}`
 export const ITENS: Item[] = [
@@ -35,6 +35,8 @@ export const ITENS: Item[] = [
     modelo: { glb: m('modelos/hot-roll.glb'), poster: m('modelos/hot-roll-poster.webp'), medidas: 'Prato de 20 cm · 6 cm de altura', tamanhoM: [0.2, 0.0574, 0.2], orbita: '25deg 62deg auto', nota: 'Imagem ilustrativa em tamanho real, com o prato. O prato servido pode ter pequenas diferenças.' } },
   { id: 'x2', cat: 'Testes', nome: 'Prato Fotográfico (teste de RA)', preco: 4290, desc: 'Prato de teste de modelo 3D gerado a partir de foto, em tamanho real.', ingredientes: ['Item de teste de realidade aumentada'], img: m('modelos/prato-fotografico-poster.webp'),
     modelo: { glb: m('modelos/prato-fotografico.glb'), poster: m('modelos/prato-fotografico-poster.webp'), medidas: 'Prato de 27 cm · 6 cm de altura', tamanhoM: [0.27, 0.0568, 0.27], orbita: '25deg 62deg auto', nota: 'Imagem ilustrativa em tamanho real, com o prato. O prato servido pode ter pequenas diferenças.' } },
+  { id: 'pt1', cat: 'Petiscos', nome: 'Batatas na Tigela', preco: 2990, desc: 'Batatas fritas crocantes e douradas, servidas numa tigela para dividir.', ingredientes: ['Batata', 'Óleo vegetal', 'Sal'], img: m('modelos/batatas-tigela-poster.webp'),
+    modelo: { glb: m('modelos/batatas-tigela.glb'), poster: m('modelos/batatas-tigela-poster.webp'), medidas: 'Tigela de 15 cm · 8 cm de altura', tamanhoM: [0.1615, 0.0834, 0.15], orbita: '25deg 62deg auto', nota: 'Imagem ilustrativa em tamanho real, com a tigela. A porção servida pode ter pequenas diferenças.' } },
   { id: 'a1', cat: 'Porções', nome: 'Batata Rústica', preco: 2490, desc: 'Batata com casca, alho e alecrim.', ingredientes: ['Batata', 'Alho', 'Alecrim', 'Sal'], img: m('fries.webp'), tags: ['vegetariano'] },
   { id: 'a2', cat: 'Porções', nome: 'Onion Rings', preco: 2690, desc: 'Anéis de cebola empanados com molho da casa.', ingredientes: ['Cebola', 'Empanado', 'Molho da casa'], img: m('fries.webp'), tags: ['vegetariano'] },
   { id: 'a3', cat: 'Porções', nome: 'Frango Crocante', preco: 3890, desc: 'Tiras de frango empanadas e molho de mostarda e mel.', ingredientes: ['Frango', 'Empanado', 'Mostarda e mel'], img: m('fries.webp') },
