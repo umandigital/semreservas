@@ -104,8 +104,13 @@ jobs:
             echo "::error::SSH_CHAVE_PRIVADA não é uma chave privada válida. Veja a estrutura acima."
             exit 1
           fi
-          ssh-keyscan -p "$PORTA" "$SERVIDOR" >> ~/.ssh/known_hosts 2>/dev/null
-          test -s ~/.ssh/known_hosts || { echo "::error::servidor não respondeu ao ssh-keyscan."; exit 1; }
+          # O servidor às vezes demora a responder: tenta até 5 vezes, com espera crescente.
+          for i in 1 2 3 4 5; do
+            ssh-keyscan -T 15 -p "$PORTA" "$SERVIDOR" >> ~/.ssh/known_hosts 2>/dev/null
+            test -s ~/.ssh/known_hosts && break
+            echo "ssh-keyscan: tentativa $i sem resposta"; sleep $((i * 6))
+          done
+          test -s ~/.ssh/known_hosts || { echo "::error::servidor não respondeu ao ssh-keyscan depois de 5 tentativas."; exit 1; }
       - name: Testar o acesso e o destino
         run: |
           ssh -p "$PORTA" -o StrictHostKeyChecking=yes -o BatchMode=yes "$USUARIO@$SERVIDOR" \
@@ -121,10 +126,15 @@ jobs:
           fi
           echo "SECO=$SECO" >> "$GITHUB_ENV"
           [ -n "$SECO" ] && echo "::notice::SIMULAÇÃO — nada será enviado de verdade"
-          rsync -rltz --checksum --human-readable --itemize-changes $SECO \
-            --no-perms --no-owner --no-group \
-            -e "ssh -p $PORTA -o StrictHostKeyChecking=yes" \
-            site/ "$USUARIO@$SERVIDOR:$DESTINO/"
+          # rsync só envia (não apaga) e é repetível: em falha de rede, tenta de novo até 3 vezes.
+          for i in 1 2 3; do
+            rsync -rltz --checksum --human-readable --itemize-changes $SECO \
+              --no-perms --no-owner --no-group \
+              -e "ssh -p $PORTA -o StrictHostKeyChecking=yes -o ConnectTimeout=20" \
+              site/ "$USUARIO@$SERVIDOR:$DESTINO/" && ok=1 && break
+            echo "rsync: tentativa $i falhou"; sleep $((i * 8))
+          done
+          [ "${ok:-0}" = 1 ] || { echo "::error::o envio falhou depois de 3 tentativas."; exit 1; }
       # O envio acima nunca apaga nada. Quando um arquivo SAI do app (ex.: um prato 3D retirado), ele fica no servidor.
       # Esta etapa apaga SOMENTE os arquivos listados em deploy/retirados.txt, e só dentro de media/ (o validador
       # recusa qualquer outro caminho). Em simulação, só lista.
