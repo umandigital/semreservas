@@ -1,16 +1,19 @@
-# Roleta do Chef (especificação, versão 3, 22/11/2026)
+# Roleta do Chef (especificação, versão 4, 22/11/2026)
 
-Jogo de coleção com **possibilidade de ganhar ou não**. Valores de teste; o dono configura tudo.
+Jogo de coleção de **5 metas**. Em cada giro a roleta sorteia a **ordem** das etapas, mas o resultado final é **certo**: **no 5º giro o cliente ganha obrigatoriamente**. Tudo no **GastroPub é demonstração** (nenhum prêmio vale). O dono configura tudo.
 
 ## 1. A ideia
 1. O cliente monta um **prato em 5 etapas** (itens de cozinha: Panela, Faca, Fogão, Forno, Prato; o dono pode trocar o tema, ver seção 3).
 2. A cada **visita com pedido de pelo menos R$ 80** (valor ajustável pelo dono), o cliente ganha **1 giro** na **roleta**. O giro é liberado **quando ele envia o pedido ao garçom** (botão "Chamar garçom" da tela Meu pedido). Ela para em uma das etapas.
-3. Etapa **nova** entra no prato. Etapa **repetida** não rende nada naquele giro.
-4. **Só ganha o prêmio quem completar as 5 etapas** dentro da janela de **60 dias**. Pode não completar.
-5. **Ajuda do sistema ("garantia"):** quando o cliente chega a **4 de 5**, o **próximo giro entrega obrigatoriamente a etapa que falta**. Configurável (seção 5).
+3. **Cada giro entrega uma etapa nova** (a roleta sorteia qual, só para dar emoção; nunca repete). Os 5 giros são as **5 metas**.
+4. **No 5º giro o cliente ganha o prêmio obrigatoriamente**, desde que faça os 5 giros dentro da janela de **60 dias**. Se a janela passar, as etapas zeram e começa nova rodada.
+5. **Sem sorte:** como o prêmio é certo, a regra é de **fidelidade** ("faça 5 pedidos de R$ 80 e ganhe"), não de sorteio. Isso simplifica o app e tende a simplificar a parte legal (ver seção 2).
 6. Ao completar, o prêmio vem em comprovante, igual ao do Clube. Para o teste, o prêmio é uma **pizza**.
 
-## 2. Parte legal (resumo; explicação do item 1 que você não entendeu)
+## 2. Parte legal (resumo)
+**No GastroPub nada vale:** tudo roda como **demonstração**, com a etiqueta "Demonstração: sem prêmio real". **Prêmio real** (cliente de verdade): como o prêmio é certo e vem de compra, a lei de promoções comerciais (Lei 5.768/71) ainda pode tratar como **"vale-brinde"**; **confirmar com advogado antes de ligar**. O modo com certificado de autorização continua previsto no módulo.
+
+**Texto abaixo (da versão com sorte, mantido como referência):**
 Prêmio que depende de sorte precisa de **autorização do governo** (Lei 5.768/71), uma por promoção. Por isso o sistema tem **dois modos**:
 - **Modo demonstração (para o teste no GastroPub):** a roleta funciona **inteira**, com giros, chances, animações e comemoração, mas **o prêmio não é real**: aparece a tela de "Você ganhou: Pizza à escolha" com a etiqueta **"Demonstração: sem prêmio real"**. Assim testamos tudo **sem risco** legal.
 - **Modo com prêmio real:** só liga quando o restaurante cadastrar o **número do certificado de autorização**, a validade e o regulamento. Sem isso, o servidor recusa os giros.
@@ -32,29 +35,19 @@ Existe também o **Modo Coleção (sem sorte)**: o próximo ingrediente é sempr
 - **Janela de 60 dias:** a contagem mostra "Faltam 41 dias". Passou sem completar, **as etapas zeram** e começa uma nova rodada.
 - **Prêmio:** comprovante imediato e final, igual ao do Clube.
 
-## 5. Chances e dificuldade (60 dias, 1 giro por visita)
-Cada giro sorteia uma das etapas com a **mesma chance**. Um cliente que vem **1 vez por semana** faz **8 a 9 giros em 60 dias**; um que vem **2 vezes por semana**, uns **17**. **Chance de completar** conforme a configuração:
-| Configuração | 5 giros | 8 giros | 9 giros | 10 giros | 12 giros | 15 giros | 20 giros |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| 5 etapas, **sem garantia** | 4% | 32% | 43% | 52% | 68% | 83% | 94% |
-| **5 etapas, garantia no 4º (o que você pediu)** | 19% | **75%** | **85%** | 90% | 96% | 99% | 100% |
-| 6 etapas, garantia no 5º | 0% | 41% | 56% | 69% | 85% | 95% | 99% |
-| 7 etapas, garantia no 6º | 0% | 13% | 26% | 39% | 62% | 84% | 97% |
-**O que isso mostra:** com **5 etapas e garantia no 4º**, quem vem 1 vez por semana já completa em **85% dos casos**, e quem passa de 12 visitas **quase sempre** ganha. Fica **parecido com um sistema de pontos** (justamente o que você não quer). Para manter a incerteza com garantia, **6 etapas com garantia no 5º** dão ~56% para quem vem toda semana; **7 etapas**, ~26%.
-**Parâmetros do dono:** número de etapas (4 a 8), **garantia a partir de N etapas** (desligável), **janela em dias** (padrão **60**), **intervalo mínimo entre giros** (padrão 1 dia), **máximo de prêmios por pessoa por janela** (padrão 1). O portal mostra a **chance real** e o **custo esperado** de cada combinação antes de salvar.
-**Padrão de teste sugerido:** **6 etapas, garantia a partir de 5, 60 dias**. Se preferir exatamente o seu pedido (5 etapas, garantia no 4º), é só ajustar; você vê que quase todo cliente frequente ganha.
+## 5. Dificuldade e custo (60 dias, 1 giro por visita)
+Não há chance envolvida: ganha quem **volta 5 vezes com pedido de R$ 80 em 60 dias**. Quem vem 1 vez por semana (8 a 9 visitas) ganha com folga; quem vem 1 vez a cada 2 semanas (4 visitas) não completa. **Parâmetros do dono:** número de metas (4 a 8; padrão 5), **valor mínimo do pedido** (R$ 80), **janela** (60 dias), **intervalo mínimo entre giros** (1 dia), **máximo de prêmios por pessoa por janela** (1). O portal mostra o **custo do prêmio sobre o consumo exigido**.
 
-## 6. Garantia: a reta final com som e animação
-Quando o cliente chega à etapa da garantia (por exemplo, **4 de 5**), o app avisa com destaque, ao abrir e depois de cada visita:
-- **Animação** do cartão da roleta pulsando, faísca e confete leve, e o texto grande: "**Falta só 1!** Seu próximo giro garante a Pizza."
-- **Som curto de alerta** e **vibração** (se o aparelho permitir).
-- No **giro final**, comemoração maior: som, confete, a roleta parando na etapa que falta e o prêmio aparecendo.
-**Cuidados:** o navegador **só toca som depois de um toque do usuário**, então o som aparece ao abrir a roleta ou ao tocar em "Girar"; há **botão de som** sempre visível; **respeita "reduzir movimento"**; **nada de piscar rápido** (no máximo 3 por segundo, por segurança de saúde); a mensagem é sempre **visual e escrita**, não só sonora. O alerta de "falta só 1" é **honesto** (o próximo giro de fato garante o prêmio).
+## 6. Reta final com som e animação
+A partir da **4ª meta**, o app avisa com destaque ao abrir e após cada visita:
+- **Animação** do cartão pulsando, faísca e confete leve, e o texto: "**Falta só 1!** Seu próximo giro garante a Pizza."
+- **Som curto** e **vibração** (se o aparelho permitir). No **5º giro**, comemoração maior: som, confete e o prêmio aparecendo.
+**Cuidados:** o navegador **só toca som depois de um toque**, então o som sai ao abrir a roleta ou tocar em "Girar"; **botão de som** sempre visível; **respeita "reduzir movimento"**; **nada de piscar rápido** (máx. 3 por segundo); a mensagem é sempre **escrita**, não só sonora. O aviso é **honesto**: o 5º giro de fato entrega o prêmio.
 
 ## 7. O prêmio e o custo
 O **dono escolhe o prêmio** em seu catálogo (produto, brinde ou pontos). Orientação do sistema ao dono: "Escolha algo **bom**, porque poucos clientes vão ganhar". **Prêmio de teste: Pizza à escolha** (valor R$ 65, custo ~R$ 20).
-**Ponto novo:** como cada giro exige **um pedido de pelo menos R$ 80**, o prêmio sai de um cliente que **já gastou** pelo menos R$ 80 por visita. Uma pessoa que vem 9 vezes e completa gerou ao menos **R$ 720** em pedidos; a pizza (custo ~R$ 20) pesa **~2,8%** disso. Isso **justifica** configurações mais generosas, como 5 etapas com garantia no 4º.
-**Custo esperado por cliente que participa** = chance de completar × custo do prêmio. Exemplos (pizza, custo R$ 20, cliente que vem 1 vez por semana, 9 giros): 5 etapas com garantia no 4º: 85% × R$ 20 = **R$ 17**; 6 etapas com garantia no 5º: 56% × R$ 20 = **R$ 11**; 7 etapas com garantia no 6º: 26% × R$ 20 = **R$ 5**. O portal calcula e **avisa** se passar do limite definido pelo dono. Não acumula com a troca de pontos no mesmo dia.
+**Custo:** como cada giro exige **um pedido de pelo menos R$ 80**, o prêmio sai de um cliente que **já gastou** pelo menos R$ 80 por visita. Uma pessoa que vem 9 vezes e completa gerou ao menos **R$ 720** em pedidos; a pizza (custo ~R$ 20) pesa **~2,8%** disso. 
+**Custo por prêmio entregue:** R$ 20 (pizza) sobre pelo menos R$ 400 de consumo exigido (5 × R$ 80), ou seja, **~5%**. Não acumula com a troca de pontos no mesmo dia.
 
 ## 8. Telas (simples, para leigos e pouca visão)
 | Tela | Conteúdo |
@@ -65,7 +58,7 @@ O **dono escolhe o prêmio** em seu catálogo (produto, brinde ou pontos). Orien
 | **R3 Resultado** | "Você ganhou: Forno!" (novo) ou "Fogão de novo. Tente na próxima visita." (repetido) |
 | **R4 Reta final** | "Falta só 1! Seu próximo giro garante a Pizza.", com animação e som |
 | **R5 Prêmio** | Comemoração, prêmio, botão "Trocar agora" que abre o comprovante (e, em demonstração, a etiqueta "Demonstração: sem prêmio real") |
-| **R6 Como funciona e regras** | 3 passos, as chances, a garantia, "Giro grátis, um por visita, só para maiores de 18 anos", certificado de autorização (ou "Modo demonstração") e regulamento |
+| **R6 Como funciona e regras** | 3 passos, as 5 metas, o 5º giro garantido, "Giro grátis, um por visita, só para maiores de 18 anos", certificado de autorização (ou "Modo demonstração") e regulamento |
 | **R7 Indisponível** | "A Roleta do Chef não está disponível agora" |
 Entrada pela Home: botão **"Roleta do Chef"** (ícone de chapéu de chef).
 
@@ -75,9 +68,6 @@ Mesmo caminho do check-in, mais a regra do pedido mínimo; giro **gravado no ser
 ## 10. Quando construir
 Depois do Clube e dos portais. Módulo `roleta_chef`, **desligado por padrão**. Começa com o **tema genérico de cozinha** e o **modo demonstração**.
 
-## 11. Decisões que preciso de você
-1. **Consumo mínimo de R$ 80:** confirmo como **subtotal estimado do pedido enviado** (ou soma dos pedidos da visita)? É o único sinal que o app tem; não prova o gasto real.
-2. **Cancelou o pedido/chamado antes de girar:** perde o giro (recomendo)?
-3. **Configuração de teste:** com o consumo mínimo, o seu pedido (**5 etapas, garantia no 4º**) fica bem mais justificável (o prêmio custa ~2,8% do que o cliente gastou). Mantemos essa?
-4. **Tema:** genérico de cozinha na versão 1, e Pizzaria, Risoteria e Pub depois?
-5. **Demonstração** no teste do GastroPub e prêmio real só com autorização: mantemos?
+## 11. Decisões
+Fechadas pelo fundador em 22/11/2026: tudo é demonstração no GastroPub; 5 metas; o 5º giro ganha obrigatoriamente; pedido mínimo R$ 80 (a definir); prêmio de teste: pizza; janela 60 dias; nome ROLETA DO CHEF; 1 giro por visita.
+**Ainda em aberto (padrões assumidos):** cancelar o chamado antes de girar perde o giro; tema genérico de cozinha na v1; revisão jurídica antes de prêmio real.
