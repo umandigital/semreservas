@@ -91,7 +91,7 @@ Princípio alinhado: **toda interação do cliente no app que ajuda o restaurant
 | **Curtir pratos** (na tela pós-conta) | +5 | 3 por visita | evento do app |
 | Responder à pesquisa da visita | +10 | 1 por visita | pesquisa enviada |
 | **Seguir no Instagram** | +20 | 1 vez | toque no link (**intenção**) |
-| **Avaliar no Google** | +50 | 1 vez | toque no link (**intenção**) |
+| **Avaliar no Google** | **0 (desligada por padrão)** | — | **A política do Google proíbe incentivar avaliações** (pontos, descontos ou brindes em troca de avaliar). O botão existe e é livre; o dono só liga pontos se aceitar o risco de o Google remover avaliações ou penalizar o perfil |
 | Compartilhar prato ou app | +10 | 1 por semana | toque (**intenção**) |
 | **Indicar um amigo** | +100 | por amigo | **automática**: o amigo se cadastra pelo link e faz o **primeiro check-in** |
 | **Fazer o pedido pelo app** e chamar o garçom | +10 | 1 por visita | evento `order_intent_prepared` |
@@ -104,7 +104,7 @@ Princípio alinhado: **toda interação do cliente no app que ajuda o restaurant
 | **Sequência**: check-in em 4 semanas seguidas | +50 | a cada sequência | automática |
 | **Participar de evento** do restaurante | definido na campanha | por evento | check-in no dia do evento |
 
-> **Saídas contam ao clicar.** Quem toca em "Seguir no Instagram" ou "Avaliar no Google" **ganha os pontos na hora**, mesmo que a ação não se conclua do outro lado (é raro, e o custo é pequeno e limitado). O portal rotula esses números como **cliques**.
+> **Saídas contam ao clicar.** Quem toca em "Seguir no Instagram" (e nos outros canais) **ganha os pontos na hora**, mesmo que a ação não se conclua do outro lado (é raro, e o custo é pequeno e limitado). O portal rotula esses números como **cliques**. **Exceção, o Google:** a avaliação pública deve ser **espontânea** (política do Google e premissa do pacote original), então o botão "Avaliar no Google" **não dá pontos por padrão**.
 
 ### 4.4 Relacionamento
 Cadastro +30 (1 vez) · Completar o perfil (aniversário) +20 (1 vez).
@@ -247,7 +247,7 @@ Cada número com definição visível e "dados insuficientes" abaixo da amostra 
 | Indicar amigo (após a 1ª visita dele) | +100 |
 | Cadastro (já dá pontos) / perfil completo | +30 / +20 |
 | Foto com moldura baixada / comentário em prato / curtir prato | +15 / +20 / +5 |
-| Instagram / Google / compartilhar / pesquisa | +20 / +50 / +10 / +10 |
+| Instagram / Google / compartilhar / pesquisa | +20 / **0** (política do Google) / +10 / +10 |
 | Teto mensal das interações recorrentes e saídas | 200 pontos |
 | Pedido pelo app / RA / nota do prato / sugestão | +10 / +5 / +5 / +10 |
 | Instalar app / ativar avisos / outros canais | +20 / +10 / +10 cada |
