@@ -2,6 +2,14 @@
 
 Reúne o que você definiu com o que já estava decidido. **Substitui** o que for conflitante em `docs/06`, `07` e `08` (seção 12). Valores são **de teste para o GastroPub**; a dinâmica é fixa e todo parâmetro é do proprietário.
 
+> **Decisões de 22/11/2026 (prevalecem sobre o resto do documento):**
+> - **Nome para o cliente: "Clube" + nome do restaurante** (ex.: "Clube SemReservas GastroPub"). "Toque Premiado" deixa de aparecer na tela; fica só como nome técnico interno.
+> - **Telas do clube, todas simples:** (1) **Clube**: "Você tem X pontos", frase do próximo prêmio e **lista bem visível de prêmios com os pontos de cada um**; o prêmio que o cliente já alcançou fica **destacado**, com a mensagem "Você já pode trocar!" e o botão **Trocar** no próprio cartão; (2) **Como funciona**: tela própria com os passos e as ações que dão pontos; (3) **Extrato**; (4) **aviso animado de meta atingida**, que aparece ao abrir o app quando o cliente alcança os pontos de um prêmio.
+> - **Visitas no mês** é só mais uma ação que dá pontos (bônus de 3 visitas), não um bloco da tela. O **Cliente do mês** aparece apenas em "Como funciona".
+> - **Meu aniversário** tem **tela própria e ícone na Home**; não fica dentro do clube.
+> - **Barra inferior:** Início, Cardápio, Pedido, **Clube** (ícone de cartão de membro, **nunca troféu, taça ou presente**) e Sobre.
+> - Na tela do cliente: "pontos" (não "pts"), "visita" (não "check-in"), "Seus pontos" (não "saldo/acumulado").
+
 ## 0. Princípios
 1. **Quem não está logado não participa do clube.** O cadastro **já dá pontos** (+30).
 2. **O estabelecimento sempre tem o portal do proprietário**: é onde ele vê, em números, tudo o que o clube faz, e onde se **confere** cada troca. O **painel de chamadas nos aparelhos dos garçons continua opcional**.

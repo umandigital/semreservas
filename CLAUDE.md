@@ -24,6 +24,9 @@ Plataforma SaaS de marketing de relacionamento gastronômico. O cliente encosta 
 10. **Pontos**: pertencem à pessoa logada (nunca à mesa nem ao aparelho); extrato imutável e idempotente; **débito na troca** (cancelamento em 2 min).
 11. **Nenhuma ação obrigatória da equipe do restaurante**: o painel do garçom é opcional e o clube, a visita e a troca funcionam sem ele. Sem integração com caixa/PDV. Só pontua o que o sistema verifica sozinho; o que for intenção (toque em link) é rotulado e tem teto.
 
+## Interface do cliente: simples para qualquer pessoa
+Pensar em leigos, idosos e pouca luz: texto principal de **18 pt ou mais** (nunca abaixo de 16 pt), contraste alto (texto creme sobre vinho, sem cinza apagado), **uma ação principal por tela** (botão de 56 pt ou mais), no máximo 4 blocos por tela, ícone sempre com rótulo, palavras simples ("pontos", "visita", "Trocar"). O programa de pontos chama-se **"Clube" + nome do restaurante** (não "Toque Premiado"). Nada de ícone de troféu na barra.
+
 ## Como trabalhar
 - Comece **propondo um plano curto** (arquivos, migrações, testes) e espere confirmação se houver decisão de produto em aberto. Decisões de produto estão em `docs/07`; não invente.
 - Pequenos commits, mensagens claras em português. Rode `typecheck`, `npm test`, `apps/api/run-tests.sh` e o build antes de dizer que terminou.
