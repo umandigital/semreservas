@@ -25,3 +25,5 @@ export const IconInfo = () => <I><circle cx="12" cy="12" r="9" /><path d="M12 11
 export const IconConta = () => <I><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path d="M9 8h6M9 12h6" /></I>
 export const IconCompartilhar = () => <I><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></I>
 export const IconCubo = () => <I><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" /><path d="M12 12l8-4.5M12 12L4 7.5M12 12v9" /></I>
+export const IconCartao = () => <I><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="M12 15.5c-2.6-1.6-3.6-2.8-3.6-4a1.9 1.9 0 013.6-.8 1.9 1.9 0 013.6.8c0 1.2-1 2.4-3.6 4z" /></I>
+export const IconGarfoFaca = () => <I><path d="M7 3v8M5 3v5a2 2 0 004 0V3M7 11v10" /><path d="M17 21V3c-2.2 1.2-3.5 4-3.5 7.5V14H17" /></I>

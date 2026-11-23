@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { cancelarChamado, ROTULO, statusChamado, type Status as S, type StatusChamado } from '../lib/api'
 import { tokenDeCancelamento } from '../lib/atendimento'
-import { avisar } from '../lib/mockStore'
+import { avisar, useSelecao } from '../lib/mockStore'
+import { ITENS } from '../data/cardapio'
 
 const TXT: Record<S, [string, string]> = {
   PENDING: ['Chamado enviado', 'Aguardando a equipe ver. Se demorar, fale com alguém do salão.'],
@@ -18,6 +19,7 @@ export function Status({ id, ir }: { id: string; ir: (r: string) => void }) {
     document.addEventListener('visibilitychange', vis)
     return () => { vivo = false; clearInterval(t); document.removeEventListener('visibilitychange', vis) }
   }, [id])
+  const sel = useSelecao(); const linhas = ITENS.filter(i => sel.qtd[i.id])
   const tk = tokenDeCancelamento(id)
   if (c === undefined) return <section className="tela-int"><p>{semRede ? 'Sem conexão. Tentando de novo…' : 'Carregando…'}</p></section>
   if (c === null) return <section className="tela-int"><h1>Chamado não encontrado</h1><button className="primario grande" onClick={() => ir('/')}>Início</button></section>
@@ -27,6 +29,7 @@ export function Status({ id, ir }: { id: string; ir: (r: string) => void }) {
       <p className="mesa-g">Mesa {c.table_label} · {ROTULO[c.kind]}{c.detail ? ` · ${c.detail}` : ''}</p>
       <h1>{t}</h1><p>{d}</p>
       <p className="codigo">Código {c.public_code}</p>
+      {c.kind === 'order' && aberto && linhas.length > 0 && <><p><b>Mostre esta tela ao garçom</b></p><ul className="lista-mostrar">{linhas.map(i => <li key={i.id}>{sel.qtd[i.id]} × {i.nome}{sel.obs[i.id] && <small>{sel.obs[i.id]}</small>}</li>)}</ul></>}
       {semRede && <p className="alerta" role="alert">Sem conexão agora. Este status pode estar desatualizado.</p>}
       <ol className="passos"><li className="ok">Enviado</li><li className={c.status === 'ACKNOWLEDGED' || c.status === 'RESOLVED' ? 'ok' : ''}>Visto</li><li className={c.status === 'RESOLVED' ? 'ok' : ''}>Atendido</li></ol>
       {aberto && tk && <button className="sec grande" onClick={async () => { try { await cancelarChamado(id, tk) ? avisar('Chamado cancelado.') : avisar('Não foi possível cancelar.') } catch { avisar('Sem conexão. Tente de novo.') } }}>Cancelar chamado</button>}
