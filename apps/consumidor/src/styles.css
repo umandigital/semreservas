@@ -176,3 +176,16 @@ main.cheio { padding-bottom:0; }
 .obs-link { background:none; border:0; color:var(--laranja); text-decoration:underline; min-height:44px; padding:0; text-align:left; }
 .lista-mostrar { list-style:none; padding:0; margin:12px 0; background:#f8e8c8; color:#380818; border-radius:var(--r); padding:12px 16px; font-size:1.3rem; font-weight:700; }
 .lista-mostrar li { padding:6px 0; border-bottom:1px solid #d9c4a0; } .lista-mostrar li:last-child { border:0; } .lista-mostrar small { display:block; font-size:.9rem; font-weight:400; }
+
+/* ── Clube ── */
+.bloco-c { background:var(--bg2); border:1px solid var(--borda); border-radius:var(--r); padding:14px; margin:12px 0; display:grid; gap:8px; } .bloco-c h2,.bloco-c p { margin:0; }
+.pontos b { font-size:3rem; line-height:1; } .pontos small { color:var(--mut); }
+.marcos { position:relative; height:12px; background:var(--bg0); border-radius:99px; } .marcos i { position:absolute; left:0; top:0; bottom:0; background:var(--laranja); border-radius:99px; }
+.marcos u { position:absolute; top:-3px; width:3px; height:18px; background:var(--txt); text-decoration:none; }
+.premios .pts,.pts { color:var(--laranja); font-size:1.15rem; } .neg { color:var(--mut); font-size:1.15rem; }
+.links-c { display:flex; justify-content:space-between; }
+.grupo-t { display:flex; justify-content:space-between; align-items:center; min-height:56px; width:100%; background:none; border:0; color:var(--txt); font-size:1.1rem; padding:0; }
+.tres { display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:10px; } .conta { color:var(--mut); }
+.papel { background:#f8e8c8; color:#380818; border-radius:var(--r); padding:20px 16px; text-align:center; display:grid; gap:8px; margin-bottom:12px; } .papel h1 { margin:0; font-size:1.5rem; }
+.papel p { margin:0; } .cod-g { font-size:3rem; letter-spacing:.12em; font-family:ui-monospace,monospace; } .selo-t { display:inline-flex; gap:8px; align-items:center; justify-content:center; font-weight:800; padding:8px 12px; border-radius:99px; color:#fff; } .selo-t.ok { background:#1f7a46; } .selo-t.off { background:#7a2a2a; }
+.valido { font-size:1.15rem; } .nota-p { font-size:.9rem; }

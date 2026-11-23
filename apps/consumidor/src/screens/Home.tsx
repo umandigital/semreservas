@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react'
 import { CONFIG } from '../data/cardapio'
 import { TEMA } from '../data/tema'
-import { avisar, useMembro, useSelecao } from '../lib/mockStore'
+import { avisar, useSelecao } from '../lib/mockStore'
+import { useClube } from '../lib/clube'
 import { ApiError, MENSAGEM_ERRO } from '../lib/api'
 import { pedirAtendimento } from '../lib/atendimento'
 import { getMesa, getToken } from '../lib/router'
@@ -12,7 +13,7 @@ const Servico = ({ icone, t, onClick }: { icone: ReactNode; t: string; onClick: 
 
 /** Início em 4 blocos: (1) cabeçalho, (2) Ver cardápio, (3) Meu pedido e Clube, (4) Serviços. */
 export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
-  const mesa = getMesa(); const m = useMembro(); const sel = useSelecao()
+  const mesa = getMesa(); const clube = useClube(); const cv = clube.v; const m = cv?.membro; const sel = useSelecao()
   const [wifi, setWifi] = useState(false); const [copiado, setCopiado] = useState(false)
   const itens = Object.values(sel.qtd).reduce((a, b) => a + b, 0)
   const copiar = async () => { try { await navigator.clipboard.writeText(CONFIG.wifi.senha); setCopiado(true); avisar('Senha copiada. Abra os Ajustes de Wi-Fi do aparelho.') } catch { avisar('Copie a senha manualmente.') } }
@@ -20,7 +21,13 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
     if (!getMesa() || !getToken()) return ir('/chamar')
     try { ir('/chamado/' + await pedirAtendimento('bill')) } catch (e) { avisar(MENSAGEM_ERRO[e instanceof ApiError ? e.code : 'rede']) }
   }
-  const externo = (url: string, o: string) => { if (url) window.open(url, '_blank', 'noopener'); else avisar(`O link do ${o} ainda não foi configurado.`) }
+  const externo = async (url: string, o: string, action: string) => {
+    if (m) {   // pontos só pelo toque que abre a página; o app pergunta antes (o cliente escolhe)
+      const pts = clube.v?.regras.find(r => r.action === action)?.points ?? 0
+      if (pts && window.confirm(`Abrir o ${o} e ganhar +${pts} pontos?`)) { try { const g = await clube.ganhar(action); avisar(g ? `+${g} pontos no seu Clube!` : 'Você já ganhou os pontos desta ação.') } catch { /* sem pontos, abre mesmo assim */ } }
+    }
+    if (url) window.open(url, '_blank', 'noopener'); else avisar(`O link do ${o} ainda não foi configurado.`)
+  }
   return (
     <section className="home">
       <div className="bloco hero-cartao">
@@ -33,9 +40,9 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
           <span className="topo-c"><IconPrancheta /><b>Meu pedido</b></span>
           <span>{itens ? `${itens} ${itens === 1 ? 'item' : 'itens'}` : 'Escolha seus pratos'}</span>
         </button>
-        <button className="cartao-link" onClick={() => ir(m ? '/clube' : '/entrar?de=/clube')}>
+        <button className="cartao-link" onClick={() => ir('/clube')}>
           <span className="topo-c"><IconCartao /><b>Clube</b></span>
-          <span>{m ? `${m.pontos} pontos` : 'Entrar e ganhar pontos'}</span>
+          <span>{m ? `${m.saldo} pontos` : 'Entrar e ganhar pontos'}</span>
         </button>
       </div>
       <div className="bloco">
@@ -44,8 +51,8 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
           <Servico icone={<IconWifi />} t="Wi-Fi" onClick={() => setWifi(!wifi)} />
           <Servico icone={<IconConta />} t="Pedir a conta" onClick={conta} />
           <Servico icone={<IconCamera />} t="Foto com moldura" onClick={() => ir('/fotos')} />
-          <Servico icone={<IconInsta />} t="Instagram" onClick={() => externo(CONFIG.instagram, 'Instagram')} />
-          <Servico icone={<IconEstrela />} t="Avalie no Google" onClick={() => externo(CONFIG.googleAvaliacao, 'Google')} />
+          <Servico icone={<IconInsta />} t="Instagram" onClick={() => externo(CONFIG.instagram, 'Instagram', 'instagram_follow')} />
+          <Servico icone={<IconEstrela />} t="Avalie no Google" onClick={() => externo(CONFIG.googleAvaliacao, 'Google', 'google_open')} />
           <Servico icone={<IconPesquisa />} t="Como foi a visita?" onClick={() => ir('/pesquisa')} />
         </div>
         {wifi && <div className="wifi"><p>Rede: <b>{CONFIG.wifi.ssid}</b></p><p>Senha: <b>{CONFIG.wifi.senha}</b></p>

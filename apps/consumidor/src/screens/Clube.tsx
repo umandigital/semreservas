@@ -1,31 +1,99 @@
-import { avisar, resgatar, sair, useMembro } from '../lib/mockStore'
+import { useEffect, useState } from 'react'
+import { CLUBE, textoLimite, type Grupo } from '../data/clube'
+import { avisar } from '../lib/mockStore'
+import { useClube } from '../lib/clube'
+import { IconCartao, IconCheck } from '../ui/Icons'
 
-const PREMIOS = [{ nome: 'Drink especial', custo: 500 }, { nome: 'Sobremesa', custo: 800 }, { nome: 'Benefício garantido', custo: 1200 }]
+type Ir = { ir: (r: string) => void }
+const dataBR = (t: number) => new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
-export function Clube({ ir }: { ir: (r: string) => void }) {
-  const m = useMembro()
+/** Clube em 4 blocos: seus pontos, prêmios, como ganhar, extrato. */
+export function Clube({ ir }: Ir) {
+  const c = useClube(); const v = c.v
+  useEffect(() => { if (v?.logado && !v.membro) ir('/cadastro') }, [v?.logado, v?.membro])
+  if (!v) return <section className="tela-int"><p>Carregando…</p></section>
+  const m = v.membro
+  const proximo = v.premios.find(p => !m || p.custo > m.saldo)
+  const trocar = async (id: string) => { try { ir('/troca/' + await c.trocar(id)) } catch (e) { c.avisarErro(e) } }
+  return (
+    <section className="tela-int clube">
+      <h1>{CLUBE.nome}</h1>
+      {!m ? (
+        <div className="bloco-c"><h2>Entre e ganhe pontos</h2><p>Cada visita e cada ação no app dão pontos. Troque por sorvete, bebida, desconto e pizza.</p>
+          <button className="primario grande" onClick={() => ir('/entrar')}>Entrar ou cadastrar</button>
+          <p className="nota">Sem cadastro você usa o cardápio e chama o garçom normalmente.</p></div>
+      ) : (
+        <div className="bloco-c pontos"><small>Seus pontos</small><b>{m.saldo}</b>
+          <div className="marcos" aria-hidden="true"><i style={{ width: `${Math.min(100, (m.saldo / (v.premios[v.premios.length - 1]?.custo || 1000)) * 100)}%` }} />
+            {v.premios.map(p => <u key={p.id} style={{ left: `${(p.custo / (v.premios[v.premios.length - 1]?.custo || 1000)) * 100}%` }} />)}</div>
+          <p>{proximo ? `Faltam ${Math.max(0, proximo.custo - m.saldo)} pontos para ${proximo.nome.split(' (')[0]}.` : 'Você já pode trocar qualquer prêmio.'}</p></div>
+      )}
+      <div className="bloco-c"><h2>Prêmios</h2>
+        <ul className="premios">{v.premios.map(p => {
+          const pode = !!m && m.saldo >= p.custo && m.visitas >= p.minVisitas
+          return <li key={p.id}><span><b>{p.nome}</b><small>{p.custo} pontos{p.minVisitas ? ` · precisa de ${p.minVisitas} visitas` : ''}</small></span>
+            {pode ? <button className="primario" onClick={() => trocar(p.id)}>Trocar</button> : <span className="falta">{m ? `faltam ${Math.max(0, p.custo - m.saldo)}` : ''}</span>}</li>
+        })}</ul></div>
+      <button className="sec grande" onClick={() => ir('/clube/ganhar')}>Como ganhar pontos</button>
+      {m && <div className="links-c"><button className="link" onClick={() => ir('/clube/extrato')}>Meu extrato</button><button className="link" onClick={async () => { await c.sair(); avisar('Você saiu do Clube.') }}>Sair</button></div>}
+    </section>
+  )
+}
+
+/** Lista completa de todas as formas de ganhar pontos (montada pelas regras ligadas do restaurante). */
+export function ClubeGanhar({ ir }: Ir) {
+  const c = useClube(); const [aberto, setAberto] = useState<string | null>('visita')
+  const regras = (c.v?.regras ?? []).filter(r => r.points > 0)
+  const grupos = Object.keys(CLUBE.grupos).filter(g => regras.some(r => r.grupo === g)) as Grupo[]
   return (
     <section className="tela-int">
-      <h1>Clube e prêmios</h1>
-      {!m ? (
-        <div className="cartao-i"><h2>Seus benefícios começam aqui</h2>
-          <p>Você pode navegar pelo cardápio sem conta. Para guardar pontos e resgatar prêmios, precisamos identificar o participante.</p>
-          <button className="primario grande" onClick={() => ir('/entrar?de=/clube')}>Entrar para meus pontos</button></div>
-      ) : (
-        <div className="cartao-i saldo"><small>Seu saldo (demonstrativo)</small><b>{m.pontos} pontos</b><small>{m.email}</small>
-          <div className="barra-p" aria-hidden="true"><i style={{ width: `${Math.min(100, (m.pontos / 500) * 100)}%` }} /></div>
-          <button className="link" onClick={() => { sair(); avisar('Você saiu. Voltou à navegação sem cadastro.') }}>Sair</button></div>
-      )}
-      <div className="cartao-i"><h2>Como ganhar pontos</h2><p>Compras validadas pela equipe, pesquisas internas elegíveis e atividades previstas no regulamento. <b>Aproximar o celular da placa não gera pontos.</b></p></div>
-      <div className="cartao-i"><h2>Prêmios</h2>
-        <ul className="premios">{PREMIOS.map(p => (
-          <li key={p.nome}><span><b>{p.nome}</b><small>{p.custo} pts</small></span>
-            {!m ? <button className="sec" onClick={() => ir('/entrar?de=/clube')}>Entrar</button>
-              : m.pontos >= p.custo ? <button className="primario" onClick={() => { const c = resgatar(p.nome, p.custo); avisar(c ? `Resgate pedido. Mostre o código ${c} ao garçom.` : 'Saldo insuficiente.') }}>Resgatar</button>
-              : <span className="falta">faltam {p.custo - m.pontos}</span>}</li>))}</ul>
-        <p className="nota">Protótipo: pontos e resgates não são reais. Em produção, o crédito só existe depois de validado pela equipe ou pelo servidor.</p></div>
-      {m && m.resgates.length > 0 && <div className="cartao-i"><h2>Meus resgates</h2><ul className="premios">{m.resgates.map(r => <li key={r.code}><span><b>{r.premio}</b><small>código {r.code}</small></span></li>)}</ul></div>}
-      <p className="nota">Não damos pontos nem vantagem por avaliações no Google.</p>
+      <button className="link" onClick={() => ir('/clube')}>← Clube</button>
+      <h1>Como ganhar pontos</h1>
+      <p className="nota">Os valores mostrados são os do restaurante e podem mudar.</p>
+      {grupos.map(g => (
+        <div key={g} className="bloco-c">
+          <button className="grupo-t" aria-expanded={aberto === g} onClick={() => setAberto(aberto === g ? null : g)}><b>{CLUBE.grupos[g]}</b><span>{aberto === g ? '–' : '+'}</span></button>
+          {aberto === g && <ul className="premios">{regras.filter(r => r.grupo === g).map(r => <li key={r.action}><span><b>{r.rotulo}</b><small>{textoLimite(r)}</small></span><b className="pts">+{r.points}</b></li>)}</ul>}
+        </div>))}
+      <p className="nota">Ações de uma vez só valem uma vez. Algumas têm limite por dia, semana ou mês, e as interações do app somam no máximo {CLUBE.tetoMensal} pontos por mês.</p>
+    </section>
+  )
+}
+
+export function Extrato({ ir }: Ir) {
+  const c = useClube(); const l = c.v?.extrato ?? []
+  const nome = (a: string) => ({ redeem: 'Troca de prêmio', redeem_cancel: 'Troca cancelada', manual_adjust: 'Ajuste do restaurante' } as Record<string, string>)[a] ?? CLUBE_ROT[a] ?? a
+  return (
+    <section className="tela-int">
+      <button className="link" onClick={() => ir('/clube')}>← Clube</button>
+      <h1>Meu extrato</h1>
+      {c.v?.membro && <p>Total ganho: <b>{c.v.membro.total} pontos</b></p>}
+      {l.length === 0 ? <p className="vazio">Nada por aqui ainda.</p> : <ul className="premios">{l.map((x, i) => <li key={i}><span><b>{nome(x.action)}</b><small>{dataBR(x.em)}</small></span><b className={x.delta > 0 ? 'pts' : 'neg'}>{x.delta > 0 ? '+' : ''}{x.delta}</b></li>)}</ul>}
+    </section>
+  )
+}
+import { REGRAS } from '../data/clube'
+const CLUBE_ROT: Record<string, string> = Object.fromEntries(REGRAS.map(r => [r.action, r.rotulo]))
+
+/** Comprovante da troca: tela "de papel" (creme) para mostrar ao garçom. */
+export function Troca({ id, ir }: { id: string } & Ir) {
+  const c = useClube(); const t = c.v?.trocas.find(x => x.id === id); const [agora, setAgora] = useState(Date.now())
+  useEffect(() => { const i = setInterval(() => setAgora(Date.now()), 1000); return () => clearInterval(i) }, [])
+  if (!c.v) return <section className="tela-int"><p>Carregando…</p></section>
+  if (!t) return <section className="tela-int"><h1>Troca não encontrada</h1><button className="primario grande" onClick={() => ir('/clube')}>Voltar ao Clube</button></section>
+  const resta = Math.max(0, Math.floor((t.expira - agora) / 1000)); const cancelavel = t.status === 'active' && agora < t.em + CLUBE.cancelarSeg * 1000
+  const mm = String(Math.floor(resta / 60)).padStart(2, '0'), ss = String(resta % 60).padStart(2, '0')
+  return (
+    <section className="tela-int">
+      <div className="papel">
+        <p className={'selo-t ' + (t.status === 'active' ? 'ok' : 'off')}><IconCheck /> {t.status === 'active' ? 'Troca realizada' : 'Troca cancelada'}</p>
+        <h1>{t.nome}</h1>
+        <p>Código do comprovante</p><b className="cod-g">{t.code}</b>
+        {t.status === 'active' && <p className="valido">{resta > 0 ? <>Mostre em até <b>{mm}:{ss}</b></> : 'Comprovante vencido. A troca continua registrada.'}</p>}
+        <p className="nota-p">Mostre esta tela ao garçom.</p>
+      </div>
+      {cancelavel && <button className="sec grande" onClick={async () => { try { await c.cancelar(t.id); avisar('Troca cancelada. Seus pontos voltaram.') } catch (e) { c.avisarErro(e) } }}>Cancelar a troca (até 2 minutos)</button>}
+      <button className="primario grande" onClick={() => ir('/clube')}><IconCartao /> Voltar ao Clube</button>
     </section>
   )
 }

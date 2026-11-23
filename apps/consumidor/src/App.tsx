@@ -9,8 +9,8 @@ import { Pedido } from './screens/Pedido'
 import { Chamar } from './screens/Chamar'
 import { Status } from './screens/Status'
 import { Equipe } from './screens/Equipe'
-import { Entrar } from './screens/Entrar'
-import { Clube } from './screens/Clube'
+import { Cadastro, Entrar } from './screens/Entrar'
+import { Clube, ClubeGanhar, Extrato, Troca } from './screens/Clube'
 import { Comentarios } from './screens/Comentarios'
 import { Fotos } from './screens/Fotos'
 import { Pesquisa } from './screens/Pesquisa'
@@ -55,6 +55,10 @@ export function App() {
     if (rota === '/cardapio') return <Cardapio ir={ir} />
     if (rota === '/entrar') return <Entrar ir={ir} volta={new URLSearchParams(query).get('de') || '/'} />
     if (rota === '/clube') return <Clube ir={ir} />
+    if (rota === '/clube/ganhar') return <ClubeGanhar ir={ir} />
+    if (rota === '/clube/extrato') return <Extrato ir={ir} />
+    if (rota.startsWith('/troca/')) return <Troca id={rota.slice(7)} ir={ir} />
+    if (rota === '/cadastro') return <Cadastro ir={ir} />
     if (rota.startsWith('/comentarios/')) return <Comentarios id={rota.slice(13)} ir={ir} />
     if (rota === '/fotos') return <Fotos />
     if (rota === '/pesquisa') return <Pesquisa ir={ir} />
@@ -77,13 +81,13 @@ export function App() {
         <Aba on={rota === '/'} onClick={() => ir('/')} icone={<IconHome />} t="Início" />
         <Aba on={rota === '/cardapio' || rota.startsWith('/comentarios/')} onClick={() => ir('/cardapio')} icone={<IconGarfoFaca />} t="Cardápio" />
         <Aba on={rota === '/pedido'} onClick={() => ir('/pedido')} icone={<IconPrancheta />} t="Pedido" n={total} />
-        <Aba on={rota === '/clube' || rota === '/entrar'} onClick={() => ir('/clube')} icone={<IconCartao />} t="Clube" />
+        <Aba on={rota === '/clube' || rota.startsWith('/clube/') || rota === '/entrar' || rota === '/cadastro' || rota.startsWith('/troca/')} onClick={() => ir('/clube')} icone={<IconCartao />} t="Clube" />
         <Aba on={['/sobre', '/servicos', '/contato'].includes(rota)} onClick={() => ir('/sobre')} icone={<IconInfo />} t="Sobre" />
       </nav>
     </Casca>
   )
 }
 const Toast = () => { const m = useToast(); return m ? <div className="toast" role="status">{m}</div> : null }
-const Casca = ({ children }: { children: React.ReactNode }) => <div className="casca"><div className="proto">Versão de testes · dados de demonstração</div>{children}</div>
+const Casca = ({ children }: { children: React.ReactNode }) => <div className="casca">{import.meta.env.VITE_MODO_TESTE === '1' && <div className="proto">Versão de testes</div>}{children}</div>
 const Aba = ({ on, onClick, icone, t, n }: { on: boolean; onClick: () => void; icone: React.ReactNode; t: string; n?: number }) =>
   <button className={'aba' + (on ? ' on' : '')} onClick={onClick} aria-current={on ? 'page' : undefined}>{icone}<span>{t}</span>{!!n && <i className="badge">{n}</i>}</button>
