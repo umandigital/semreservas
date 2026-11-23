@@ -33,7 +33,7 @@ Existe também o **Modo Coleção (sem sorte)**: o próximo ingrediente é sempr
 - **O giro:** botão grande "Girar"; a roleta gira 2 segundos e para. "Você ganhou: **Forno**!" Cada giro dá uma etapa nova; nunca repete.
 - **Prato:** as 5 etapas em linha, em cor as que tem e em silhueta as que faltam; "Você tem 3 de 5".
 - **Janela de 60 dias:** a contagem mostra "Faltam 41 dias". Passou sem completar, **as etapas zeram** e começa uma nova rodada.
-- **Prêmio:** comprovante imediato e final, igual ao do Clube.
+- **Prêmio:** aparece em "Meus prêmios" (Clube), com a **validade sempre à vista** na comemoração ("Troque até 22/12"). Quem não troca no dia recebe, no próximo login, a tela de aviso "Você tem um prêmio para trocar" (regra geral em `docs/10`, seção 13b). A troca gera o comprovante, igual ao do Clube.
 
 ## 5. Dificuldade e custo (60 dias, 1 giro por visita)
 Não há chance envolvida: ganha quem **volta 5 vezes com pedido de R$ 80 em 60 dias**. Quem vem 1 vez por semana (8 a 9 visitas) ganha com folga; quem vem 1 vez a cada 2 semanas (4 visitas) não completa. **Parâmetros do dono:** número de metas (4 a 8; padrão 5), **valor mínimo do pedido** (R$ 80), **janela** (60 dias), **intervalo mínimo entre giros** (1 dia), **máximo de prêmios por pessoa por janela** (1). O portal mostra o **custo do prêmio sobre o consumo exigido**.

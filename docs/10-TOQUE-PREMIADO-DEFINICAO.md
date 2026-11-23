@@ -279,6 +279,15 @@ Os preços dos produtos são **suposições** a trocar pelos reais.
 | `CLAUDE.md` e `docs/09` | Regras já alinhadas; módulo `loyalty_spend` desligado |
 | Banco (P5) | Saldo e acumulado, catálogo, **troca imediata com débito**, estorno, check-in, indicação, tetos, benefícios de aniversário (eventos), conferência |
 
+## 13b. Prêmios ganhos e ainda não trocados (decisão de 23/11/2026)
+Vale para **qualquer prêmio ganho** (Roleta do Chef, aniversário, cliente do mês, campanhas). **Não haverá card para a carteira do celular** (Apple/Google Wallet): descartado.
+1. O prêmio fica **no app, na mesma área da troca** (Clube, "Meus prêmios"), com o botão **"Trocar"** e o mesmo comprovante da troca de pontos. Quem ganha e **não troca no dia** continua com o prêmio guardado.
+2. **Ao ganhar**, a tela de comemoração **sempre mostra a validade**: "Troque até 22/12". Valor padrão **30 dias** (premissa; o dono ajusta por tipo de prêmio).
+3. **Aviso no próximo login:** se há prêmio para trocar, abre uma **tela de aviso (splash)** com uma ação principal: "Você tem um prêmio para trocar" + nome do prêmio + "Vence em X dias" + botão **"Trocar agora"** e link "Depois". Aparece **uma vez por sessão**, enquanto houver prêmio disponível, e fica mais forte (vermelho-terracota, "Vence amanhã") perto do vencimento.
+4. **Troca só na mesa**, com presença verificada, como a troca de pontos; o prêmio é da **pessoa logada**, não transferível, de **uso único**.
+5. **Vencido** não volta; fica no histórico como "Vencido". O portal mostra prêmios **ganhos, trocados, a vencer e vencidos** e o custo.
+6. Troca por **pontos** continua imediata e final (débito na troca).
+
 ## 14. Pendências e premissas
 1. **Horário:** definido, terça a domingo, 19h00 às 23h30.
 2. **Prova de presença por localização** (4.1.1): adotada no teste. Se o teste de campo mostrar GPS ruim no local, ajusta-se o raio.
