@@ -289,7 +289,7 @@ Vale para **qualquer prêmio ganho** (Roleta do Chef, aniversário, cliente do m
 6. Troca por **pontos** continua imediata e final (débito na troca).
 
 ## 13c. Introdução do Clube e extras fora do Clube (decisão de 23/11/2026)
-- **Introdução animada** (em código, com o "S" da marca como guia): explicativa, em capítulos (cerca de 1min40), só para cadastrado e logado, só ao tocar na aba Clube na primeira sessão, pode ser fechada, números marcados como "Exemplo". Ver `docs/13-INTRODUCAO-DO-CLUBE.md`.
+- **Introdução animada** (em código, com o "S" da marca como guia): explicativa, em capítulos (cerca de 3 minutos), com **todas as formas de ganhar pontos** (montadas pelas ações que o dono deixou ligadas) e uma lista completa para consultar, só para cadastrado e logado, só ao tocar na aba Clube na primeira sessão, pode ser fechada, números marcados como "Exemplo". Ver `docs/13-INTRODUCAO-DO-CLUBE.md`.
 - **Roleta do Chef e aniversário ficam fora do Clube**, como **ações extras** com botão próprio na Início. A aba Clube tem pontos, prêmios, extrato e como ganhar.
 
 ## 14. Pendências e premissas
