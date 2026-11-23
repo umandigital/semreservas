@@ -288,6 +288,10 @@ Vale para **qualquer prêmio ganho** (Roleta do Chef, aniversário, cliente do m
 5. **Vencido** não volta; fica no histórico como "Vencido". O portal mostra prêmios **ganhos, trocados, a vencer e vencidos** e o custo.
 6. Troca por **pontos** continua imediata e final (débito na troca).
 
+## 13c. Introdução do Clube e extras fora do Clube (decisão de 23/11/2026)
+- **Introdução animada** (em código, com o "S" da marca como guia): só para cadastrado e logado, só ao tocar na aba Clube na primeira sessão, pode ser fechada, números marcados como "Exemplo". Ver `docs/13-INTRODUCAO-DO-CLUBE.md`.
+- **Roleta do Chef e aniversário ficam fora do Clube**, como **ações extras** com botão próprio na Início. A aba Clube tem pontos, prêmios, extrato e como ganhar.
+
 ## 14. Pendências e premissas
 1. **Horário:** definido, terça a domingo, 19h00 às 23h30.
 2. **Prova de presença por localização** (4.1.1): adotada no teste. Se o teste de campo mostrar GPS ruim no local, ajusta-se o raio.
