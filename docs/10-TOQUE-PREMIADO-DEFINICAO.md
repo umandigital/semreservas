@@ -281,7 +281,7 @@ Os preços dos produtos são **suposições** a trocar pelos reais.
 
 ## 13b. Prêmios ganhos e ainda não trocados (decisão de 23/11/2026)
 Vale para **qualquer prêmio ganho** (Roleta do Chef, aniversário, cliente do mês, campanhas). **Não haverá card para a carteira do celular** (Apple/Google Wallet): descartado.
-1. O prêmio fica **no app, na mesma área da troca** (Clube, "Meus prêmios"), com o botão **"Trocar"** e o mesmo comprovante da troca de pontos. Quem ganha e **não troca no dia** continua com o prêmio guardado.
+1. O prêmio fica **no app, na área do próprio extra** (Roleta do Chef, Meu aniversário; os extras têm dinâmica própria e **ficam fora do Clube**), com o botão **"Trocar"** e o mesmo estilo de comprovante da troca de pontos. Quem ganha e **não troca no dia** continua com o prêmio guardado.
 2. **Ao ganhar**, a tela de comemoração **sempre mostra a validade**: "Troque até 22/12". Valor padrão **30 dias** (premissa; o dono ajusta por tipo de prêmio).
 3. **Aviso no próximo login:** se há prêmio para trocar, abre uma **tela de aviso (splash)** com uma ação principal: "Você tem um prêmio para trocar" + nome do prêmio + "Vence em X dias" + botão **"Trocar agora"** e link "Depois". Aparece **uma vez por sessão**, enquanto houver prêmio disponível, e fica mais forte (vermelho-terracota, "Vence amanhã") perto do vencimento.
 4. **Troca só na mesa**, com presença verificada, como a troca de pontos; o prêmio é da **pessoa logada**, não transferível, de **uso único**.
@@ -289,7 +289,7 @@ Vale para **qualquer prêmio ganho** (Roleta do Chef, aniversário, cliente do m
 6. Troca por **pontos** continua imediata e final (débito na troca).
 
 ## 13c. Introdução do Clube e extras fora do Clube (decisão de 23/11/2026)
-- **Introdução animada** (em código, com o "S" da marca como guia): só para cadastrado e logado, só ao tocar na aba Clube na primeira sessão, pode ser fechada, números marcados como "Exemplo". Ver `docs/13-INTRODUCAO-DO-CLUBE.md`.
+- **Introdução animada** (em código, com o "S" da marca como guia): explicativa, em capítulos (cerca de 1min40), só para cadastrado e logado, só ao tocar na aba Clube na primeira sessão, pode ser fechada, números marcados como "Exemplo". Ver `docs/13-INTRODUCAO-DO-CLUBE.md`.
 - **Roleta do Chef e aniversário ficam fora do Clube**, como **ações extras** com botão próprio na Início. A aba Clube tem pontos, prêmios, extrato e como ganhar.
 
 ## 14. Pendências e premissas
