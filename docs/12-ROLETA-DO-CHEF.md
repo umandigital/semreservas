@@ -30,7 +30,7 @@ Existe também o **Modo Coleção (sem sorte)**: o próximo ingrediente é sempr
 ## 4. Como funciona para o cliente
 - **Quando libera o giro (a regra do consumo):** o cliente **monta o pedido** e toca em **"Chamar garçom"** na tela Meu pedido. Se o **subtotal estimado** desse pedido (ou a **soma dos pedidos enviados na mesma visita**) chegar a **R$ 80** (parâmetro; "a definir"), o app mostra na hora: "**Seu pedido chegou a R$ 80! Você ganhou 1 giro da Roleta do Chef.**" com o botão "Girar agora". Também exige **login, sessão verificada por localização, dia e horário de funcionamento**, e vale **1 giro por visita**.
 - **Limite honesto desta regra:** o app **não enxerga o caixa**; o valor é o **subtotal estimado do pedido enviado**, não a conta paga. Não há como conferir sem integrar o caixa. Por isso: o **chamado de garçom precisa estar ativo** (não cancelado) para o giro valer, o **cancelamento do chamado antes de girar cancela o giro**, e o portal mostra **pedidos que passam de R$ 80 e são cancelados** como alerta de abuso.
-- **O giro:** botão grande "Girar"; a roleta gira 2 segundos e para. "Você ganhou: **Forno**!" ou "**Fogão** de novo. Esta você já tinha."
+- **O giro:** botão grande "Girar"; a roleta gira 2 segundos e para. "Você ganhou: **Forno**!" Cada giro dá uma etapa nova; nunca repete.
 - **Prato:** as 5 etapas em linha, em cor as que tem e em silhueta as que faltam; "Você tem 3 de 5".
 - **Janela de 60 dias:** a contagem mostra "Faltam 41 dias". Passou sem completar, **as etapas zeram** e começa uma nova rodada.
 - **Prêmio:** comprovante imediato e final, igual ao do Clube.
@@ -55,10 +55,10 @@ O **dono escolhe o prêmio** em seu catálogo (produto, brinde ou pontos). Orien
 | **R0 Giro liberado** (aparece na tela Meu pedido, logo depois de "Chamar garçom") | Faixa verde "Seu pedido chegou a R$ 80!", "Você ganhou 1 giro da Roleta do Chef.", botão grande "Girar agora" e link "Girar depois" (vale até o fim da visita) |
 | **R1 Roleta do Chef** | Título, as 5 etapas (coletadas e faltantes), "Você tem 3 de 5", "Faltam 41 dias", **um botão grande**: "Girar" (se há giro), ou "Faça um pedido de R$ 80 para ganhar um giro", o prêmio ("Pizza à escolha") e o botão de som |
 | **R2 O giro** | Tela cheia com a roleta, ícones de cozinha, parada em um item |
-| **R3 Resultado** | "Você ganhou: Forno!" (novo) ou "Fogão de novo. Tente na próxima visita." (repetido) |
+| **R3 Resultado** | "Você ganhou: Forno!", "Você tem 2 de 5", "Faltam 3 giros" |
 | **R4 Reta final** | "Falta só 1! Seu próximo giro garante a Pizza.", com animação e som |
 | **R5 Prêmio** | Comemoração, prêmio, botão "Trocar agora" que abre o comprovante (e, em demonstração, a etiqueta "Demonstração: sem prêmio real") |
-| **R6 Como funciona e regras** | 3 passos, as 5 metas, o 5º giro garantido, "Giro grátis, um por visita, só para maiores de 18 anos", certificado de autorização (ou "Modo demonstração") e regulamento |
+| **R6 Como funciona e regras** | 3 passos, as 5 metas, o 5º giro garantido, "Um giro por visita com pedido de R$ 80, só para maiores de 18 anos", certificado de autorização (ou "Modo demonstração") e regulamento |
 | **R7 Indisponível** | "A Roleta do Chef não está disponível agora" |
 Entrada pela Home: botão **"Roleta do Chef"** (ícone de chapéu de chef).
 
