@@ -21,7 +21,7 @@ Legenda: ✅ mantida · 🔧 ajustar · 🔁 refazer · ➕ falta · 📦 outro 
 | 10 | Três molduras | ✅ | Material de arte |
 | 11 | Pesquisa rápida | 🔧 | Acrescentar "+10 pontos". Já diz que a participação pode gerar pontos |
 | 12 | Siga-nos no Instagram | 🔧 | Acrescentar **"+20 pontos"** (a frase "ação pontuável no Clube" já está lá) |
-| 13 | Avalie-nos no Google | ✅ | **Sem pontos**: ver decisão 2. O texto "Sua avaliação é livre" está certo |
+| 13 | Avalie-nos no Google | ✅ | **+20 pontos pelo toque** (decisão do fundador em 23/11/2026), com a pergunta "Abrir o Google e ganhar +20 pontos?". O texto "Sua avaliação é livre" está certo |
 | 14 | Projete na mesa 3D | 🔧 | É uma maquete. A tela real já existe e é diferente: cartão com nome e medida, régua, botões **Fixar aqui / Mover o prato / Tamanho / Ingredientes**. Pedir uma versão no mesmo estilo (T13) |
 
 ## 2. Conta e institucional (pasta 04)

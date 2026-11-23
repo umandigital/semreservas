@@ -17,7 +17,7 @@ Pense em pessoas leigas, idosos e gente com visão ruim, usando o celular num ba
 - Barra inferior com 5 abas, nesta ordem: "Início", "Cardápio", "Pedido", "Clube", "Sobre". O ícone da aba Clube NÃO pode ser troféu, taça, medalha nem presente: use um cartão de membro (cartão com um coração). A aba ativa fica em terracota.
 - Cabeçalho: logo, selo "Mesa 3", botão "Chamar garçom" (mão levantada). Visitante vê também "Entrar"; quem está logado vê "Ana · 260 pontos".
 - Quem não está logado não tem clube: não vê ações com pontos, só o convite ao cadastro.
-- Pontos por valor da conta NÃO existem. Curtir, comentar e dar nota só aparecem depois de pedir a conta. A avaliação no Google NÃO dá pontos (a política do Google proíbe). Instagram dá pontos ao tocar.
+- Pontos por valor da conta NÃO existem. Curtir, comentar e dar nota só aparecem depois de pedir a conta. Instagram e Google dão pontos só ao tocar para abrir a página (o cliente escolhe antes de sair; nunca pontos pela avaliação em si).
 - Slogan oficial: "Um toque. Infinitas possibilidades."
 
 ════════════ DADOS DO CLUBE (valores de teste; o dono muda) ════════════
@@ -38,7 +38,7 @@ A06 GARÇOM A CAMINHO: acrescentar "Fazer outro pedido". Texto da lista bem gran
 A09 FOTOS COM MOLDURA: etiqueta "Ganhe 15 pontos ao baixar" (só logado).
 A11 PESQUISA RÁPIDA: "Ganhe 10 pontos". Estrelas grandes.
 A12 INSTAGRAM: "Ganhe 20 pontos ao tocar".
-A13 GOOGLE: sem pontos.
+A13 GOOGLE: etiqueta "+20 pontos" no botão. Ao tocar, aparece a pergunta "Abrir o Google e ganhar +20 pontos?" com "Abrir" (terracota) e "Agora não" (contorno), e o texto "Avaliar é livre. O que escrever é decisão sua.".
 A14 PROJETE NA MESA: refazer no estilo, com o que existe: cartão no topo com nome e medida ("32 cm de diâmetro") e X; prato sobre a mesa; régua branca com "32 cm"; mensagem grande "Mova o celular devagar até o prato encaixar na mesa." e depois "Pronto! O prato está no tamanho real."; botões grandes "Fixar aqui", "Mover o prato", "Ver tamanho", "Ingredientes".
 A15 MINHA CONTA: acrescentar "Data de aniversário", "Indicar um amigo" e "Sair". "Meu clube" no lugar de qualquer outro nome.
 A16 SOBRE: slogan "Um toque. Infinitas possibilidades.".
