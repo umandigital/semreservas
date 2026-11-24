@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { instalavel, instalar, jaInstalado, ehIos, registrarPwa } from '../lib/pwa'
-import { ApiError, painelFila, painelInfo, painelItens, painelMudar, painelTrote, ROTULO, type ItemPedido, type Pedido } from '../lib/api'
+import { ApiError, painelAlertas, painelFila, painelInfo, painelItens, painelMudar, painelTrote, ROTULO, type ItemPedido, type Pedido } from '../lib/api'
+import { ativarAlerta, contexto, PADRAO, tocar } from '../lib/alerta'
 
 // Painel da equipe: abre pelo link, um toque para ativar e fica funcionando. Só serve para a fila.
 const TOKEN_KEY = 'sr-painel'
@@ -24,7 +25,8 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
   const [nome, setNome] = useState(''); const [fila, setFila] = useState<Pedido[]>([]); const [offset, setOffset] = useState(0)
   const [itens, setItens] = useState<Record<string, ItemPedido[] | null>>({})
   const [conectado, setConectado] = useState(true); const [agora, setAgora] = useState(Date.now()); const [notif, setNotif] = useState('')
-  const ctx = useRef<AudioContext | null>(null); const lock = useRef<{ release(): Promise<void> } | null>(null)
+  const lock = useRef<{ release(): Promise<void> } | null>(null)
+  const cfgAl = useRef({ staff_sound: true, ...PADRAO }); const urg = useRef(0)
   const pend = useRef(0); const ultimoOk = useRef(Date.now()); const avisados = useRef(new Set<string>()); const titulo = useRef(document.title)
 
   useEffect(() => { if (token) registrarPwa(token) }, [token])
@@ -32,6 +34,7 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
   useEffect(() => instalavel(setPodeInstalar), [])
   useEffect(() => {
     if (!token) return setFase('invalido')
+    painelAlertas(token).then(a => { if (a) cfgAl.current = a }).catch(() => undefined)
     painelInfo(token).then(i => { setNome(i.tenant_name); setFase('splash'); try { localStorage.setItem(TOKEN_KEY, token) } catch { /* ignora */ } })
       .catch(e => setFase(e instanceof ApiError && e.code === 'invalid_token' ? 'invalido' : 'splash'))
   }, [token])
@@ -43,6 +46,7 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
       ultimoOk.current = Date.now(); setConectado(true); setFila(l)
       if (l[0]) setOffset(Date.parse(l[0].server_now) - Date.now())
       pend.current = l.filter(p => p.status === 'PENDING').length
+      urg.current = l.filter(p => p.status === 'PENDING' && Date.now() + (l[0] ? Date.parse(l[0].server_now) - Date.now() : 0) - Date.parse(p.created_at) > cfgAl.current.escalate_s * 1000).length
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         for (const p of l) if (p.status === 'PENDING' && !avisados.current.has(p.id)) {
           avisados.current.add(p.id)
@@ -55,16 +59,7 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
     }
   }, [token])
 
-  const bip = (grave = false) => {
-    const c = ctx.current; if (!c || c.state !== 'running') return
-    const t0 = c.currentTime
-    for (const [i, f] of (grave ? [330, 262] : [988, 1319]).entries()) {
-      const o = c.createOscillator(), g = c.createGain(); o.frequency.value = f; o.type = 'square'
-      g.gain.setValueAtTime(0.4, t0 + i * 0.22); g.gain.exponentialRampToValueAtTime(0.001, t0 + i * 0.22 + 0.2)
-      o.connect(g); g.connect(c.destination); o.start(t0 + i * 0.22); o.stop(t0 + i * 0.22 + 0.21)
-    }
-    navigator.vibrate?.([200, 100, 200])
-  }
+  const bip = (grave = false) => tocar(grave, cfgAl.current.volume)
 
   // um tique por segundo: atualiza a tela, pisca o título, toca o sinal e consulta o banco a cada 3 s
   useEffect(() => {
@@ -78,7 +73,8 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
         const alerta = n % 2 === 0
         document.title = alerta ? `🔴 ${pend.current} CHAMADO${pend.current > 1 ? 'S' : ''}!` : '⚠️ ATENDER · SemReservas'
         mudarIcone(alerta ? ICONE_ALERTA : ICONE_NORMAL)
-        if (n % 3 === 0) bip()
+        const periodo = urg.current > 0 ? Math.max(2, Math.round(cfgAl.current.interval_s / 2)) : cfgAl.current.interval_s   // intermitente; urgente soa com o dobro da frequência
+        if (cfgAl.current.staff_sound && n % periodo === 0) tocar(urg.current > 0, cfgAl.current.volume)
       } else if (offline) { document.title = '⚠️ SEM CONEXÃO'; if (n % 10 === 0) bip(true) }
       else { document.title = titulo.current; mudarIcone(ICONE_NORMAL) }
     })
@@ -89,10 +85,9 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
 
   async function pedirTela() { try { lock.current = await (navigator as unknown as { wakeLock?: { request(t: string): Promise<{ release(): Promise<void> }> } }).wakeLock?.request('screen') ?? null } catch { /* sem suporte */ } }
   async function iniciar() {
-    const c = ctx.current ?? new AudioContext(); ctx.current = c; await c.resume()
+    await ativarAlerta(cfgAl.current.volume); const c = contexto(); if (!c) return
     // som quase inaudível e contínuo: mantém a aba "viva" quando minimizada
     const o = c.createOscillator(), g = c.createGain(); g.gain.value = 0.0001; o.frequency.value = 40; o.connect(g); g.connect(c.destination); o.start()
-    bip()   // confirma que o som funciona
     await pedirTela()
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') { try { setNotif(await Notification.requestPermission()) } catch { /* ignora */ } }
     setFase('ativo')

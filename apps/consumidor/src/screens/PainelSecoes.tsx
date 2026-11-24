@@ -3,7 +3,7 @@ import { brl } from '../data/cardapio'
 import { CLUBE, REGRAS } from '../data/clube'
 import { TEMA } from '../data/tema'
 import * as P from '../lib/painel'
-import { alertaAtivo, ativarAlerta, bip } from '../lib/alerta'
+import { alertaAtivo, ativarAlerta, tocar } from '../lib/alerta'
 import type { Estab } from '../lib/dono'
 
 const ROT: Record<string, string> = Object.fromEntries(REGRAS.map(r => [r.action, r.rotulo]))
@@ -171,7 +171,7 @@ function ExtrasLista({ t }: { t: string }) {
 /** 7. Configurações: placas, horário e presença (o link da equipe vem do painel já existente). */
 export function ConfigSec({ est, equipe }: { est: Estab; equipe: ReactNode }) {
   const t = est.tenant_id
-  return <section>{equipe}<GarconsSec t={t} /><PlacasSec t={t} /><HorarioSec t={t} /><PresencaSec t={t} /></section>
+  return <section>{equipe}<AlertasSec t={t} /><GarconsSec t={t} /><PlacasSec t={t} /><HorarioSec t={t} /><PresencaSec t={t} /></section>
 }
 function PlacasSec({ t }: { t: string }) {
   const [p, e] = useCarga(() => P.placas(t), [t]); const [msg, setMsg] = useState('')
@@ -210,15 +210,15 @@ function PresencaSec({ t }: { t: string }) {
 export { useCallback }
 
 const ROTK2: Record<string, string> = { waiter: 'Chamar garçom', bill: 'Pedir a conta', order: 'Pedido', question: 'Dúvida', other: 'Outro', kitchen_item: 'Item da cozinha' }
-const ESCALA_S = 60   // sem atendimento há mais que isto: alerta urgente (o dono direciona ou assume)
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
 /** Aviso de chamados em QUALQUER seção do painel: som e visual, ativo até alguém assumir. Se ninguém assume, o dono direciona ou assume. */
 export function AlertaChamados({ est }: { est: Estab }) {
-  const t = est.tenant_id; const [fila, setFila] = useState<P.Fila[]>([]); const [ok, setOk] = useState(alertaAtivo()); const [agora, setAgora] = useState(Date.now()); const [offline, setOffline] = useState(false)
+  const t = est.tenant_id; const [cfg, setCfg] = useState<P.Alertas>({ owner_sound: true, staff_sound: true, volume: 10, interval_s: 4, escalate_s: 60 }); const cfgRef = useRef(cfg).current
+  const [fila, setFila] = useState<P.Fila[]>([]); const [ok, setOk] = useState(alertaAtivo()); const [agora, setAgora] = useState(Date.now()); const [offline, setOffline] = useState(false)
   const [equipe, setEquipe] = useState<P.Garcom[]>([]); const [busy, setBusy] = useState<string | null>(null); const [msg, setMsg] = useState('')
   const vistos = useRef(new Set<string>()).current; const titulo = useRef(document.title).current
-  useEffect(() => { P.garcons(t).then(l => setEquipe(l.filter(g => g.active))).catch(() => undefined) }, [t])
+  useEffect(() => { P.garcons(t).then(l => setEquipe(l.filter(g => g.active))).catch(() => undefined); P.alertaCfg(t).then(c => { if (c) { setCfg(c); Object.assign(cfgRef, c) } }).catch(() => undefined) }, [t])   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     let n = 0; let vivo = true; let ultimoOk = Date.now()
     const ler = () => P.filaAgora(t).then(l => { if (!vivo) return; ultimoOk = Date.now(); setOffline(false); setFila(l)
@@ -228,12 +228,16 @@ export function AlertaChamados({ est }: { est: Estab }) {
     const i = setInterval(() => { n++; setAgora(Date.now()); if (n % 3 === 0) void ler() }, 1000)
     return () => { vivo = false; clearInterval(i); document.title = titulo }
   }, [t])   // eslint-disable-line react-hooks/exhaustive-deps
-  const pend = fila.filter(x => x.status === 'PENDING'); const urgentes = pend.filter(x => (agora - Date.parse(x.created_at)) / 1000 > ESCALA_S)
+  const pend = fila.filter(x => x.status === 'PENDING'); const urgentes = pend.filter(x => (agora - Date.parse(x.created_at)) / 1000 > cfg.escalate_s)
   const ref = useRef({ pend: 0, urg: 0, n: 0 }).current
   ref.pend = pend.length; ref.urg = urgentes.length
   useEffect(() => {   // som a cada 3 s enquanto houver chamado sem atendimento; título pisca
     const i = setInterval(() => { ref.n++
-      if (ref.pend > 0) { document.title = ref.n % 2 ? `🔴 ${ref.pend} CHAMADO${ref.pend > 1 ? 'S' : ''}!` : '⚠️ ATENDER · SemReservas'; if (ref.n % 3 === 0) bip(ref.urg > 0) }
+      if (ref.pend > 0) {
+        document.title = ref.n % 2 ? `🔴 ${ref.pend} CHAMADO${ref.pend > 1 ? 'S' : ''}!` : '⚠️ ATENDER · SemReservas'
+        const periodo = ref.urg > 0 ? Math.max(2, Math.round(cfgRef.interval_s / 2)) : cfgRef.interval_s    // urgente soa com o dobro da frequência
+        if (cfgRef.owner_sound && ref.n % periodo === 0) tocar(ref.urg > 0, cfgRef.volume)
+      }
       else document.title = titulo }, 1000)
     return () => clearInterval(i)
   }, [])   // eslint-disable-line react-hooks/exhaustive-deps
@@ -243,17 +247,17 @@ export function AlertaChamados({ est }: { est: Estab }) {
     setBusy(null)
   }
   const concluir = async (x: P.Fila) => { setBusy(x.id); try { await P.concluirChamado(t, x.id); setFila(await P.filaAgora(t)) } catch { setMsg('Sem conexão. Tente de novo.') } setBusy(null) }
-  const ativar = async () => { setOk(await ativarAlerta()); if (typeof Notification !== 'undefined' && Notification.permission === 'default') { try { await Notification.requestPermission() } catch { /* ignora */ } } }
+  const ativar = async () => { setOk(await ativarAlerta(cfg.volume)); if (typeof Notification !== 'undefined' && Notification.permission === 'default') { try { await Notification.requestPermission() } catch { /* ignora */ } } }
   const andamento = fila.filter(x => x.status === 'ACKNOWLEDGED')
   return (
     <div className="alerta-ch" aria-live="assertive">
-      {!ok && <div className="ativar-som"><span>Ative o alerta sonoro para ser avisado dos chamados, mesmo em outra aba.</span><button className="primario" onClick={ativar}>Ativar alerta sonoro</button></div>}
+      {!ok && cfg.owner_sound && <div className="ativar-som"><span>Ative o alerta sonoro para ser avisado dos chamados, mesmo em outra aba.</span><button className="primario" onClick={ativar}>Ativar alerta sonoro</button></div>}
       {offline && <div className="ch-offline" role="alert">SEM CONEXÃO. Chamados podem não aparecer. Verifique a internet.</div>}
       {msg && <p className="alerta" role="alert">{msg}</p>}
-      {pend.map(x => { const seg = Math.max(0, Math.floor((agora - Date.parse(x.created_at)) / 1000)); const urg = seg > ESCALA_S; return (
+      {pend.map(x => { const seg = Math.max(0, Math.floor((agora - Date.parse(x.created_at)) / 1000)); const urg = seg > cfg.escalate_s; return (
         <div key={x.id} className={'ch-novo' + (urg ? ' urg' : '')} role="alert">
           <div className="ch-topo"><b>Mesa {x.table_label} · {ROTK2[x.kind] ?? x.kind}</b><span>aguardando há {mmss(seg)}</span></div>
-          {urg && <p className="ch-urg">Ninguém assumiu há mais de {ESCALA_S} segundos. Direcione a um garçom ou assuma você.</p>}
+          {urg && <p className="ch-urg">Ninguém assumiu há mais de {cfg.escalate_s} segundos. Direcione a um garçom ou assuma você.</p>}
           {x.itens && <ul className="itens-p">{x.itens.map((i, k) => <li key={k}>{i.qty} × {i.name}{i.obs ? ` (${i.obs})` : ''}</li>)}</ul>}
           <div className="ch-acoes">
             <button className="primario" disabled={busy === x.id} onClick={() => assumir(x, null)}>Eu assumo</button>
@@ -272,4 +276,21 @@ export function GarconsSec({ t }: { t: string }) {
   return <div className="cartao-p"><h2>Garçons</h2><p>Nomes para direcionar chamados quando ninguém assumir. Aparecem na lista "Direcionar para…".</p><Aviso e={e} />{msg && <p role="status" className="nota">{msg}</p>}
     {g && g.map(x => <label key={x.id} className="sw"><input type="checkbox" role="switch" checked={x.active} onChange={ev => salvar(x.name, ev.target.checked)} /><span>{x.name}{x.active ? '' : ' (inativo)'}</span></label>)}
     <div className="form-p"><input className="campo-p" placeholder="Nome do garçom" maxLength={40} value={nome} onChange={e => setNome(e.target.value)} /><button className="primario" disabled={!nome.trim()} onClick={async () => { await salvar(nome.trim(), true); setNome('') }}>Adicionar</button></div></div>
+}
+
+/** Alertas de chamado: som alto e intermitente; se os garçons não têm equipamento, o som toca só neste painel. */
+export function AlertasSec({ t }: { t: string }) {
+  const [c, e] = useCarga(() => P.alertaCfg(t), [t]); const [v, setV] = useState<P.Alertas | null>(null); const [msg, setMsg] = useState('')
+  useEffect(() => { if (c) setV(c) }, [c])
+  if (e) return <Aviso e={e} />; if (!v) return <Carregando />
+  const testar = async () => { await ativarAlerta(v.volume); tocar(false, v.volume); setTimeout(() => tocar(true, v.volume), 1700) }
+  return <div className="cartao-p"><h2>Alertas de chamado</h2>
+    <p>O chamado fica em alerta, com som e visual, até alguém assumir. Se ninguém assumir, o alerta fica urgente e o proprietário direciona a um garçom ou assume.</p>
+    <Sw on={v.owner_sound} set={x => setV({ ...v, owner_sound: x })} t="Tocar som neste painel (proprietário)" />
+    <Sw on={v.staff_sound} set={x => setV({ ...v, staff_sound: x })} t="Os garçons têm equipamento: tocar som também no painel da equipe" />
+    {!v.staff_sound && <p className="nota">Sem equipamento para os garçons, o chamado soa só neste painel. Mantenha-o aberto e com o som ativado.</p>}
+    <Linha t={`Volume (${v.volume} de 10)`}><input type="range" min={1} max={10} value={v.volume} onChange={e => setV({ ...v, volume: Number(e.target.value) })} aria-label="Volume" /></Linha>
+    <Linha t="Intermitência: repetir o som a cada (segundos)"><input className="campo-p num" type="number" min={2} max={30} value={v.interval_s} onChange={e => setV({ ...v, interval_s: Math.max(2, Math.min(30, Number(e.target.value) || 4)) })} /></Linha>
+    <Linha t="Alerta urgente se ninguém assumir em (segundos)"><input className="campo-p num" type="number" min={15} max={600} value={v.escalate_s} onChange={e => setV({ ...v, escalate_s: Math.max(15, Math.min(600, Number(e.target.value) || 60)) })} /></Linha>
+    <div className="form-p"><button className="sec" onClick={testar}>Testar o som</button><button className="primario" onClick={async () => { try { setMsg(await P.salvarAlertas(t, v) ? 'Salvo. Vale na próxima atualização dos painéis.' : 'Você não tem permissão ou os dados são inválidos.') } catch { setMsg('Não foi possível salvar.') } }}>Salvar</button></div>{msg && <p role="status" className="nota">{msg}</p>}</div>
 }

@@ -69,6 +69,9 @@ export const salvarCfg = async (t: string, c: Cfg) => ler<boolean>(await db().rp
 export type Presenca = { lat: number | null; lon: number | null; radius_m: number; presence_policy: string }
 export const presencaCfg = async (t: string) => ler<Presenca[]>(await db().from('tenants').select('lat,lon,radius_m,presence_policy').eq('id', t))[0]
 export const salvarPresenca = async (t: string, p: Presenca) => ler<boolean>(await db().rpc('owner_presence_set', { p_tenant: t, p_lat: p.lat, p_lon: p.lon, p_radius: p.radius_m, p_policy: p.presence_policy }))
+export type Alertas = { owner_sound: boolean; staff_sound: boolean; volume: number; interval_s: number; escalate_s: number }
+export const alertaCfg = async (t: string) => ler<Alertas[]>(await db().from('alert_settings').select('owner_sound,staff_sound,volume,interval_s,escalate_s').eq('tenant_id', t))[0]
+export const salvarAlertas = async (t: string, a: Alertas) => ler<boolean>(await db().rpc('owner_alert_set', { p_tenant: t, p_owner_sound: a.owner_sound, p_staff_sound: a.staff_sound, p_volume: a.volume, p_interval_s: a.interval_s, p_escalate_s: a.escalate_s }))
 export type Placa = { numero: string; estado: string; nfc?: string; qr?: string }
 export async function placas(t: string): Promise<Placa[]> {
   const [ap, tk] = await Promise.all([db().from('access_points').select('id,number,state').eq('tenant_id', t).neq('state', 'revoked').order('number'), db().from('access_point_tokens').select('token,origin,access_point_id,revoked_at').eq('tenant_id', t).is('revoked_at', null)])

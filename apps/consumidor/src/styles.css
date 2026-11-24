@@ -257,3 +257,8 @@ textarea.campo { resize:vertical; min-height:96px; }
 .ch-and { display:flex; justify-content:space-between; align-items:center; gap:10px; background:#e6f4ea; border:1px solid #7dba8f; border-radius:12px; padding:10px 14px; color:#12391f; }
 @keyframes pisca-ch { 50% { box-shadow:0 0 0 6px rgba(192,57,43,.35); } }
 @media (prefers-reduced-motion:reduce) { .ch-novo { animation:none; } }
+/* Visual intermitente (mesmo ritmo do som): cartão do dono e faixa do painel da equipe piscam entre duas cores fortes */
+.ch-novo { animation:pisca-cor .8s steps(2, jump-none) infinite; } .ch-novo.urg { animation:pisca-urg .5s steps(2, jump-none) infinite; }
+@keyframes pisca-cor { 0% { background:#fff; } 100% { background:#ffd0ca; } } @keyframes pisca-urg { 0% { background:#c0392b; } 100% { background:#6d120c; } }
+.banner-alerta { animation:pisca-faixa .6s steps(2, jump-none) infinite; } @keyframes pisca-faixa { 0% { background:#e5322d; } 100% { background:#7a1a14; } }
+@media (prefers-reduced-motion:reduce) { .ch-novo, .ch-novo.urg, .banner-alerta { animation:none; } }

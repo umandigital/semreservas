@@ -34,6 +34,8 @@ export type Presenca = 'near' | 'far' | 'unknown'
 export type Pedido = { id: string; table_label: string; kind: Kind; detail: string | null; status: Status; public_code: string; presence: Presenca; created_at: string; acknowledged_at: string | null; server_now: string }
 export const painelInfo = async (token: string) => (await rpc<{ tenant_name: string; tenant_slug: string }>('panel_info', { p_token: token }))[0]
 export const painelFila = (token: string) => rpc<Pedido>('panel_requests', { p_token: token })
+export type AlertaEquipe = { staff_sound: boolean; volume: number; interval_s: number; escalate_s: number }
+export const painelAlertas = async (token: string) => (await rpc<AlertaEquipe>('panel_alert_config', { p_token: token }))[0] ?? null
 export type ItemPedido = { id: string; name: string; qty: number; obs: string | null }
 /** Itens do chamado de pedido (a equipe confere com o que o cliente mostra). */
 export const painelItens = async (token: string, id: string) => (await rpc<{ items: ItemPedido[]; subtotal_cents: number }>('panel_order_items', { p_token: token, p_id: id }))[0] ?? null
