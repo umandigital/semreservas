@@ -117,6 +117,10 @@ export function useClube() {
       if (CLUBE_REAL) { const { error } = await supabase!.rpc('club_birthday_claim', { p_token: getToken() }); if (error) throw error } else gravarD(D.pegarPresente(lerD())[0]) }),
     usarExtra: (id: string) => acao(async (): Promise<void> => {
       if (CLUBE_REAL) { const { error } = await supabase!.rpc('club_extra_use', { p_token: getToken(), p_id: id }); if (error) throw error } else gravarD(D.usarExtra(lerD(), id)[0]) }),
+    excluirConta: () => acao(async () => {
+      if (CLUBE_REAL) { const { error } = await supabase!.rpc('club_delete_account'); if (error) throw error; await supabase!.auth.signOut() }
+      else { try { localStorage.removeItem(KEY); localStorage.removeItem(AUTH) } catch { /* ignora */ } emit() }
+      sairLegado() }),
     avisarErro: (e: unknown) => avisar(textoErro(e)),
   }
 }

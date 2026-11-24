@@ -3,6 +3,7 @@ import { CLUBE } from '../data/clube'
 import { avisar } from '../lib/mockStore'
 import { CLUBE_REAL, useClube, textoErro } from '../lib/clube'
 import { IconCartao } from '../ui/Icons'
+import { Legal } from './Legal'
 
 /** Entrada em 3 passos: escolher (Google ou e-mail), código e, na tela seguinte, "Falta só um passo". */
 export function Entrar({ ir, volta }: { ir: (r: string) => void; volta: string }) {
@@ -34,6 +35,7 @@ export function Entrar({ ir, volta }: { ir: (r: string) => void; volta: string }
 /** "Falta só um passo": nome, aniversário e aceite. Depois vai para o Início. */
 export function Cadastro({ ir }: { ir: (r: string) => void }) {
   const c = useClube(); const v = c.v
+  const [lei, setLei] = useState<string | null>(null)
   const [nome, setNome] = useState(''); const [d, setD] = useState(''); const [m, setM] = useState(''); const [a, setA] = useState(''); const [aceite, setAceite] = useState(false); const [pub, setPub] = useState(false); const [busy, setBusy] = useState(false)
   useEffect(() => { if (v && !v.logado) ir('/entrar'); if (v?.membro) ir('/') }, [v?.logado, v?.membro])
   useEffect(() => { if (v?.email && !nome) setNome(v.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, x => x.toUpperCase())) }, [v?.email])
@@ -41,6 +43,7 @@ export function Cadastro({ ir }: { ir: (r: string) => void }) {
   const ok = nome.trim().length >= 2 && d && m && a.length === 4 && !isNaN(Date.parse(nasc)) && aceite
   return (
     <section className="tela-int entrar">
+      {lei && <Legal id={lei} fechar={() => setLei(null)} />}
       <h1>Falta só um passo</h1>
       <p>Complete seu cadastro para entrar no {CLUBE.nome}.</p>
       <div className="bloco-c"><p className="conta">Conta: <b>{v?.email}</b> ✓</p>
@@ -50,7 +53,7 @@ export function Cadastro({ ir }: { ir: (r: string) => void }) {
           <label className="rot">Mês<input className="campo" inputMode="numeric" maxLength={2} value={m} onChange={e => setM(e.target.value.replace(/\D/g, ''))} placeholder="08" /></label>
           <label className="rot">Ano<input className="campo" inputMode="numeric" maxLength={4} value={a} onChange={e => setA(e.target.value.replace(/\D/g, ''))} placeholder="1985" /></label></div>
         <p className="nota">É para o seu presente de aniversário. Depois de salvo, só o atendimento pode mudar.</p></div>
-      <label className="check"><input type="checkbox" checked={aceite} onChange={e => setAceite(e.target.checked)} /><span>Li e aceito o regulamento do Clube.</span></label>
+      <label className="check"><input type="checkbox" checked={aceite} onChange={e => setAceite(e.target.checked)} /><span>Li e aceito o <button type="button" className="link" onClick={() => setLei('regulamento')}>regulamento do Clube</button>, os <button type="button" className="link" onClick={() => setLei('termos')}>termos de uso</button> e a <button type="button" className="link" onClick={() => setLei('privacidade')}>política de privacidade</button>.</span></label>
       <label className="check"><input type="checkbox" checked={pub} onChange={e => setPub(e.target.checked)} /><span>Aceito que o restaurante divulgue meu nome se eu for cliente do mês. <small>Opcional.</small></span></label>
       <button className="primario grande" disabled={!ok || busy} onClick={async () => { setBusy(true); try { await c.cadastrar(nome, nasc, pub); avisar('Cadastro concluído! Você ganhou 50 pontos.'); ir('/') } catch (e) { avisar(textoErro(e)) } finally { setBusy(false) } }}>Concluir cadastro</button>
       <p className="nota">Você ganha 50 pontos ao concluir.</p>

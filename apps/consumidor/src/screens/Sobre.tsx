@@ -1,6 +1,7 @@
 import { TEMA } from '../data/tema'
+import { DOCS } from '../data/legal'
 
-export function Sobre() {
+export function Sobre({ ir }: { ir?: (r: string) => void }) {
   return (
     <section className="tela-int">
       <h1>Sobre</h1>
@@ -15,6 +16,7 @@ export function Sobre() {
         <p><i>{TEMA.slogan}</i></p>
         <p>Tecnologia SemReservas, criada pela Uman Digital.</p>
       </div>
+      <div className="bloco-c"><h2>Documentos</h2>{DOCS.map(d => <button key={d.id} className="link" onClick={() => ir?.('/' + d.id)}>{d.titulo}</button>)}</div>
     </section>
   )
 }

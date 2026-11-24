@@ -262,3 +262,4 @@ textarea.campo { resize:vertical; min-height:96px; }
 @keyframes pisca-cor { 0% { background:#fff; } 100% { background:#ffd0ca; } } @keyframes pisca-urg { 0% { background:#c0392b; } 100% { background:#6d120c; } }
 .banner-alerta { animation:pisca-faixa .6s steps(2, jump-none) infinite; } @keyframes pisca-faixa { 0% { background:#e5322d; } 100% { background:#7a1a14; } }
 @media (prefers-reduced-motion:reduce) { .ch-novo, .ch-novo.urg, .banner-alerta { animation:none; } }
+.link.apagar { color:var(--mut); font-size:.9rem; margin-top:8px; }
