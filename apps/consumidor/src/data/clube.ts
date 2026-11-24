@@ -32,3 +32,7 @@ export const PREMIOS: Premio[] = [
   { id: 'pizza', nome: 'Pizza à escolha', custo: 1000, minVisitas: 8, porPessoaMes: 1 },
 ]
 export const textoLimite = (r: Regra) => r.limit === 'once' ? 'uma vez' : r.limit === 'unlimited' ? 'sem limite' : `${r.n === 1 ? '1 vez' : r.n + ' vezes'} ${r.limit === 'per_day' ? 'por dia' : r.limit === 'per_week' ? 'por semana' : 'por mês'}`
+
+// Extras do restaurante (fora do Clube): padrão e modo sem banco. Em produção valem os da configuração do restaurante.
+export const ROLETA = { passos: ['Panela', 'Faca', 'Fogão', 'Forno', 'Prato'], minCents: 8000, janelaDias: 60, premio: 'Pizza à escolha', validadeDias: 30, demo: true }
+export const ANIV = { beneficio: 'Sobremesa da casa', pctConvidados: 50, minConvidados: 5, validadeDias: 2, demo: true }

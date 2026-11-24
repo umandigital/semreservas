@@ -213,3 +213,10 @@ textarea.campo { resize:vertical; min-height:96px; }
 @keyframes pop { 0% { opacity:0; transform:translateY(10px) scale(.96); } 100% { opacity:1; transform:none; } } @keyframes entra { from { opacity:0; transform:translateX(14px); } to { opacity:1; transform:none; } }
 @keyframes sobe-n { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-3px); } }
 @media (prefers-reduced-motion:reduce) { .intro *, .intro-corpo { animation:none !important; } .item-i { opacity:1; } .s-traco { stroke-dashoffset:0; } .onda { opacity:.7; } }
+
+/* ── Extras: Roleta, aniversário, comprovante, aviso de prêmio ── */
+.etapas { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; text-align:center; font-size:.9rem; } .etapa { display:grid; gap:4px; justify-items:center; opacity:.55; } .etapa i { width:40px; height:40px; border-radius:50%; border:2px dashed var(--borda); display:grid; place-items:center; color:transparent; } .etapa.tem { opacity:1; font-weight:700; } .etapa.tem i { background:var(--laranja); border:2px solid var(--laranja); color:var(--bg); }
+.roda-wrap { position:relative; width:min(78vw,300px); margin:6px auto; } .roda { width:100%; display:block; filter:drop-shadow(0 6px 14px rgba(0,0,0,.45)); } .ponteiro { position:absolute; left:50%; top:-6px; transform:translateX(-50%); width:0; height:0; border-left:14px solid transparent; border-right:14px solid transparent; border-top:26px solid var(--txt); z-index:2; }
+.premio-g { display:block; font-size:1.6rem; } .selo-demo { display:inline-block; margin-top:6px; padding:2px 12px; border:1px solid currentColor; border-radius:99px; font-size:.9rem; } .peq-b { font-size:1.4rem !important; }
+.aviso-premio { position:fixed; inset:0; z-index:40; background:rgba(25,4,14,.82); display:grid; place-items:center; padding:20px; } .aviso-premio .papel { width:100%; max-width:420px; } .urgente { font-weight:800; color:#a01818; }
+.faixa-giro { background:#1f7a46; color:#fff; border-radius:var(--r); padding:14px; display:grid; gap:6px; margin:8px 0 12px; } .faixa-giro b { font-size:1.25rem; } .faixa-giro .primario { background:#f8e8c8; color:#380818; }

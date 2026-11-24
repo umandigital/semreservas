@@ -3,17 +3,23 @@ import { useEsgotados } from '../lib/hooks'
 import { ApiError, MENSAGEM_ERRO } from '../lib/api'
 import { pedirAtendimento } from '../lib/atendimento'
 import { getMesa, getToken } from '../lib/router'
+import { useClube } from '../lib/clube'
 import { brl, ITENS } from '../data/cardapio'
 import { avisar, limparSelecao, setObs, setQtd, useSelecao } from '../lib/mockStore'
 
 export function Pedido({ ir }: { ir: (r: string) => void }) {
-  const sel = useSelecao(); const soldOut = useEsgotados(); const [abertas, setAbertas] = useState<string[]>([]); const [busy, setBusy] = useState(false)
+  const sel = useSelecao(); const soldOut = useEsgotados(); const [abertas, setAbertas] = useState<string[]>([]); const [busy, setBusy] = useState(false); const clube = useClube()
   const linhas = ITENS.filter(i => sel.qtd[i.id])
   const subtotal = linhas.reduce((s, i) => s + i.preco * sel.qtd[i.id], 0)
   const chamar = async () => {
     if (!getMesa() || !getToken()) return ir('/chamar')
     setBusy(true)
-    try { ir('/chamado/' + await pedirAtendimento('order')) } catch (e) { avisar(MENSAGEM_ERRO[e instanceof ApiError ? e.code : 'rede']) } finally { setBusy(false) }
+    try {
+      const id = await pedirAtendimento('order')
+      // Roleta: o pedido chegou ao valor mínimo? o servidor confere o chamado; o valor é o estimado pelo app
+      if (clube.v?.membro && clube.v.roleta?.enabled) { try { await clube.liberarGiro(id, subtotal) } catch { /* sem giro: o pedido segue normal */ } }
+      ir('/chamado/' + id)
+    } catch (e) { avisar(MENSAGEM_ERRO[e instanceof ApiError ? e.code : 'rede']) } finally { setBusy(false) }
   }
   if (!linhas.length) return <section className="tela-int"><h1>Meu pedido</h1><p className="vazio">Você ainda não escolheu nada.</p><button className="primario grande" onClick={() => ir('/cardapio')}>Ver cardápio</button></section>
   return (

@@ -6,7 +6,7 @@ import { useClube } from '../lib/clube'
 import { ApiError, MENSAGEM_ERRO } from '../lib/api'
 import { pedirAtendimento } from '../lib/atendimento'
 import { getMesa, getToken } from '../lib/router'
-import { IconCamera, IconCardapio, IconCartao, IconConta, IconEstrela, IconInsta, IconPesquisa, IconPrancheta, IconWifi } from '../ui/Icons'
+import { IconCamera, IconCardapio, IconCartao, IconCubo, IconPresente, IconConta, IconEstrela, IconInsta, IconPesquisa, IconPrancheta, IconWifi } from '../ui/Icons'
 
 const Servico = ({ icone, t, onClick }: { icone: ReactNode; t: string; onClick: () => void }) =>
   <button className="servico" onClick={onClick}>{icone}<span>{t}</span></button>
@@ -45,6 +45,10 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
           <span>{m ? `${m.saldo} pontos` : 'Entrar e ganhar pontos'}</span>
         </button>
       </div>
+      {m && (cv?.roleta?.enabled || cv?.aniv?.enabled) && <div className="bloco duplo">
+        {cv?.roleta?.enabled && <button className="cartao-link" onClick={() => ir('/roleta')}><span className="topo-c"><IconCubo /><b>Roleta do Chef</b></span><span>{cv.roleta.grants > 0 ? 'Você tem um giro!' : `${cv.roleta.got.length} de ${cv.roleta.steps.length} etapas`}</span></button>}
+        {cv?.aniv?.enabled && <button className="cartao-link" onClick={() => ir('/aniversario')}><span className="topo-c"><IconPresente /><b>Meu aniversário</b></span><span>{cv.aniv.canClaim ? 'Pegue seu presente!' : cv.aniv.diasAte === 1 ? 'É amanhã!' : cv.aniv.diasAte >= 0 && cv.aniv.diasAte < 999 ? `Faltam ${cv.aniv.diasAte} dias` : 'Seu presente'}</span></button>}
+      </div>}
       <div className="bloco">
         <h2 className="sub">Serviços</h2>
         <div className="servicos">

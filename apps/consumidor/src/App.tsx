@@ -12,6 +12,7 @@ import { Equipe } from './screens/Equipe'
 import { Cadastro, Entrar } from './screens/Entrar'
 import { Clube, ClubeGanhar, Extrato, Indicar, Troca } from './screens/Clube'
 import { Visita } from './screens/Visita'
+import { Aniversario, AvisoPremio, ExtraComprovante, Roleta } from './screens/Extras'
 import { Comentarios } from './screens/Comentarios'
 import { Fotos } from './screens/Fotos'
 import { Sobre } from './screens/Sobre'
@@ -70,6 +71,9 @@ export function App() {
     if (rota === '/fotos') return <Fotos />
     if (rota === '/visita' || rota === '/pesquisa') return <Visita ir={ir} />
     if (rota === '/clube/indicar') return <Indicar ir={ir} />
+    if (rota === '/roleta') return <Roleta ir={ir} />
+    if (rota === '/aniversario') return <Aniversario ir={ir} />
+    if (rota.startsWith('/extra/')) return <ExtraComprovante id={rota.slice(7)} ir={ir} />
     if (rota === '/sobre' || rota === '/servicos' || rota === '/contato') return <Sobre />
     if (rota === '/pedido') return <Pedido ir={ir} />
     if (rota === '/chamar') return <Chamar ir={ir} />
@@ -85,6 +89,7 @@ export function App() {
       </header>
       <main className={rota === '/cardapio' ? 'cheio' : ''}>{tela}</main>
       <Toast />
+      {rota === '/' && <AvisoPremio ir={ir} />}
       <nav className="rodape" aria-label="Principal">
         <Aba on={rota === '/'} onClick={() => ir('/')} icone={<IconHome />} t="Início" />
         <Aba on={rota === '/cardapio' || rota.startsWith('/comentarios/')} onClick={() => ir('/cardapio')} icone={<IconGarfoFaca />} t="Cardápio" />

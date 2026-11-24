@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cadastrar, cancelar, checkin, creditar, ganhar, opinar, saldo, total, trocar, vazio, visitas } from './clubeDemo'
+import { aniversario, cadastrar, cancelar, checkin, creditar, ganhar, girar, liberarGiro, opinar, pegarPresente, saldo, total, trocar, usarExtra, vazio, visitas } from './clubeDemo'
 const T0 = new Date('2026-11-23T20:00:00').getTime()
 const membro = () => cadastrar(vazio(), 'Ana', '1990-05-05', T0)
 describe('Clube (motor sem banco)', () => {
@@ -47,5 +47,25 @@ describe('Clube (motor sem banco)', () => {
     const [e2, g] = opinar(e, 5, 'Hambúrguer muito saboroso, volto com certeza!', ['a', 'b', 'c', 'd'], T0 + 3 * 86400000); expect(g).toBe(10 + 15 + 20)
     expect(() => opinar(e2, 4, '', [], T0 + 3 * 86400000)).toThrow('already_sent')
     expect(opinar(e, 5, 'veja www.spam.com e compre agora mesmo', [], T0 + 3 * 86400000)[1]).toBe(10)
+  })
+  it('roleta: 1 giro por dia com pedido de R$ 80, etapas nunca repetem e o 5º giro ganha', () => {
+    let e = membro(); expect(() => liberarGiro(e, 9000, T0)).toThrow('no_visit'); [e] = checkin(e, T0)
+    let ok: boolean; [e, ok] = liberarGiro(e, 5000, T0); expect(ok).toBe(false)
+    ;[e, ok] = liberarGiro(e, 9000, T0); expect(ok).toBe(true); [e, ok] = liberarGiro(e, 9000, T0); expect(ok).toBe(false)
+    e = { ...e, roleta: { ...e.roleta, grants: ['a', 'b', 'c', 'd', 'e'] } }
+    const vistos: string[] = []; let r
+    for (let i = 1; i <= 5; i++) { [e, r] = girar(e, T0, () => 0); expect(vistos).not.toContain(r.step); vistos.push(r.step); expect(r.count).toBe(i % 5 || 5); expect(r.won).toBe(i === 5) }
+    expect(e.extras).toHaveLength(1); expect(e.extras[0].name).toBe('Pizza à escolha')
+    expect(() => girar(e, T0)).toThrow('no_grant')
+    const [e2, x] = usarExtra(e, e.extras[0].id, T0 + 1000); expect(x.status).toBe('used'); expect(() => usarExtra(e2, x.id, T0 + 2000)).toThrow('not_active')
+    expect(() => usarExtra(e, e.extras[0].id, T0 + 40 * 86400000)).toThrow('expired')
+    expect(() => liberarGiro(cadastrar(vazio(), 'Bia', '2012-01-01', T0), 9000, T0)).toThrow('adults_only')
+  })
+  it('aniversário: só no dia ou no seguinte, uma vez por ano', () => {
+    const e = cadastrar(vazio(), 'Ana', '1990-11-23', T0)
+    expect(aniversario(e, T0)?.canClaim).toBe(true)
+    const [e2, ex] = pegarPresente(e, T0); expect(ex.source).toBe('birthday'); expect(() => pegarPresente(e2, T0)).toThrow('already_claimed')
+    expect(aniversario(e, T0 + 86400000)?.canClaim).toBe(true); expect(aniversario(e, T0 + 2 * 86400000)?.canClaim).toBe(false)
+    expect(() => pegarPresente(e, T0 + 5 * 86400000)).toThrow('not_birthday')
   })
 })

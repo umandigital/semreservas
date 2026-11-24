@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { cancelarChamado, ROTULO, statusChamado, type Status as S, type StatusChamado } from '../lib/api'
 import { tokenDeCancelamento } from '../lib/atendimento'
 import { avisar, useSelecao } from '../lib/mockStore'
-import { ITENS } from '../data/cardapio'
+import { ITENS, brl } from '../data/cardapio'
+import { useClube } from '../lib/clube'
 
 const TXT: Record<S, [string, string]> = {
   PENDING: ['Chamado enviado', 'Aguardando a equipe ver. Se demorar, fale com alguém do salão.'],
@@ -19,6 +20,7 @@ export function Status({ id, ir }: { id: string; ir: (r: string) => void }) {
     document.addEventListener('visibilitychange', vis)
     return () => { vivo = false; clearInterval(t); document.removeEventListener('visibilitychange', vis) }
   }, [id])
+  const clube = useClube(); const giro = (clube.v?.roleta?.grants ?? 0) > 0
   const sel = useSelecao(); const linhas = ITENS.filter(i => sel.qtd[i.id])
   const tk = tokenDeCancelamento(id)
   if (c === undefined) return <section className="tela-int"><p>{semRede ? 'Sem conexão. Tentando de novo…' : 'Carregando…'}</p></section>
@@ -26,6 +28,7 @@ export function Status({ id, ir }: { id: string; ir: (r: string) => void }) {
   const [t, d] = TXT[c.status]; const aberto = c.status === 'PENDING' || c.status === 'ACKNOWLEDGED'
   return (
     <section className="tela-int status" aria-live="polite">
+      {c.kind === 'order' && giro && <div className="faixa-giro"><b>Seu pedido chegou a {brl(clube.v!.roleta!.minCents)}!</b><span>Você ganhou 1 giro da Roleta do Chef.</span><button className="primario grande" onClick={() => ir('/roleta')}>Girar agora</button></div>}
       <p className="mesa-g">Mesa {c.table_label} · {ROTULO[c.kind]}{c.detail ? ` · ${c.detail}` : ''}</p>
       <h1>{t}</h1><p>{d}</p>
       <p className="codigo">Código {c.public_code}</p>
