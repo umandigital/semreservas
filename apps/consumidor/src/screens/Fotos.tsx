@@ -26,7 +26,7 @@ function faixa(x: CanvasRenderingContext2D, t: string, fundo: string, cor: strin
 function pintar(c: HTMLCanvasElement, img: HTMLImageElement, m: MolduraCfg, arte: HTMLImageElement | null) {
   const x = c.getContext('2d')!; x.clearRect(0, 0, W, H)
   if (arte) {   // arte pronta: a foto vai por baixo (um pouco maior que a janela; a arte, opaca nas bordas, cobre o excesso) e o app escreve os textos por cima
-    const A = { x: JAN.x - 24, y: JAN.y - 24, w: JAN.w + 48, h: JAN.h + 48 }
+    const J = m.janela ?? JAN, A = { x: J.x - 24, y: J.y - 24, w: J.w + 48, h: J.h + 48 }
     x.fillStyle = C['--bg']; x.fillRect(0, 0, W, H); const r = Math.max(A.w / img.width, A.h / img.height), w = img.width * r, h = img.height * r
     x.save(); x.beginPath(); x.rect(A.x, A.y, A.w, A.h); x.clip(); x.drawImage(img, A.x + (A.w - w) / 2, A.y + (A.h - h) / 2, w, h); x.restore(); x.drawImage(arte, 0, 0, W, H)
     const L = { ...LAYOUT_PADRAO, ...m.layout }, cor = m.corTexto ?? '#f3e8d0'
