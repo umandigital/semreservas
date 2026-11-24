@@ -17,7 +17,7 @@ export function Entrar({ ir, volta }: { ir: (r: string) => void; volta: string }
       <p>{CLUBE.nome}: ganhe pontos a cada visita e troque por prêmios.</p>
       {etapa === 'escolher' && <>
         {(!CLUBE_REAL || import.meta.env.VITE_GOOGLE_LOGIN === '1') && <button className="sec grande" disabled={busy} onClick={() => go(c.entrarGoogle)}>Continuar com Google</button>}
-        <button className="sec grande" onClick={() => setEtapa('email')}>Continuar com e-mail</button>
+        {(!CLUBE_REAL || import.meta.env.VITE_EMAIL_LOGIN === '1') && <button className="sec grande" onClick={() => setEtapa('email')}>Continuar com e-mail</button>}
         <p className="nota">Seu cadastro leva só um instante.</p></>}
       {etapa === 'email' && <>
         <label className="rot">Seu e-mail<input className="campo" type="email" inputMode="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="voce@email.com" /></label>
