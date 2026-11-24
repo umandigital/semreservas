@@ -364,3 +364,38 @@ function MolduraForm({ base, nome, salvar }: { base: P.MolduraDono; nome: string
     <Linha t="Frase de baixo"><input className="campo-p" value={v.footer} maxLength={80} onChange={e => setV({ ...v, footer: e.target.value })} /></Linha>
     {mudou && <button className="primario" disabled={!ok} onClick={() => salvar(v)}>Salvar</button>}</div>
 }
+
+const MIN = 5
+const minTxt = (m: number | null, n: number) => n >= MIN && m != null ? (m < 1 ? 'menos de 1 min' : `${Math.round(m)} min`) : 'dados insuficientes'
+function Barras({ itens, rotulo }: { itens: { r: string; n: number }[]; rotulo: string }) {
+  const max = Math.max(1, ...itens.map(i => i.n))
+  return <div role="img" aria-label={rotulo} style={{ display: 'grid', gap: 6 }}>{itens.map(i => <div key={i.r} style={{ display: 'grid', gridTemplateColumns: '90px 1fr 40px', gap: 8, alignItems: 'center' }}><span>{i.r}</span><span style={{ background: 'var(--pac, #380818)', height: 14, borderRadius: 7, width: `${Math.max(2, (i.n / max) * 100)}%` }} /><b>{i.n}</b></div>)}</div>
+}
+
+/** Desempenho: o que o sistema mede, em linguagem simples. Mediana, nunca média; sem amostra mínima mostra "dados insuficientes". */
+export function DesempenhoSec({ est }: { est: Estab }) {
+  const [per, setPer] = useState('7'); const dias = Number(per)
+  const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - dias)
+  const [r, e] = useCarga(() => P.desempenho(est.tenant_id, d.toISOString(), d.toISOString().slice(0, 10)), [est.tenant_id, per])
+  const pico = r ? r.chamadosPorHora.indexOf(Math.max(...r.chamadosPorHora)) : -1
+  const dicas: string[] = []
+  if (r) {
+    if (r.chamadosN >= MIN && pico >= 0) dicas.push(`Os chamados se concentram por volta das ${pico}h. Vale ter a equipe reforçada nesse horário.`)
+    if (r.assumirN >= MIN && r.medianaAssumirMin != null) dicas.push(`Metade dos chamados é assumida em até ${minTxt(r.medianaAssumirMin, r.assumirN)}.`)
+    if (r.membros >= MIN) dicas.push(`${r.voltaram} de ${r.membros} pessoas do Clube já voltaram pelo menos uma vez (${Math.round((r.voltaram / r.membros) * 100)}%).`)
+  }
+  return <section>
+    <Abas abas={[['7', '7 dias'], ['30', '30 dias']]} valor={per} set={setPer} /><Aviso e={e} />{!r && !e && <Carregando />}
+    {r && <>
+      <div className="cartao-p"><h2>O que chama atenção</h2>{dicas.length ? <ul>{dicas.map(x => <li key={x}>{x}</li>)}</ul> : <p className="nota">Dados insuficientes: ainda não há movimento suficiente neste período (mínimo {MIN}).</p>}</div>
+      <div className="grade-p"><div className="card-p"><small>Tempo típico até assumir</small><b className="txt">{minTxt(r.medianaAssumirMin, r.assumirN)}</b><em>mediana, {r.assumirN} chamados</em></div>
+        <div className="card-p"><small>Tempo típico até concluir</small><b className="txt">{minTxt(r.medianaConcluirMin, r.concluirN)}</b><em>mediana, {r.concluirN} chamados</em></div>
+        <div className="card-p"><small>Voltaram ao restaurante</small><b className="txt">{r.membros >= MIN ? `${Math.round((r.voltaram / r.membros) * 100)}%` : 'dados insuficientes'}</b><em>{r.voltaram} de {r.membros} do Clube (2 ou mais visitas)</em></div></div>
+      <div className="cartao-p"><h2>Visitas por dia</h2>{r.visitasPorDia.length ? <Barras rotulo="Visitas por dia" itens={r.visitasPorDia.map(x => ({ r: x.dia.split('-').reverse().slice(0, 2).join('/'), n: x.n }))} /> : <p className="nota">Sem visitas neste período.</p>}</div>
+      <div className="cartao-p"><h2>Chamados por horário</h2>{r.chamadosN ? <Barras rotulo="Chamados por hora do dia" itens={r.chamadosPorHora.map((n, h) => ({ r: `${h}h`, n })).filter(x => x.n > 0)} /> : <p className="nota">Sem chamados neste período.</p>}</div>
+      <div className="cartao-p"><h2>Mesas que mais chamam</h2>{r.topMesas.length ? <Barras rotulo="Chamados por mesa" itens={r.topMesas.map(x => ({ r: `Mesa ${x.mesa}`, n: x.n }))} /> : <p className="nota">Sem chamados neste período.</p>}</div>
+      <div className="cartao-p"><h2>De onde vêm os pontos</h2>{r.pontosPorAcao.length ? <Barras rotulo="Pontos por ação" itens={r.pontosPorAcao.map(x => ({ r: ROT[x.acao] ?? x.acao, n: x.pontos }))} /> : <p className="nota">Nenhum ponto dado neste período.</p>}</div>
+      <p className="nota">Mostramos o que o app registra. Não medimos faturamento, seguidores ganhos nem avaliações publicadas.</p>
+    </>}
+  </section>
+}

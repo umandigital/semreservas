@@ -92,3 +92,30 @@ export const novoItem = async (t: string, nome: string, precoCents: number, cat:
 export type MolduraDono = { frame_id: string; enabled: boolean; title: string[]; footer: string }
 export const molduras = async (t: string) => ler<MolduraDono[]>(await db().rpc('owner_frames_list', { p_tenant: t }))
 export const salvarMoldura = async (t: string, m: MolduraDono) => ler<boolean>(await db().rpc('owner_frame_set', { p_tenant: t, p_frame: m.frame_id, p_enabled: m.enabled, p_title: m.title, p_footer: m.footer }))
+
+export type Desempenho = { visitasPorDia: { dia: string; n: number }[]; chamadosPorHora: number[]; chamadosN: number; medianaAssumirMin: number | null; assumirN: number; medianaConcluirMin: number | null; concluirN: number; topMesas: { mesa: string; n: number }[]; pontosPorAcao: { acao: string; pontos: number }[]; membros: number; voltaram: number }
+/** Só leitura do que o sistema registra (visitas, chamados, pontos). Nada de faturamento. */
+export async function desempenho(t: string, desdeIso: string, desdeDia: string): Promise<Desempenho> {
+  const [v, c, l, m, vtot] = await Promise.all([
+    db().from('club_visits').select('day').eq('tenant_id', t).gte('day', desdeDia).limit(10000),
+    db().from('service_requests').select('table_label,created_at,acknowledged_at,resolved_at,status').eq('tenant_id', t).gte('created_at', desdeIso).neq('status', 'CANCELLED').limit(5000),
+    db().from('points_ledger').select('delta,kind,action').eq('tenant_id', t).gte('created_at', desdeIso).limit(10000),
+    contar('club_members', t, 'joined_at', '1970-01-01'),
+    db().from('club_visits').select('user_id').eq('tenant_id', t).limit(20000),
+  ])
+  const vs = ler<{ day: string }[]>(v); const cs = ler<{ table_label: string; created_at: string; acknowledged_at: string | null; resolved_at: string | null }[]>(c)
+  const ls = ler<{ delta: number; kind: string; action: string | null }[]>(l); const vt = ler<{ user_id: string }[]>(vtot)
+  const porDia = new Map<string, number>(); vs.forEach(x => porDia.set(x.day, (porDia.get(x.day) ?? 0) + 1))
+  const horas = Array<number>(24).fill(0); cs.forEach(x => { horas[new Date(x.created_at).getHours()]++ })
+  const min = (a: string, b: string) => (new Date(b).getTime() - new Date(a).getTime()) / 60000
+  const assumir = cs.filter(x => x.acknowledged_at).map(x => min(x.created_at, x.acknowledged_at!)).filter(x => x >= 0)
+  const concluir = cs.filter(x => x.resolved_at).map(x => min(x.created_at, x.resolved_at!)).filter(x => x >= 0)
+  const mesas = new Map<string, number>(); cs.forEach(x => mesas.set(x.table_label, (mesas.get(x.table_label) ?? 0) + 1))
+  const acoes = new Map<string, number>(); ls.filter(x => x.kind === 'earn' && x.delta > 0).forEach(x => acoes.set(x.action ?? 'outros', (acoes.get(x.action ?? 'outros') ?? 0) + x.delta))
+  const cont = new Map<string, number>(); vt.forEach(x => cont.set(x.user_id, (cont.get(x.user_id) ?? 0) + 1))
+  return { visitasPorDia: [...porDia].sort().map(([dia, n]) => ({ dia, n })), chamadosPorHora: horas, chamadosN: cs.length,
+    medianaAssumirMin: mediana(assumir), assumirN: assumir.length, medianaConcluirMin: mediana(concluir), concluirN: concluir.length,
+    topMesas: [...mesas].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([mesa, n]) => ({ mesa, n })),
+    pontosPorAcao: [...acoes].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([acao, pontos]) => ({ acao, pontos })),
+    membros: m, voltaram: [...cont.values()].filter(n => n >= 2).length }
+}
