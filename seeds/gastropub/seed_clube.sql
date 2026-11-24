@@ -4,3 +4,7 @@ select t.id, v.name, v.cost, v.vis, v.pp, v.stock, v.ord from tenants t,
  (values ('Sorvete com 2 bolas',200,0,4,null::int,1), ('Refrigerante ou entrada',350,0,null::int,null::int,2),
          ('30% de desconto na conta (até R$ 30, conta mínima R$ 80)',500,0,null::int,null::int,3), ('Pizza à escolha',1000,8,1,null::int,4)) as v(name,cost,vis,pp,stock,ord)
 where t.slug = 'gastropub' and not exists (select 1 from club_rewards r where r.tenant_id = t.id);
+
+-- Extras do GastroPub ligados para a demonstração (prêmio de demonstração, sem valor real).
+update roulette_settings set enabled = true where tenant_id = (select id from tenants where slug = 'gastropub');
+update birthday_settings set enabled = true where tenant_id = (select id from tenants where slug = 'gastropub');
