@@ -29,6 +29,7 @@ q -f apps/api/tests/painel.sql
 q -f apps/api/tests/atendimento.sql
 q -f apps/api/tests/alertas.sql
 q -f apps/api/tests/excluir_conta.sql
+q -f apps/api/tests/comentarios.sql
 
 # O SQL do gerador de placas aplica e as placas novas resolvem a mesa certa.
 GEN=$(mktemp -d)

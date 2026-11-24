@@ -294,3 +294,44 @@ export function AlertasSec({ t }: { t: string }) {
     <Linha t="Alerta urgente se ninguém assumir em (segundos)"><input className="campo-p num" type="number" min={15} max={600} value={v.escalate_s} onChange={e => setV({ ...v, escalate_s: Math.max(15, Math.min(600, Number(e.target.value) || 60)) })} /></Linha>
     <div className="form-p"><button className="sec" onClick={testar}>Testar o som</button><button className="primario" onClick={async () => { try { setMsg(await P.salvarAlertas(t, v) ? 'Salvo. Vale na próxima atualização dos painéis.' : 'Você não tem permissão ou os dados são inválidos.') } catch { setMsg('Não foi possível salvar.') } }}>Salvar</button></div>{msg && <p role="status" className="nota">{msg}</p>}</div>
 }
+
+const MIN_AMOSTRA = 5
+const ESTRELAS = (n: number) => '★'.repeat(n) + '☆'.repeat(5 - n)
+const ST: Record<string, string> = { pending: 'Novo', published: 'Publicado', rejected: 'Oculto' }
+
+/** Comentários e avaliações do Clube: o dono publica ou oculta. Mediana (não média) e só com amostra mínima. */
+export function ComentariosSec({ est }: { est: Estab }) {
+  const t = est.tenant_id; const [filtro, setFiltro] = useState('pending'); const [msg, setMsg] = useState('')
+  const [todos, e0] = useCarga(() => P.comentarios(t, null), [t, msg])
+  const [lista, e] = useCarga(() => P.comentarios(t, filtro), [t, filtro, msg])
+  const notas = (todos ?? []).map(c => c.rating); const med = P.mediana(notas)
+  const agir = async (c: P.Comentario, s: 'published' | 'rejected') => { try { setMsg(await P.moderar(t, c, s) ? (s === 'published' ? 'Publicado.' : 'Ocultado.') : 'Você não tem permissão para isso.') } catch { setMsg('Não foi possível salvar. Tente de novo.') } }
+  return <section>
+    <div className="cartao-p"><h2>Nota dos clientes</h2>
+      <p className="nota">{todos && notas.length >= MIN_AMOSTRA ? <><b>{med}</b> de 5 (mediana de {notas.length} opiniões)</> : 'Dados insuficientes: precisamos de pelo menos ' + MIN_AMOSTRA + ' opiniões.'}</p>
+      <p className="nota">São opiniões deixadas dentro do app. Não são avaliações do Google ou do Instagram.</p></div>
+    <Abas abas={[['pending', 'Novos'], ['published', 'Publicados'], ['rejected', 'Ocultos']]} valor={filtro} set={setFiltro} />
+    <Aviso e={e || e0} />{msg && <p role="status" className="nota">{msg}</p>}{!lista && !e && <Carregando />}
+    {lista && !lista.length && <p className="nota">Nada por aqui.</p>}
+    {lista?.map(c => <div key={c.user_id + c.day} className="cartao-p"><p><b>{c.first_name}</b> · <span aria-label={`${c.rating} de 5`}>{ESTRELAS(c.rating)}</span> · {dh(c.created_at)} · <small>{ST[c.status]}</small></p>
+      {c.comment ? <p>{c.comment}</p> : <p className="nota">Só a nota, sem comentário.</p>}{c.liked.length > 0 && <p className="nota">Gostou de: {c.liked.join(', ')}</p>}
+      <div className="form-p">{c.status !== 'published' && <button className="primario" onClick={() => agir(c, 'published')}>Publicar</button>}{c.status !== 'rejected' && <button className="sec" onClick={() => agir(c, 'rejected')}>Ocultar</button>}</div></div>)}
+  </section>
+}
+
+/** Clientes do Clube: só o primeiro nome. Ajuste manual de pontos exige motivo e fica registrado. */
+export function ClientesSec({ est }: { est: Estab }) {
+  const t = est.tenant_id; const [msg, setMsg] = useState(''); const [cs, e] = useCarga(() => P.clientes(t), [t, msg])
+  const [alvo, setAlvo] = useState<P.Cliente | null>(null); const [delta, setDelta] = useState(0); const [motivo, setMotivo] = useState('')
+  const ok = delta !== 0 && Math.abs(delta) <= 1000 && motivo.trim().length >= 5
+  const aplicar = async () => { if (!alvo || !ok) return; try { setMsg(await P.ajustarPontos(t, alvo.user_id, delta, motivo.trim()) ? 'Pontos ajustados e registrados.' : 'Não foi possível: confira o saldo e o motivo.'); setAlvo(null); setDelta(0); setMotivo('') } catch { setMsg('Não foi possível salvar. Tente de novo.') } }
+  return <section><p>Pessoas que entraram no Clube. Por privacidade, aparece só o primeiro nome.</p><Aviso e={e} />{msg && <p role="status" className="nota">{msg}</p>}{!cs && !e && <Carregando />}
+    {cs && !cs.length && <p className="nota">Ninguém entrou no Clube ainda.</p>}
+    {cs && cs.length > 0 && <table className="tabela"><thead><tr><th>Nome</th><th>Entrou</th><th>Visitas</th><th>Última visita</th><th>Pontos</th><th></th></tr></thead><tbody>
+      {cs.map(c => <tr key={c.user_id}><td>{c.first_name}</td><td>{dh(c.joined_at).slice(0, 5)}</td><td>{c.visits}</td><td>{c.last_visit ? c.last_visit.split('-').reverse().slice(0, 2).join('/') : '—'}</td><td>{c.points}</td><td><button className="sec peq-p" onClick={() => { setAlvo(c); setMsg('') }}>Ajustar pontos</button></td></tr>)}</tbody></table>}
+    {alvo && <div className="cartao-p" role="dialog" aria-label={`Ajustar pontos de ${alvo.first_name}`}><h2>Ajustar pontos de {alvo.first_name}</h2><p className="nota">Saldo atual: {alvo.points}. Use número negativo para tirar pontos. O motivo fica no registro.</p>
+      <Linha t="Pontos (de −1000 a 1000)"><input className="campo-p num" type="number" min={-1000} max={1000} value={delta} onChange={ev => setDelta(Number(ev.target.value) || 0)} /></Linha>
+      <Linha t="Motivo (mínimo 5 letras)"><input className="campo-p" value={motivo} maxLength={200} onChange={ev => setMotivo(ev.target.value)} /></Linha>
+      <div className="form-p"><button className="primario" disabled={!ok} onClick={aplicar}>Confirmar</button><button className="sec" onClick={() => setAlvo(null)}>Cancelar</button></div></div>}
+  </section>
+}

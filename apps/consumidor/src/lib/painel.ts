@@ -79,3 +79,11 @@ export async function placas(t: string): Promise<Placa[]> {
   const url = (tok?: string) => tok ? `${location.origin}${import.meta.env.BASE_URL}r/${tok}` : undefined
   return a.map(x => ({ numero: x.number, estado: x.state, nfc: url(k.find(y => y.access_point_id === x.id && y.origin === 'nfc')?.token), qr: url(k.find(y => y.access_point_id === x.id && y.origin === 'qr')?.token) }))
 }
+
+export type Comentario = { user_id: string; day: string; first_name: string; rating: number; comment: string | null; liked: string[]; status: 'pending' | 'published' | 'rejected'; created_at: string }
+export const comentarios = async (t: string, status: string | null) => ler<Comentario[]>(await db().rpc('owner_club_feedback_list', { p_tenant: t, p_status: status, p_limit: 100 }))
+export const moderar = async (t: string, c: Comentario, status: 'published' | 'rejected') => ler<boolean>(await db().rpc('owner_club_feedback_moderate', { p_tenant: t, p_user: c.user_id, p_day: c.day, p_status: status }))
+export type Cliente = { user_id: string; first_name: string; joined_at: string; visits: number; last_visit: string | null; points: number; status: string }
+export const clientes = async (t: string) => ler<Cliente[]>(await db().rpc('owner_club_members_list', { p_tenant: t, p_limit: 200 }))
+export const ajustarPontos = async (t: string, u: string, delta: number, motivo: string) => ler<boolean>(await db().rpc('owner_club_adjust', { p_tenant: t, p_user: u, p_delta: delta, p_reason: motivo }))
+export { mediana }

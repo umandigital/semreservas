@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { CATEGORIAS, ITENS } from '../data/cardapio'
 import { ROTULO, type Kind } from '../lib/api'
 import { calcularMetricas, fmtDuracao, type Metricas } from '../lib/metricas'
-import { AlertaChamados, AparenciaSec, ClubeSec, ConfigSec, ExtrasSec, PrecosSec, ResumoSec } from './PainelSecoes'
+import { AlertaChamados, AparenciaSec, ClubeSec, ClientesSec, ComentariosSec, ConfigSec, ExtrasSec, PrecosSec, ResumoSec } from './PainelSecoes'
 import { chamadosDesde, entrar, esgotadosDoEstab, linkDaEquipe, marcarEsgotado, meusEstabelecimentos, sair, trocarLinkDaEquipe, urlDoPainel, useSessao, type Estab } from '../lib/dono'
 
-type Aba = 'resumo' | 'atendimento' | 'clube' | 'cardapio' | 'aparencia' | 'extras' | 'config'
-const MENU: [Aba, string][] = [['resumo', 'Resumo'], ['atendimento', 'Atendimento'], ['clube', 'Clube'], ['cardapio', 'Cardápio'], ['aparencia', 'Aparência'], ['extras', 'Roleta e aniversário'], ['config', 'Configurações']]
+type Aba = 'resumo' | 'atendimento' | 'clube' | 'comentarios' | 'clientes' | 'cardapio' | 'aparencia' | 'extras' | 'config'
+const MENU: [Aba, string][] = [['resumo', 'Resumo'], ['atendimento', 'Atendimento'], ['clube', 'Clube'], ['comentarios', 'Comentários'], ['clientes', 'Clientes'], ['cardapio', 'Cardápio'], ['aparencia', 'Aparência'], ['extras', 'Roleta e aniversário'], ['config', 'Configurações']]
 const PERIODOS = [{ k: 'hoje', t: 'Hoje', dias: 0 }, { k: '7', t: '7 dias', dias: 7 }, { k: '30', t: '30 dias', dias: 30 }] as const
 
 export default function Dono() {
@@ -48,6 +48,8 @@ function Painel({ email }: { email: string }) {
         {aba === 'resumo' && <ResumoSec est={est} />}
         {aba === 'atendimento' && <><p className="nota">Os chamados em aberto aparecem no topo de qualquer tela, com som e alerta, até alguém assumir.</p><Geral est={est} /></>}
         {aba === 'clube' && <ClubeSec est={est} />}
+        {aba === 'comentarios' && <ComentariosSec est={est} />}
+        {aba === 'clientes' && <ClientesSec est={est} />}
         {aba === 'cardapio' && <><div className="abas-p" role="tablist">{([['precos', 'Preços e itens'], ['esgotado', 'Acabou hoje']] as const).map(([k, t]) => <button key={k} role="tab" aria-selected={cardAba === k} className={cardAba === k ? 'on' : ''} onClick={() => setCardAba(k)}>{t}</button>)}</div>
           {cardAba === 'precos' ? <PrecosSec est={est} /> : <Esgotado est={est} />}</>}
         {aba === 'aparencia' && <AparenciaSec />}
