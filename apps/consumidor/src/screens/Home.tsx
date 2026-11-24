@@ -53,7 +53,7 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
           <Servico icone={<IconCamera />} t="Foto com moldura" onClick={() => ir('/fotos')} />
           <Servico icone={<IconInsta />} t="Instagram" onClick={() => externo(CONFIG.instagram, 'Instagram', 'instagram_follow')} />
           <Servico icone={<IconEstrela />} t="Avalie no Google" onClick={() => externo(CONFIG.googleAvaliacao, 'Google', 'google_open')} />
-          <Servico icone={<IconPesquisa />} t="Como foi a visita?" onClick={() => ir('/pesquisa')} />
+          <Servico icone={<IconPesquisa />} t="Como foi a visita?" onClick={() => ir('/visita')} />
         </div>
         {wifi && <div className="wifi"><p>Rede: <b>{CONFIG.wifi.ssid}</b></p><p>Senha: <b>{CONFIG.wifi.senha}</b></p>
           <button className="sec" onClick={copiar}>{copiado ? 'Copiado' : 'Copiar senha'}</button>

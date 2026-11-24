@@ -1,11 +1,11 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { brl, CATEGORIAS, CONFIG, ITENS_FEED, type Item } from '../data/cardapio'
 import { useEsgotados } from '../lib/hooks'
-import { avisar, curtir, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
+import { avisar, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
 import { useRaAberta, definirRaAberta } from '../lib/raAberta'
 import { abrirRa, baseCurtidas, media, webxrArDisponivel } from '../lib/util'
 import type { ModeloEl } from '../ui/model-viewer'
-import { IconBalao, IconBusca, IconCardapio, IconCoracao, IconCubo, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
+import { IconBusca, IconCardapio, IconCubo, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
 
 // O 3D (e a biblioteca dele) só baixa quando um prato em 3D chega perto da tela.
 const Modelo3D = lazy(() => import('./Modelo3D'))
@@ -87,7 +87,7 @@ function useVisibilidade(ref: React.RefObject<HTMLElement | null>, ligado: boole
 function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: number; base: string; esgotado: boolean; qtd: number; ir: (r: string) => void }) {
   const [aberto, setAberto] = useState(false)
   const soc = useSocial(); const membro = useMembro()
-  const curtido = soc.likes.includes(i.id), salvo = soc.saved.includes(i.id)
+  const salvo = soc.saved.includes(i.id)
   const reduzir = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
   const ref = useRef<HTMLElement>(null); const mv = useRef<ModeloEl | null>(null)
   const { perto, ativo } = useVisibilidade(ref, !!i.modelo)
@@ -130,8 +130,6 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
       <span className="selo">{m ? '◆ 3D · gire com o dedo' : i.video ? '▶ Vídeo' : '● Foto'}</span>
       <span className="contador" aria-hidden="true">{n}/{de}</span>
       <div className="lateral">
-        <button onClick={() => curtir(i.id)} aria-pressed={curtido} aria-label={`Curtir ${i.nome}`}><IconCoracao cheio={curtido} /><small>{baseCurtidas(i.id) + (curtido ? 1 : 0)}</small></button>
-        <button onClick={() => ir('/comentarios/' + i.id)} aria-label={`Comentar ${i.nome}`}><IconBalao /></button>
         <button onClick={() => { salvar(i.id); avisar(salvo ? 'Removido dos salvos.' : membro ? 'Salvo na sua conta e disponível em outros aparelhos.' : 'Salvo só neste aparelho. Entre para guardar em qualquer lugar.') }} aria-pressed={salvo} aria-label={`Salvar ${i.nome}`}><IconEstrela cheio={salvo} /></button>
         <button onClick={enviar} aria-label={`Enviar ${i.nome}`}><IconEnviar /></button>
       </div>

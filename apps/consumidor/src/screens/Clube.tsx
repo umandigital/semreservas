@@ -35,6 +35,7 @@ export function Clube({ ir }: Ir) {
             {pode ? <button className="primario" onClick={() => trocar(p.id)}>Trocar</button> : <span className="falta">{m ? `faltam ${Math.max(0, p.custo - m.saldo)}` : ''}</span>}</li>
         })}</ul></div>
       <button className="sec grande" onClick={() => ir('/clube/ganhar')}>Como ganhar pontos</button>
+      {m && <button className="sec grande" onClick={() => ir('/clube/indicar')}>Indicar um amigo</button>}
       {m && <div className="links-c"><button className="link" onClick={() => ir('/clube/extrato')}>Meu extrato</button><button className="link" onClick={async () => { await c.sair(); avisar('Você saiu do Clube.') }}>Sair</button></div>}
     </section>
   )
@@ -94,6 +95,25 @@ export function Troca({ id, ir }: { id: string } & Ir) {
       </div>
       {cancelavel && <button className="sec grande" onClick={async () => { try { await c.cancelar(t.id); avisar('Troca cancelada. Seus pontos voltaram.') } catch (e) { c.avisarErro(e) } }}>Cancelar a troca (até 2 minutos)</button>}
       <button className="primario grande" onClick={() => ir('/clube')}><IconCartao /> Voltar ao Clube</button>
+    </section>
+  )
+}
+
+/** Indicar um amigo: código e link. Quem indicou ganha quando o amigo se cadastra e faz a primeira visita. */
+export function Indicar({ ir }: Ir) {
+  const c = useClube(); const m = c.v?.membro; const pts = c.v?.regras.find(r => r.action === 'referral')?.points ?? 0
+  const link = `${location.origin}${import.meta.env.BASE_URL}?ref=${m?.ref ?? ''}`
+  const texto = `Venha para o ${CLUBE.nome}! Use meu código ${m?.ref} e ganhe pontos: ${link}`
+  const compartilhar = async () => { try { if (navigator.share) { await navigator.share({ text: texto }); return } } catch { return } window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank', 'noopener') }
+  if (!m) return <section className="tela-int"><h1>Indicar um amigo</h1><button className="primario grande" onClick={() => ir('/entrar')}>Entrar ou cadastrar</button></section>
+  return (
+    <section className="tela-int">
+      <button className="link" onClick={() => ir('/clube')}>← Clube</button>
+      <h1>Indicar um amigo</h1>
+      <p>Quando seu amigo se cadastrar e fizer a primeira visita, você ganha <b>+{pts} pontos</b>.</p>
+      <div className="bloco-c"><small>Seu código</small><b className="cod-g claro">{m.ref}</b>
+        <button className="sec" onClick={async () => { try { await navigator.clipboard.writeText(m.ref); avisar('Código copiado.') } catch { avisar('Copie o código manualmente.') } }}>Copiar código</button></div>
+      <button className="primario grande" onClick={compartilhar}>Enviar pelo WhatsApp</button>
     </section>
   )
 }

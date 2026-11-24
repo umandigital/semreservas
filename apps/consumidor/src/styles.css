@@ -189,3 +189,6 @@ main.cheio { padding-bottom:0; }
 .papel { background:#f8e8c8; color:#380818; border-radius:var(--r); padding:20px 16px; text-align:center; display:grid; gap:8px; margin-bottom:12px; } .papel h1 { margin:0; font-size:1.5rem; }
 .papel p { margin:0; } .cod-g { font-size:3rem; letter-spacing:.12em; font-family:ui-monospace,monospace; } .selo-t { display:inline-flex; gap:8px; align-items:center; justify-content:center; font-weight:800; padding:8px 12px; border-radius:99px; color:#fff; } .selo-t.ok { background:#1f7a46; } .selo-t.off { background:#7a2a2a; }
 .valido { font-size:1.15rem; } .nota-p { font-size:.9rem; }
+.estrelas { display:flex; gap:6px; } .estrelas button { background:none; border:0; color:var(--laranja); min-width:56px; min-height:56px; padding:0; } .estrelas svg { width:44px; height:44px; }
+.chips-g { display:flex; flex-wrap:wrap; gap:8px; } .cod-g.claro { color:var(--txt); }
+textarea.campo { resize:vertical; min-height:96px; }

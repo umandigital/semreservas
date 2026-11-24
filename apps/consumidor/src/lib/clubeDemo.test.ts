@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cadastrar, cancelar, creditar, ganhar, saldo, total, trocar, vazio, visitas } from './clubeDemo'
+import { cadastrar, cancelar, checkin, creditar, ganhar, opinar, saldo, total, trocar, vazio, visitas } from './clubeDemo'
 const T0 = new Date('2026-11-23T20:00:00').getTime()
 const membro = () => cadastrar(vazio(), 'Ana', '1990-05-05', T0)
 describe('Clube (motor sem banco)', () => {
@@ -38,5 +38,14 @@ describe('Clube (motor sem banco)', () => {
     expect(() => trocar(e, 'pizza', T0)).toThrow('min_visits')
     expect(visitas(e)).toBe(0)
     const antes = e.ledger.length; const [e2] = trocar(e, 'refri', T0); expect(e2.ledger.length).toBe(antes + 1)
+  })
+  it('check-in dá 30 por dia, bônus de voltar em 7 dias e opinião exige a visita', () => {
+    let e = membro(); expect(() => opinar(e, 5, '', [], T0)).toThrow('no_visit')
+    let r; [e, r] = checkin(e, T0); expect(r.credited).toBe(30); expect(r.bonuses).toEqual(['checkin'])
+    ;[e, r] = checkin(e, T0 + 3600000); expect(r.already).toBe(true)
+    ;[e, r] = checkin(e, T0 + 3 * 86400000); expect(r.credited).toBe(50); expect(r.bonuses).toContain('return_7d')
+    const [e2, g] = opinar(e, 5, 'Hambúrguer muito saboroso, volto com certeza!', ['a', 'b', 'c', 'd'], T0 + 3 * 86400000); expect(g).toBe(10 + 15 + 20)
+    expect(() => opinar(e2, 4, '', [], T0 + 3 * 86400000)).toThrow('already_sent')
+    expect(opinar(e, 5, 'veja www.spam.com e compre agora mesmo', [], T0 + 3 * 86400000)[1]).toBe(10)
   })
 })

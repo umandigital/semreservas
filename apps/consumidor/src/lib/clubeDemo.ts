@@ -65,3 +65,29 @@ export function cancelar(e: Estado, id: string, agora = Date.now()): Estado {
   const linha: Linha = { id: e.ledger.length + 1, em: agora, delta: t.custo, kind: 'reversal', action: 'redeem_cancel', key: 'reversal:' + t.id }
   return { ...e, trocas: e.trocas.map(x => x.id === id ? { ...x, status: 'cancelled' as const } : x), ledger: [...e.ledger, linha] }
 }
+
+const diaChave = (agora: number) => { const d = new Date(agora); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}` }
+export const visitouHoje = (e: Estado, agora = Date.now()) => e.ledger.some(l => l.kind === 'earn' && l.action === 'checkin' && l.em >= inicio('per_day', agora))
+export const opinouHoje = (e: Estado, agora = Date.now()) => e.ledger.some(l => l.kind === 'earn' && l.action === 'survey' && l.em >= inicio('per_day', agora))
+/** Check-in do dia (1 por dia) com bônus de voltar em 7 dias e de 3 visitas no mês. */
+export function checkin(e: Estado, agora = Date.now()): [Estado, { credited: number; already: boolean; bonuses: string[] }] {
+  if (!e.membro) throw new Error('not_member')
+  if (visitouHoje(e, agora)) return [e, { credited: 0, already: true, bonuses: [] }]
+  const antes = e.ledger.filter(l => l.kind === 'earn' && l.action === 'checkin')
+  let n = e; let total = 0; const bonuses: string[] = []; let g: number
+  ;[n, g] = creditar(n, 'checkin', 'checkin:' + diaChave(agora), agora); total += g; if (g) bonuses.push('checkin')
+  if (antes.some(l => l.em >= agora - 7 * 86400000)) { [n, g] = creditar(n, 'return_7d', 'return7:' + diaChave(agora), agora); total += g; if (g) bonuses.push('return_7d') }
+  if (antes.filter(l => l.em >= inicio('per_month', agora)).length === 2) { [n, g] = creditar(n, 'visits_3_month', 'v3:' + new Date(agora).getMonth(), agora); total += g; if (g) bonuses.push('visits_3_month') }
+  return [n, { credited: total, already: false, bonuses }]
+}
+/** Como foi a visita: nota, pratos que gostou e comentário. Exige check-in no dia; uma vez por dia. */
+export function opinar(e: Estado, nota: number, comentario: string, gostei: string[], agora = Date.now()): [Estado, number] {
+  if (!e.membro) throw new Error('not_member'); if (nota < 1 || nota > 5) throw new Error('invalid_rating')
+  if (!visitouHoje(e, agora)) throw new Error('no_visit'); if (opinouHoje(e, agora)) throw new Error('already_sent')
+  const c = comentario.trim(); const valido = c.length >= 20 && !/(https?:\/\/|www\.|\.com|@)/i.test(c)
+  let n = e; let total = 0; let g: number
+  ;[n, g] = creditar(n, 'survey', 'survey:' + diaChave(agora), agora); total += g
+  for (let i = 0; i < Math.min(gostei.length, 3); i++) { [n, g] = creditar(n, 'like_dish', `like:${diaChave(agora)}:${i}`, agora); total += g }
+  if (valido) { [n, g] = creditar(n, 'comment_dish', 'comment:' + diaChave(agora), agora); total += g }
+  return [n, total]
+}
