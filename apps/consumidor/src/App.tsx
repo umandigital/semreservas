@@ -78,7 +78,7 @@ export function App() {
     if (rota.startsWith('/troca/')) return <Troca id={rota.slice(7)} ir={ir} />
     if (rota === '/cadastro') return <Cadastro ir={ir} />
     if (rota.startsWith('/comentarios/')) return <Comentarios id={rota.slice(13)} ir={ir} />
-    if (rota === '/fotos') return <Fotos />
+    if (rota === '/fotos') return <Fotos ir={ir} />
     if (rota === '/visita' || rota === '/pesquisa') return <Visita ir={ir} />
     if (rota === '/clube/indicar') return <Indicar ir={ir} />
     if (rota === '/regulamento' || rota === '/privacidade' || rota === '/termos') return <Legal id={rota.slice(1)} ir={ir} />

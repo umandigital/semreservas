@@ -309,3 +309,8 @@ textarea.campo { resize:vertical; min-height:96px; }
 .anel-no.tem { opacity:1; } .anel-no.tem .anel-ic { background:var(--laranja); color:var(--bg); border:2px solid var(--txt); } .anel-ok { position:absolute; top:-4px; right:8px; width:22px; height:22px; border-radius:50%; background:#1f7a46; color:#fff; font-style:normal; font-size:.9rem; display:grid; place-items:center; }
 .papel.premio { text-align:center; } .barra-seg { display:flex; gap:6px; margin:8px 0 2px; } .barra-seg i { flex:1; height:12px; border-radius:99px; background:var(--bg3); } .barra-seg i.on { background:var(--laranja); }
 .passo { display:flex; gap:12px; align-items:center; margin:8px 0; } .passo b { flex:none; width:36px; height:36px; border-radius:50%; background:var(--laranja); color:var(--bg); display:grid; place-items:center; }
+
+/* ── Fotos com moldura ── */
+.fotos .tela-foto { width:100%; max-width:380px; display:block; margin:8px auto; border-radius:14px; box-shadow:0 6px 22px rgba(0,0,0,.5); background:var(--bg2); }
+.minis { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; } .mini-m { background:var(--bg2); border:2px solid var(--borda); border-radius:12px; padding:6px; color:var(--txt); display:grid; gap:4px; font-weight:700; font-size:.9rem; } .mini-m.on { border-color:var(--laranja); background:var(--bg3); } .mini-m canvas { width:100%; height:auto; border-radius:8px; display:block; }
+.dois { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 0; } .botao-arq { display:flex; align-items:center; justify-content:center; min-height:56px; border-radius:var(--r); text-align:center; font-weight:700; cursor:pointer; } .botao-arq input { position:absolute; opacity:0; width:1px; height:1px; }
