@@ -13,8 +13,8 @@ export function aplicarTema(raiz: HTMLElement = document.documentElement) {
   for (const [k, v] of Object.entries(TEMA.cores)) raiz.style.setProperty(k, v)
 }
 
-/** Molduras de foto do restaurante: textos são dados. Se existir `png` (arte com janela transparente para a foto, em public/media/molduras), ela é usada no lugar do desenho. */
-export type MolduraCfg = { id: string; nome: string; titulo: string[]; rodape: string; estilo: 'quadro' | 'placa' | 'vitral'; png?: string }
+/** Molduras de foto do restaurante: textos são dados. Se existir `png` (arte SEM TEXTO, com janela transparente para a foto, em public/media/molduras), ela é usada no lugar do desenho e o app escreve título, frase e nome por cima (cor em `corTexto`). */
+export type MolduraCfg = { id: string; nome: string; titulo: string[]; rodape: string; estilo: 'quadro' | 'placa' | 'vitral'; png?: string; corTexto?: string }
 export const MOLDURAS: MolduraCfg[] = [
   { id: 'demos', nome: 'Demos prejuízo', titulo: ['Demos', 'prejuízo!'], rodape: 'E ainda pedimos a saideira.', estilo: 'quadro' },
   { id: 'mesa', nome: 'À mesa', titulo: ['O melhor da vida', 'acontece à mesa.'], rodape: 'E a nossa foi aqui.', estilo: 'placa' },
