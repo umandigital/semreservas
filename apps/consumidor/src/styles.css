@@ -279,3 +279,19 @@ textarea.campo { resize:vertical; min-height:96px; }
 .papel.meta { position:relative; overflow:hidden; } .foto-meta { width:70%; max-width:240px; margin:0 auto; border-radius:50%; aspect-ratio:1; object-fit:cover; }
 .confete i { position:absolute; top:-10px; width:8px; height:14px; background:#e09060; border-radius:2px; animation:cai 2.4s ease-in 2; } .confete i:nth-child(3n) { background:#5e1b34; } .confete i:nth-child(3n+1) { background:#1f7a46; }
 @keyframes cai { to { transform:translateY(420px) rotate(260deg); opacity:0; } } @media (prefers-reduced-motion:reduce) { .confete { display:none; } }
+
+/* ── Cardápio no layout: título e Busca, Explorar | Lista, categorias; o prato ocupa o resto da tela ── */
+.reels-wrap { display:flex; flex-direction:column; background:var(--bg); --topo-reel:0px; }
+.card-topo { flex:none; padding:8px 12px 4px; display:grid; gap:8px; background:var(--bg); z-index:5; }
+.linha-t { display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:48px; } .linha-t h1 { margin:0; font-size:1.7rem; } .linha-t .busca { flex:1; }
+.busca-b { display:inline-flex; align-items:center; gap:8px; min-height:48px; padding:0 18px; border-radius:99px; border:1px solid var(--borda); background:var(--bg2); color:var(--txt); font-weight:700; }
+.seg { display:grid; grid-template-columns:1fr 1fr; background:var(--bg2); border:1px solid var(--borda); border-radius:99px; padding:4px; } .seg button { min-height:44px; border:0; border-radius:99px; background:none; color:var(--txt); font-weight:700; font-size:1.05rem; } .seg button.on { background:var(--laranja); color:var(--bg); }
+.card-topo .chips { padding:0; }
+.area-feed { position:relative; flex:1; min-height:0; overflow:hidden; background:#000; }
+@media (max-height:700px) { .linha-t h1 { display:none; } .linha-t { justify-content:flex-end; } }
+/* lista no layout: foto, nome, descrição curta e preço; a ação ocupa a linha de baixo (cabe em qualquer largura) */
+.linha-item { grid-template-columns:84px minmax(0,1fr) !important; align-items:start; } .linha-item img { width:84px !important; height:84px !important; }
+.linha-item .meio h2 { font-size:1.1rem; margin:0; } .linha-item .meio p { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.acao-lista { grid-column:1 / -1; } .acao-lista > * { width:100%; } .acao-lista .primario { min-height:48px; } .acao-lista .qtd { justify-content:space-between; } .acao-lista .esgotado { display:block; text-align:center; }
+.linha-t .busca { min-width:0; } .linha-t .busca input { width:100%; min-width:0; }
+.reel .cta-ar { background:rgba(255,255,255,.08); color:#fff; border:2px solid var(--laranja); } .reel .cta-ar:disabled { opacity:1; }

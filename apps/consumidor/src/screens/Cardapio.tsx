@@ -5,7 +5,7 @@ import { avisar, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib
 import { useRaAberta, definirRaAberta } from '../lib/raAberta'
 import { abrirRa, baseCurtidas, media, webxrArDisponivel } from '../lib/util'
 import type { ModeloEl } from '../ui/model-viewer'
-import { IconBusca, IconCardapio, IconCubo, IconEnviar, IconEstrela, IconLista, IconMais } from '../ui/Icons'
+import { IconBusca, IconCubo, IconEnviar, IconEstrela, IconMais } from '../ui/Icons'
 
 // O 3D (e a biblioteca dele) só baixa quando um prato em 3D chega perto da tela.
 const Modelo3D = lazy(() => import('./Modelo3D'))
@@ -36,24 +36,26 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
 
   return (
     <div className="reels-wrap" ref={wrap} style={{ ...(h ? { height: h } : { minHeight: '70dvh' }), '--fundo-3d': CONFIG.fundo3d } as unknown as CSSProperties}>
-      <div className="reels-topo">
+      <div className="card-topo">
         {buscando ? (
-          <>
-            <label className="busca"><IconBusca /><input autoFocus placeholder="Buscar no cardápio" value={q} onChange={e => setQ(e.target.value)} aria-label="Buscar no cardápio" /></label>
-            <button className="icone" onClick={() => { setBuscando(false); setQ('') }} aria-label="Fechar busca">✕</button>
-          </>
+          <div className="linha-t">
+            <label className="busca"><IconBusca /><input autoFocus placeholder="Buscar no cardápio" value={q} onChange={e => { setQ(e.target.value); setCat('Todos') }} aria-label="Buscar no cardápio" /></label>
+            <button className="busca-b" onClick={() => { setBuscando(false); setQ('') }}>Fechar</button>
+          </div>
         ) : (
-          <>
-            <button className="icone" onClick={() => setBuscando(true)} aria-label="Buscar no cardápio"><IconBusca /></button>
-            <div className="chips" role="tablist" aria-label="Categorias">
-              {['Todos', ...CATEGORIAS].map(c => <button key={c} role="tab" aria-selected={cat === c} className={'chip' + (cat === c ? ' on' : '')} onClick={() => setCat(c)}>{c}</button>)}
-            </div>
-            <button className="icone" onClick={() => setLista(!lista)} aria-label={lista ? 'Ver em tela cheia' : 'Ver em lista'}>{lista ? <IconCardapio /> : <IconLista />}</button>
-          </>
+          <div className="linha-t"><h1>Cardápio</h1><button className="busca-b" onClick={() => setBuscando(true)}><IconBusca /> Busca</button></div>
         )}
+        <div className="seg" role="tablist" aria-label="Como ver o cardápio">
+          <button role="tab" aria-selected={!lista} className={!lista ? 'on' : ''} onClick={() => setLista(false)}>Explorar</button>
+          <button role="tab" aria-selected={lista} className={lista ? 'on' : ''} onClick={() => setLista(true)}>Lista</button>
+        </div>
+        <div className="chips" role="tablist" aria-label="Categorias">
+          {['Todos', ...CATEGORIAS].map(c => <button key={c} role="tab" aria-selected={cat === c} className={'chip' + (c === cat ? ' on' : '')} onClick={() => setCat(c)}>{c}</button>)}
+        </div>
       </div>
+      <div className="area-feed">
       {itens.length === 0 ? <p className="vazio-reel">Nada encontrado. Tente outra palavra.</p> : lista ? (
-        <div className="lista lista-wrap" ref={rolo} style={{ position: 'absolute', inset: 0, paddingTop: 72, paddingBottom: 16, background: 'var(--bg)' }}>
+        <div className="lista lista-wrap" ref={rolo} style={{ position: 'absolute', inset: 0, paddingTop: 8, paddingBottom: 16, background: 'var(--bg)' }}>
           {itens.map(i => <LinhaItem key={i.id} i={i} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />)}
         </div>
       ) : (
@@ -62,6 +64,7 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
         </div>
       )}
       {dica && !lista && itens.length > 1 && <div className="dica-deslize" aria-hidden="true">↑ Deslize para o próximo</div>}
+      </div>
     </div>
   )
 }
@@ -154,8 +157,8 @@ function LinhaItem({ i, base, esgotado, qtd }: { i: Item; base: string; esgotado
   return (
     <article className={'linha-item' + (esgotado ? ' off' : '')}>
       <img src={i.modelo ? media(i.modelo.poster) : base + i.img} alt="" loading="lazy" />
-      <div className="meio"><h2>{i.nome}{i.modelo && <span className="tag3d">3D</span>}</h2><p>{i.desc}</p><span className="preco">{brl(i.preco)}</span></div>
-      <Acao i={i} esgotado={esgotado} qtd={qtd} />
+      <div className="meio"><h2>{i.nome}{i.modelo && <span className="tag3d">3D</span>}</h2><p>{i.desc}</p><div className="lin-pr"><span className="preco">{brl(i.preco)}</span></div></div>
+      <div className="acao-lista"><Acao i={i} esgotado={esgotado} qtd={qtd} curto /></div>
     </article>
   )
 }
