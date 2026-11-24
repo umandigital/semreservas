@@ -61,6 +61,16 @@ export const ITENS: Item[] = [
  *  Dentro de cada grupo vale a ordem de cadastro. O dono edita só os cadastros; a regra é esta. */
 const rank = (i: Item) => (i.modelo ? 0 : i.real && i.video ? 1 : 2)
 export const ITENS_FEED: Item[] = ITENS.map((it, n) => ({ it, n })).sort((a, b) => rank(a.it) - rank(b.it) || a.n - b.n).map(x => x.it)
+/** Cardápio do servidor (painel do dono): preço, nome, "no cardápio" e itens novos valem para o cliente. Sem resposta do servidor, vale o cardápio embutido. */
+export type LinhaMenu = { item_id: string; name: string; price_cents: number; active: boolean; category: string | null; description: string | null }
+const BASE = [...ITENS]; const BASE_FEED = [...ITENS_FEED]
+export function aplicarMenu(rows: LinhaMenu[]) {
+  const por = new Map(rows.map(r => [r.item_id, r])); const cats = CATEGORIAS as readonly string[]
+  const mexe = (b: Item[]) => b.filter(i => por.get(i.id)?.active !== false).map(i => { const r = por.get(i.id); return r ? { ...i, nome: r.name, preco: r.price_cents } : i })
+  const novos: Item[] = rows.filter(r => r.active && !BASE.some(i => i.id === r.item_id) && r.category && cats.includes(r.category))
+    .map(r => ({ id: r.item_id, cat: r.category as string, nome: r.name, preco: r.price_cents, desc: r.description ?? '', ingredientes: [], img: 'media/marca/gastropub-logo.webp' }))
+  ITENS.length = 0; ITENS.push(...mexe(BASE), ...novos); ITENS_FEED.length = 0; ITENS_FEED.push(...mexe(BASE_FEED), ...novos)
+}
 export const brl = (c: number) => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 // Configuração do estabelecimento (teste). Campo vazio = ação não aparece (nunca inventar destino).

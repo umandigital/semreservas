@@ -58,3 +58,5 @@ export const MENSAGEM_ERRO: Record<ApiCode, string> = {
   location_required: 'Para chamar o garçom precisamos confirmar que você está no restaurante. Permita a localização do aparelho e tente de novo.',
   device_blocked: 'Os chamados deste aparelho estão pausados por 24 horas. Se precisar de algo, fale com a equipe pessoalmente.',
 }
+export const menuPublico = (slug: string) => rpc<import('../data/cardapio').LinhaMenu>('menu_public', { p_slug: slug })
+export const moldurasPublicas = (slug: string) => rpc<{ frame_id: string; enabled: boolean; title: string[]; footer: string }>('frames_public', { p_slug: slug })

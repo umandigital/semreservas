@@ -87,3 +87,8 @@ export type Cliente = { user_id: string; first_name: string; joined_at: string; 
 export const clientes = async (t: string) => ler<Cliente[]>(await db().rpc('owner_club_members_list', { p_tenant: t, p_limit: 200 }))
 export const ajustarPontos = async (t: string, u: string, delta: number, motivo: string) => ler<boolean>(await db().rpc('owner_club_adjust', { p_tenant: t, p_user: u, p_delta: delta, p_reason: motivo }))
 export { mediana }
+
+export const novoItem = async (t: string, nome: string, precoCents: number, cat: string, desc: string) => ler<string | null>(await db().rpc('owner_menu_add', { p_tenant: t, p_name: nome, p_price_cents: precoCents, p_category: cat, p_description: desc || null }))
+export type MolduraDono = { frame_id: string; enabled: boolean; title: string[]; footer: string }
+export const molduras = async (t: string) => ler<MolduraDono[]>(await db().rpc('owner_frames_list', { p_tenant: t }))
+export const salvarMoldura = async (t: string, m: MolduraDono) => ler<boolean>(await db().rpc('owner_frame_set', { p_tenant: t, p_frame: m.frame_id, p_enabled: m.enabled, p_title: m.title, p_footer: m.footer }))

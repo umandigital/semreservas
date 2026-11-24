@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { brl } from '../data/cardapio'
+import { brl, CATEGORIAS } from '../data/cardapio'
 import { CLUBE, REGRAS } from '../data/clube'
-import { TEMA } from '../data/tema'
+import { MOLDURAS, TEMA } from '../data/tema'
 import * as P from '../lib/painel'
 import { alertaAtivo, ativarAlerta, relogio, tocar } from '../lib/alerta'
 import type { Estab } from '../lib/dono'
@@ -116,7 +116,20 @@ export function PrecosSec({ est }: { est: Estab }) {
   const t = est.tenant_id; const [is, e, rec] = useCarga(() => P.itensMenu(t), [t]); const [msg, setMsg] = useState('')
   const salvar = async (i: P.ItemMenu) => { try { setMsg(await P.salvarItem(t, i) ? 'Salvo.' : 'Você não tem permissão ou os dados são inválidos.'); rec() } catch { setMsg('Não foi possível salvar. Tente de novo.') } }
   return <div><p>Preço e disponibilidade de cada item. O valor do pedido e a liberação da Roleta usam estes preços.</p><Aviso e={e} />{!is && !e && <Carregando />}{msg && <p role="status" className="nota">{msg}</p>}
-    {is && <table className="tabela"><thead><tr><th>Item</th><th>Preço (R$)</th><th>No cardápio</th></tr></thead><tbody>{is.map(i => <ItemLinha key={i.item_id} i={i} salvar={salvar} />)}</tbody></table>}</div>
+    {is && <table className="tabela"><thead><tr><th>Item</th><th>Preço (R$)</th><th>No cardápio</th></tr></thead><tbody>{is.map(i => <ItemLinha key={i.item_id} i={i} salvar={salvar} />)}</tbody></table>}
+    <NovoItem t={t} feito={m => { setMsg(m); rec() }} /></div>
+}
+/** Novo item: aparece no cardápio do cliente (sem foto por enquanto; a foto e o 3D são colocados pelo SemReservas). */
+function NovoItem({ t, feito }: { t: string; feito: (m: string) => void }) {
+  const [nome, setNome] = useState(''); const [preco, setPreco] = useState('0.00'); const [cat, setCat] = useState<string>(CATEGORIAS[0]); const [desc, setDesc] = useState('')
+  const cents = Math.round((Number(preco.replace(',', '.')) || 0) * 100); const ok = nome.trim().length >= 2 && cents > 0
+  const criar = async () => { try { const id = await P.novoItem(t, nome.trim(), cents, cat, desc.trim()); feito(id ? `“${nome.trim()}” foi para o cardápio.` : 'Você não tem permissão ou os dados são inválidos.'); if (id) { setNome(''); setPreco('0.00'); setDesc('') } } catch { feito('Não foi possível salvar. Tente de novo.') } }
+  return <div className="cartao-p"><h2>Novo item no cardápio</h2><p className="nota">O item aparece para o cliente em poucos segundos. A foto e o 3D são colocados pelo SemReservas.</p>
+    <Linha t="Nome"><input className="campo-p" value={nome} maxLength={120} onChange={e => setNome(e.target.value)} /></Linha>
+    <Linha t="Preço (R$)"><input className="campo-p num" type="number" min={0} step="0.01" value={preco} onChange={e => setPreco(e.target.value)} /></Linha>
+    <Linha t="Categoria"><select className="campo-p" value={cat} onChange={e => setCat(e.target.value)}>{CATEGORIAS.map(c => <option key={c}>{c}</option>)}</select></Linha>
+    <Linha t="Descrição (opcional)"><input className="campo-p" value={desc} maxLength={300} onChange={e => setDesc(e.target.value)} /></Linha>
+    <button className="primario" disabled={!ok} onClick={criar}>Adicionar ao cardápio</button></div>
 }
 function ItemLinha({ i, salvar }: { i: P.ItemMenu; salvar: (i: P.ItemMenu) => void }) {
   const [v, setV] = useState(i); const mudou = JSON.stringify(v) !== JSON.stringify(i)
@@ -334,4 +347,20 @@ export function ClientesSec({ est }: { est: Estab }) {
       <Linha t="Motivo (mínimo 5 letras)"><input className="campo-p" value={motivo} maxLength={200} onChange={ev => setMotivo(ev.target.value)} /></Linha>
       <div className="form-p"><button className="primario" disabled={!ok} onClick={aplicar}>Confirmar</button><button className="sec" onClick={() => setAlvo(null)}>Cancelar</button></div></div>}
   </section>
+}
+
+/** Molduras de foto: liga/desliga e edita os textos. O desenho de cada moldura é do app. */
+export function MolduraSec({ est }: { est: Estab }) {
+  const t = est.tenant_id; const [msg, setMsg] = useState(''); const [rs, e] = useCarga(() => P.molduras(t), [t, msg])
+  const salvar = async (m: P.MolduraDono) => { try { setMsg(await P.salvarMoldura(t, m) ? 'Salvo.' : 'Confira os textos (1 a 3 linhas no título e um rodapé).') } catch { setMsg('Não foi possível salvar. Tente de novo.') } }
+  return <section><p>Moldura é o quadro que o cliente coloca na própria foto antes de compartilhar. A foto nunca sai do aparelho dele.</p><Aviso e={e} />{msg && <p role="status" className="nota">{msg}</p>}{!rs && !e && <Carregando />}
+    {rs && MOLDURAS.map(b => { const r = rs.find(x => x.frame_id === b.id); return <MolduraForm key={b.id + (r ? r.footer + r.title.join() + r.enabled : '')} base={{ frame_id: b.id, enabled: r?.enabled ?? true, title: r?.title ?? b.titulo, footer: r?.footer ?? b.rodape }} nome={b.nome} salvar={salvar} /> })}</section>
+}
+function MolduraForm({ base, nome, salvar }: { base: P.MolduraDono; nome: string; salvar: (m: P.MolduraDono) => void }) {
+  const [v, setV] = useState(base); const mudou = JSON.stringify(v) !== JSON.stringify(base)
+  const ok = v.title.length >= 1 && v.title.every(l => l.trim().length >= 1 && l.length <= 40) && v.footer.trim().length >= 1 && v.footer.length <= 80
+  return <div className="cartao-p"><h2>{nome}</h2><Sw on={v.enabled} set={x => setV({ ...v, enabled: x })} t="Disponível para o cliente" />
+    <Linha t="Título (uma linha por campo)"><span>{v.title.map((l, i) => <input key={i} className="campo-p" value={l} maxLength={40} aria-label={`Título, linha ${i + 1}`} onChange={e => setV({ ...v, title: v.title.map((x, j) => j === i ? e.target.value : x) })} />)}</span></Linha>
+    <Linha t="Frase de baixo"><input className="campo-p" value={v.footer} maxLength={80} onChange={e => setV({ ...v, footer: e.target.value })} /></Linha>
+    {mudou && <button className="primario" disabled={!ok} onClick={() => salvar(v)}>Salvar</button>}</div>
 }

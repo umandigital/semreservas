@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { avisar } from '../lib/mockStore'
 import { useClube } from '../lib/clube'
+import { moldurasPublicas } from '../lib/api'
+import { getSlug } from '../lib/router'
 import { MOLDURAS, TEMA, type MolduraCfg } from '../data/tema'
 
 const W = 900, H = 1350, JAN = { x: 60, y: 430, w: 780, h: 600 }   // janela da foto (tudo em proporção: a arte pronta, se existir, usa a mesma)
@@ -57,7 +59,9 @@ export function Fotos({ ir }: { ir?: (r: string) => void }) {
   const c = useClube(); const m0 = c.v?.membro; const pts = (a: string) => c.v?.regras.find(r => r.action === a)?.points ?? 0
   const pontuar = async (a: string) => { if (!m0) return; try { const g = await c.ganhar(a); if (g) avisar(`+${g} pontos no seu Clube!`) } catch { /* sem pontos */ } }
   const ref = useRef<HTMLCanvasElement>(null); const [img, setImg] = useState<HTMLImageElement | null>(null); const [propria, setPropria] = useState(false); const [m, setM] = useState<MolduraCfg>(MOLDURAS[0])
-  const [amostra, setAmostra] = useState<HTMLImageElement | null>(null)
+  const [amostra, setAmostra] = useState<HTMLImageElement | null>(null); const [lista, setLista] = useState<MolduraCfg[]>(MOLDURAS)
+  // Textos e liga/desliga das molduras vêm do painel do dono; sem resposta do servidor valem os embutidos
+  useEffect(() => { moldurasPublicas(getSlug()).then(rs => { if (!rs.length) return; const l = MOLDURAS.filter(b => rs.find(r => r.frame_id === b.id)?.enabled !== false).map(b => { const r = rs.find(x => x.frame_id === b.id); return r ? { ...b, titulo: r.title, rodape: r.footer } : b }); if (l.length) { setLista(l); setM(a => l.find(x => x.id === a.id) ?? l[0]) } }).catch(() => { /* mantém as embutidas */ }) }, [])
   useEffect(() => { void carregar(MOSTRA).then(setAmostra) }, [])
   const base = img ?? amostra
   useEffect(() => { (async () => { if (!ref.current || !base) return; const arte = m.png ? await carregar(import.meta.env.BASE_URL + m.png) : null; pintar(ref.current, base, m, arte) })() }, [base, m])
@@ -80,7 +84,7 @@ export function Fotos({ ir }: { ir?: (r: string) => void }) {
       {!propria && <p className="selo-demo">Prévia demonstrativa</p>}
       <canvas ref={ref} width={W} height={H} className="tela-foto" aria-label="Pré-visualização da foto com moldura" />
       <h2>Escolha uma moldura</h2>
-      <div className="minis">{MOLDURAS.map(x => <Mini key={x.id} m={x} img={base} ativa={m.id === x.id} ao={() => setM(x)} />)}</div>
+      <div className="minis">{lista.map(x => <Mini key={x.id} m={x} img={base} ativa={m.id === x.id} ao={() => setM(x)} />)}</div>
       <div className="dois">
         <label className="sec botao-arq">Tirar foto<input type="file" accept="image/*" capture="environment" onChange={e => escolher(e.target.files?.[0])} /></label>
         <label className="sec botao-arq">Escolher foto<input type="file" accept="image/*" onChange={e => escolher(e.target.files?.[0])} /></label>

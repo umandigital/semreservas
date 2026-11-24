@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useRota, setMesa, setToken, setSlug, getMesa } from './lib/router'
+import { useMenuServidor } from './lib/hooks'
 import { parseRoute } from './lib/route'
 import { carregarTenant, resolverPlaca } from './lib/supabase'
 import { avisar, useMembro, useSelecao, useToast } from './lib/mockStore'
@@ -35,7 +36,7 @@ export function App() {
   const equipe = rota === '/equipe' || rota.startsWith('/equipe/')
 
   useEffect(() => { aplicarTema(); guardarIndicacao() }, [])
-  const clube = useClube()
+  const clube = useClube(); useMenuServidor()
   // Voltou do login (Google ou código): quem ainda não completou o cadastro vai direto para "Falta só um passo"
   useEffect(() => {
     const v = clube.v; if (!v?.logado) return
