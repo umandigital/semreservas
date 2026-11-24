@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { CATEGORIAS, ITENS } from '../data/cardapio'
 import { ROTULO, type Kind } from '../lib/api'
 import { calcularMetricas, fmtDuracao, type Metricas } from '../lib/metricas'
+import { instalavel, instalar, jaInstalado, ehIos, registrarPwaDono } from '../lib/pwa'
 import { AlertaChamados, AparenciaSec, ClubeSec, ClientesSec, ComentariosSec, ConfigSec, DesempenhoSec, EquipeSec, ExtrasSec, MolduraSec, PrecosSec, ResumoSec } from './PainelSecoes'
 import { chamadosDesde, entrar, esgotadosDoEstab, linkDaEquipe, marcarEsgotado, meusEstabelecimentos, sair, trocarLinkDaEquipe, urlDoPainel, useSessao, type Estab } from '../lib/dono'
 
@@ -11,8 +12,18 @@ const PERIODOS = [{ k: 'hoje', t: 'Hoje', dias: 0 }, { k: '7', t: '7 dias', dias
 
 export default function Dono() {
   const { sessao, carregando } = useSessao()
+  useEffect(() => { void registrarPwaDono() }, [])   // deixa o painel instalável (ícone na tela inicial / janela própria)
   if (carregando) return <main className="centro"><p>Carregando…</p></main>
   return sessao ? <Painel email={sessao.user.email ?? ''} /> : <Login />
+}
+
+/** Botão "Instalar este painel": aparece só quando o navegador permite; no iPhone/iPad mostra o caminho manual. */
+function Instalar() {
+  const [pode, setPode] = useState(false); useEffect(() => instalavel(setPode), [])
+  if (jaInstalado()) return null
+  if (pode) return <button className="sec" onClick={() => instalar()}>Instalar este painel</button>
+  if (ehIos()) return <small className="nota">Para instalar: toque em Compartilhar e em "Adicionar à Tela de Início".</small>
+  return null
 }
 
 function Login() {
@@ -26,7 +37,7 @@ function Login() {
         {erro && <p className="alerta" role="alert">{erro}</p>}
         <button className="primario grande" disabled={busy || !email || !senha}>{busy ? 'Entrando…' : 'Entrar'}</button>
       </form>
-      <p className="nota">Esqueceu a senha? Fale com o SemReservas.</p>
+      <p className="nota">Esqueceu a senha? Fale com o SemReservas.</p><Instalar />
     </main>
   )
 }
@@ -43,7 +54,7 @@ function Painel({ email }: { email: string }) {
     <div className="painel">
       <aside className="painel-nav"><div className="marca-p"><b>{est.name}</b><small>Painel do proprietário</small></div>
         <nav aria-label="Seções">{MENU.map(([k, t]) => <button key={k} className={aba === k ? 'on' : ''} aria-current={aba === k ? 'page' : undefined} onClick={() => setAba(k)}>{t}</button>)}</nav>
-        <div className="rodape-p"><small>{email}</small><button className="sec" onClick={() => sair()}>Sair</button></div></aside>
+        <div className="rodape-p"><small>{email}</small><Instalar /><button className="sec" onClick={() => sair()}>Sair</button></div></aside>
       <main className="painel-corpo"><AlertaChamados est={est} /><h1>{MENU.find(m => m[0] === aba)![1]}</h1>
         {aba === 'resumo' && <ResumoSec est={est} />}
         {aba === 'atendimento' && <><p className="nota">Os chamados em aberto aparecem no topo de qualquer tela, com som e alerta, até alguém assumir.</p><Geral est={est} /></>}

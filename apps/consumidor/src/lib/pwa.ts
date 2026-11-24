@@ -25,9 +25,16 @@ export function manifestoDoPainel(token: string, base: string, origem: string) {
     ],
   }
 }
-export async function registrarPwa(token: string) {
+/** Painel do proprietário instalável: o ícone instalado abre direto em #/dono (o login continua sendo pedido). */
+export function manifestoDoDono(base: string, origem: string) {
+  const abs = (p: string) => origem + base + p
+  return { ...manifestoDoPainel('x', base, origem), name: 'SemReservas · Painel do dono', short_name: 'Meu painel', description: 'Resumo, atendimento, Clube e cardápio do restaurante', start_url: abs('#/dono'), id: abs('#/dono') }
+}
+export const registrarPwa = (token: string) => registrar(manifestoDoPainel(token, import.meta.env.BASE_URL, location.origin))
+export const registrarPwaDono = () => registrar(manifestoDoDono(import.meta.env.BASE_URL, location.origin))
+async function registrar(manifesto: unknown) {
   const base = import.meta.env.BASE_URL
-  const url = URL.createObjectURL(new Blob([JSON.stringify(manifestoDoPainel(token, base, location.origin))], { type: 'application/manifest+json' }))
+  const url = URL.createObjectURL(new Blob([JSON.stringify(manifesto)], { type: 'application/manifest+json' }))
   let l = document.querySelector<HTMLLinkElement>('link[rel=manifest]'); if (!l) { l = document.createElement('link'); l.rel = 'manifest'; document.head.appendChild(l) }
   l.href = url
   if ('serviceWorker' in navigator) { try { await navigator.serviceWorker.register(base + 'sw.js', { scope: base }) } catch { /* sem suporte: o painel funciona no navegador do mesmo jeito */ } }
