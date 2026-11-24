@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { CATEGORIAS, ITENS } from '../data/cardapio'
 import { ROTULO, type Kind } from '../lib/api'
 import { calcularMetricas, fmtDuracao, type Metricas } from '../lib/metricas'
+import { AparenciaSec, ClubeSec, ConfigSec, ExtrasSec, FilaSec, PrecosSec, ResumoSec } from './PainelSecoes'
 import { chamadosDesde, entrar, esgotadosDoEstab, linkDaEquipe, marcarEsgotado, meusEstabelecimentos, sair, trocarLinkDaEquipe, urlDoPainel, useSessao, type Estab } from '../lib/dono'
 
-type Aba = 'geral' | 'esgotado' | 'equipe'
+type Aba = 'resumo' | 'atendimento' | 'clube' | 'cardapio' | 'aparencia' | 'extras' | 'config'
+const MENU: [Aba, string][] = [['resumo', 'Resumo'], ['atendimento', 'Atendimento'], ['clube', 'Clube'], ['cardapio', 'Cardápio'], ['aparencia', 'Aparência'], ['extras', 'Roleta e aniversário'], ['config', 'Configurações']]
 const PERIODOS = [{ k: 'hoje', t: 'Hoje', dias: 0 }, { k: '7', t: '7 dias', dias: 7 }, { k: '30', t: '30 dias', dias: 30 }] as const
 
 export default function Dono() {
@@ -30,25 +32,29 @@ function Login() {
 }
 
 function Painel({ email }: { email: string }) {
-  const [ests, setEsts] = useState<Estab[] | null>(null); const [erro, setErro] = useState(false); const [aba, setAba] = useState<Aba>('geral')
+  const [ests, setEsts] = useState<Estab[] | null>(null); const [erro, setErro] = useState(false); const [aba, setAba] = useState<Aba>('resumo'); const [cardAba, setCardAba] = useState<'precos' | 'esgotado'>('precos')
   useEffect(() => { meusEstabelecimentos().then(setEsts).catch(() => setErro(true)) }, [])
   const est = ests?.[0]
-  return (
-    <main className="dono">
-      <header><div><b>{est?.name ?? 'Dashboard'}</b><small>{email}</small></div><button className="sec" onClick={() => sair()}>Sair</button></header>
+  if (!est) return (
+    <main className="dono"><header><div><b>Painel do proprietário</b><small>{email}</small></div><button className="sec" onClick={() => sair()}>Sair</button></header>
       {erro && <p className="alerta" role="alert">Não foi possível carregar. Verifique a internet e recarregue.</p>}
-      {ests && !est && <div className="aviso">Sua conta ainda não está ligada a nenhum estabelecimento. Fale com o SemReservas.</div>}
-      {est && (
-        <>
-          <div className="abas" role="tablist">
-            {([['geral', 'Atendimento'], ['esgotado', 'Acabou hoje'], ['equipe', 'Painel da equipe']] as const).map(([k, t]) => <button key={k} role="tab" aria-selected={aba === k} className={aba === k ? 'on' : ''} onClick={() => setAba(k)}>{t}</button>)}
-          </div>
-          {aba === 'geral' && <Geral est={est} />}
-          {aba === 'esgotado' && <Esgotado est={est} />}
-          {aba === 'equipe' && <Equipe est={est} />}
-        </>
-      )}
-    </main>
+      {ests && <div className="aviso">Sua conta ainda não está ligada a nenhum estabelecimento. Fale com o SemReservas.</div>}{!ests && !erro && <p className="nota">Carregando…</p>}</main>)
+  return (
+    <div className="painel">
+      <aside className="painel-nav"><div className="marca-p"><b>{est.name}</b><small>Painel do proprietário</small></div>
+        <nav aria-label="Seções">{MENU.map(([k, t]) => <button key={k} className={aba === k ? 'on' : ''} aria-current={aba === k ? 'page' : undefined} onClick={() => setAba(k)}>{t}</button>)}</nav>
+        <div className="rodape-p"><small>{email}</small><button className="sec" onClick={() => sair()}>Sair</button></div></aside>
+      <main className="painel-corpo"><h1>{MENU.find(m => m[0] === aba)![1]}</h1>
+        {aba === 'resumo' && <ResumoSec est={est} />}
+        {aba === 'atendimento' && <><FilaSec est={est} /><h2 className="sub">Números do atendimento</h2><Geral est={est} /></>}
+        {aba === 'clube' && <ClubeSec est={est} />}
+        {aba === 'cardapio' && <><div className="abas-p" role="tablist">{([['precos', 'Preços e itens'], ['esgotado', 'Acabou hoje']] as const).map(([k, t]) => <button key={k} role="tab" aria-selected={cardAba === k} className={cardAba === k ? 'on' : ''} onClick={() => setCardAba(k)}>{t}</button>)}</div>
+          {cardAba === 'precos' ? <PrecosSec est={est} /> : <Esgotado est={est} />}</>}
+        {aba === 'aparencia' && <AparenciaSec />}
+        {aba === 'extras' && <ExtrasSec est={est} />}
+        {aba === 'config' && <ConfigSec est={est} equipe={<div className="cartao-p"><h2>Painel da equipe</h2><Equipe est={est} /></div>} />}
+      </main>
+    </div>
   )
 }
 
