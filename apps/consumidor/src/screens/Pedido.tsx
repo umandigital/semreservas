@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useEsgotados } from '../lib/hooks'
 import { ApiError, MENSAGEM_ERRO } from '../lib/api'
-import { pedirAtendimento } from '../lib/atendimento'
+import { pedirAtendimento, pedirComItens } from '../lib/atendimento'
+import { CLUBE_REAL } from '../lib/clube'
 import { getMesa, getToken } from '../lib/router'
 import { useClube } from '../lib/clube'
 import { brl, ITENS } from '../data/cardapio'
@@ -15,10 +16,9 @@ export function Pedido({ ir }: { ir: (r: string) => void }) {
     if (!getMesa() || !getToken()) return ir('/chamar')
     setBusy(true)
     try {
-      const id = await pedirAtendimento('order')
-      // Roleta: o pedido chegou ao valor mínimo? o servidor confere o chamado; o valor é o estimado pelo app
-      if (clube.v?.membro && clube.v.roleta?.enabled) { try { await clube.liberarGiro(id, subtotal) } catch { /* sem giro: o pedido segue normal */ } }
-      ir('/chamado/' + id)
+      // Um toque só: chama o garçom com os itens. No modo real o servidor calcula o valor e libera o giro da Roleta.
+      if (CLUBE_REAL) { const r = await pedirComItens(linhas.map(i => ({ id: i.id, qty: sel.qtd[i.id], obs: sel.obs[i.id] }))); ir('/chamado/' + r.id) }
+      else { const id = await pedirAtendimento('order'); if (clube.v?.membro && clube.v.roleta?.enabled) { try { await clube.liberarGiro(id, subtotal) } catch { /* sem giro */ } } ir('/chamado/' + id) }
     } catch (e) { avisar(MENSAGEM_ERRO[e instanceof ApiError ? e.code : 'rede']) } finally { setBusy(false) }
   }
   if (!linhas.length) return <section className="tela-int"><h1>Meu pedido</h1><p className="vazio">Você ainda não escolheu nada.</p><button className="primario grande" onClick={() => ir('/cardapio')}>Ver cardápio</button></section>

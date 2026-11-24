@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { instalavel, instalar, jaInstalado, ehIos, registrarPwa } from '../lib/pwa'
-import { ApiError, painelFila, painelInfo, painelMudar, painelTrote, ROTULO, type Pedido } from '../lib/api'
+import { ApiError, painelFila, painelInfo, painelItens, painelMudar, painelTrote, ROTULO, type ItemPedido, type Pedido } from '../lib/api'
 
 // Painel da equipe: abre pelo link, um toque para ativar e fica funcionando. Só serve para a fila.
 const TOKEN_KEY = 'sr-painel'
@@ -22,6 +22,7 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
   const token = lerToken(tokenUrl)
   const [fase, setFase] = useState<'validando' | 'invalido' | 'splash' | 'ativo'>('validando')
   const [nome, setNome] = useState(''); const [fila, setFila] = useState<Pedido[]>([]); const [offset, setOffset] = useState(0)
+  const [itens, setItens] = useState<Record<string, ItemPedido[] | null>>({})
   const [conectado, setConectado] = useState(true); const [agora, setAgora] = useState(Date.now()); const [notif, setNotif] = useState('')
   const ctx = useRef<AudioContext | null>(null); const lock = useRef<{ release(): Promise<void> } | null>(null)
   const pend = useRef(0); const ultimoOk = useRef(Date.now()); const avisados = useRef(new Set<string>()); const titulo = useRef(document.title)
@@ -121,6 +122,9 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
         <li key={p.id} className={p.status === 'PENDING' ? 'novo' : ''}>
           <div className="mesa-xl">Mesa {p.table_label}</div>
           <div className="linha"><b className="oque">{p.detail ?? ROTULO[p.kind]}</b><span>{minutos(p.created_at)}</span></div>
+          {p.kind === 'order' && <div>{itens[p.id] === undefined
+            ? <button className="sec grande" onClick={async () => { const r = await painelItens(token!, p.id).catch(() => null); setItens(v => ({ ...v, [p.id]: r?.items ?? null })) }}>Ver o pedido</button>
+            : itens[p.id] ? <ul className="lista-mostrar">{itens[p.id]!.map((i, k) => <li key={k}>{i.qty} × {i.name}{i.obs && <small>{i.obs}</small>}</li>)}</ul> : <p className="nota">O cliente não enviou os itens.</p>}</div>}
           {p.presence === 'far' && <p className="presenca longe">⚠ Pode estar fora do restaurante</p>}
           {p.presence === 'unknown' && <p className="presenca">Localização não verificada</p>}
           {p.status === 'PENDING'

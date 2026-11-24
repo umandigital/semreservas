@@ -14,6 +14,11 @@ insert into service_requests (id, tenant_id, table_id, table_label, kind, status
 insert into service_requests (id, tenant_id, table_id, table_label, kind, status, public_code, cancel_token_hash) select '00000000-0000-0000-0000-0000000a0002', ta, mesa, '1', 'order', 'CANCELLED', 'BBBB', 'h' from cx;
 insert into service_requests (id, tenant_id, table_id, table_label, kind, status, public_code, cancel_token_hash) select '00000000-0000-0000-0000-0000000a0003', ta, mesa, '1', 'waiter', 'PENDING', 'CCCC', 'h' from cx;
 
+insert into service_requests (id, tenant_id, table_id, table_label, kind, status, public_code, cancel_token_hash) select '00000000-0000-0000-0000-0000000a0004', ta, mesa, '1', 'order', 'RESOLVED', 'DDDD', 'h' from cx;
+-- fotografias dos pedidos (o que o servidor calculou): 0001 = R$ 90, 0002 (cancelado) = R$ 90, 0004 = R$ 50
+insert into order_snapshots (request_id, tenant_id, items, subtotal_cents) select '00000000-0000-0000-0000-0000000a0001', ta, '[]', 9000 from cx;
+insert into order_snapshots (request_id, tenant_id, items, subtotal_cents) select '00000000-0000-0000-0000-0000000a0002', ta, '[]', 9000 from cx;
+insert into order_snapshots (request_id, tenant_id, items, subtotal_cents) select '00000000-0000-0000-0000-0000000a0004', ta, '[]', 5000 from cx;
 -- u1 adulta e u2 menor entram e fazem a visita do dia
 set local role authenticated; set local request.jwt.claim.sub = '00000000-0000-0000-0000-0000000e2001';
 do $$ declare tok text := (select tok from cx); begin perform club_join(tok,'Ana','1990-06-06','v1'); perform club_checkin(tok); end $$;
@@ -27,8 +32,8 @@ end $$;
 -- adulta: regras de liberação do giro
 set local request.jwt.claim.sub = '00000000-0000-0000-0000-0000000e2001';
 do $$ declare tok text := (select tok from cx); r jsonb; begin
-  r := roulette_grant(tok, '00000000-0000-0000-0000-0000000a0001', 5000);
-  if (r->>'granted')::boolean then raise exception 'FALHA: pedido abaixo de R$ 80 liberou giro'; end if;
+  r := roulette_grant(tok, '00000000-0000-0000-0000-0000000a0004', 99999);   -- o valor do cliente é ignorado
+  if (r->>'granted')::boolean then raise exception 'FALHA: pedido abaixo de R$ 80 liberou giro (valor do cliente foi aceito)'; end if;
   begin perform roulette_grant(tok, '00000000-0000-0000-0000-0000000a0002', 9000); raise exception 'FALHA: chamado cancelado liberou giro'; exception when raise_exception then if sqlerrm <> 'invalid_request' then raise; end if; end;
   begin perform roulette_grant(tok, '00000000-0000-0000-0000-0000000a0003', 9000); raise exception 'FALHA: chamado de garçom liberou giro'; exception when raise_exception then if sqlerrm <> 'invalid_request' then raise; end if; end;
   begin perform roulette_grant(tok, gen_random_uuid(), 9000); raise exception 'FALHA: chamado inexistente liberou giro'; exception when raise_exception then if sqlerrm <> 'invalid_request' then raise; end if; end;

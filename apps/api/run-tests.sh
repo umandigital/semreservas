@@ -16,6 +16,7 @@ q -f apps/api/tests/00_stub_supabase.sql
 for f in apps/api/migrations/*.sql; do echo "migração: $f"; q -f "$f"; done
 q -f seeds/gastropub/seed.sql
 q -f seeds/gastropub/seed_clube.sql
+q -f seeds/gastropub/seed_cardapio.sql
 q -f apps/api/tests/isolamento.sql
 q -f apps/api/tests/chamados.sql
 q -f apps/api/tests/dono.sql
@@ -23,6 +24,7 @@ q -f apps/api/tests/presenca.sql
 q -f apps/api/tests/clube.sql
 q -f apps/api/tests/visita.sql
 q -f apps/api/tests/extras.sql
+q -f apps/api/tests/pedido.sql
 
 # O SQL do gerador de placas aplica e as placas novas resolvem a mesa certa.
 GEN=$(mktemp -d)
