@@ -15,6 +15,6 @@ describe('manifesto do painel instalado', () => {
 describe('manifesto do painel do dono instalado', () => {
   const m = manifestoDoDono('/', 'https://semreservas.com.br')
   it('abre direto em #/dono, dentro do escopo, e sem segredo no endereço', () => { expect(m.start_url).toBe('https://semreservas.com.br/#/dono'); expect(m.start_url.startsWith(m.scope)).toBe(true) })
-  it('é outro aplicativo (id próprio) e não mistura com o painel da equipe', () => { expect(m.id).toBe('https://semreservas.com.br/#/dono'); expect(m.id).not.toBe(manifestoDoPainel('t'.repeat(40), '/', 'https://semreservas.com.br').id); expect(m.name).toContain('dono') })
+  it('é outro aplicativo (id próprio) e não mistura com o painel da equipe', () => { expect(m.id).toBe('https://semreservas.com.br/?app=dono'); const semFrag = (u: string) => new URL(u).href.split('#')[0]; expect(semFrag(m.id)).not.toBe(semFrag(manifestoDoPainel('t'.repeat(40), '/', 'https://semreservas.com.br').id)); expect(m.name).toContain('dono') })
   it('standalone com ícones', () => { expect(m.display).toBe('standalone'); expect(m.icons.length).toBe(3) })
 })

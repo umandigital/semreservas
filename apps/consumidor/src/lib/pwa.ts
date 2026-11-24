@@ -28,7 +28,7 @@ export function manifestoDoPainel(token: string, base: string, origem: string) {
 /** Painel do proprietário instalável: o ícone instalado abre direto em #/dono (o login continua sendo pedido). */
 export function manifestoDoDono(base: string, origem: string) {
   const abs = (p: string) => origem + base + p
-  return { ...manifestoDoPainel('x', base, origem), name: 'SemReservas · Painel do dono', short_name: 'Meu painel', description: 'Resumo, atendimento, Clube e cardápio do restaurante', start_url: abs('#/dono'), id: abs('#/dono') }
+  return { ...manifestoDoPainel('x', base, origem), name: 'SemReservas · Painel do dono', short_name: 'Meu painel', description: 'Resumo, atendimento, Clube e cardápio do restaurante', start_url: abs('#/dono'), id: abs('?app=dono') }   // o id ignora o trecho depois do # (por isso o da equipe e o do dono eram o mesmo): o do dono usa uma pergunta no endereço para ser outro aplicativo
 }
 export const registrarPwa = (token: string) => registrar(manifestoDoPainel(token, import.meta.env.BASE_URL, location.origin))
 export const registrarPwaDono = () => registrar(manifestoDoDono(import.meta.env.BASE_URL, location.origin))
