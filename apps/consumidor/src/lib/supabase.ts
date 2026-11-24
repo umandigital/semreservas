@@ -22,3 +22,6 @@ export async function carregarTenant(slug: string): Promise<Tenant | null> {
   if (error) throw error
   return (data as Tenant[])[0] ?? null
 }
+
+/** Conta uma abertura da placa (NFC ou QR) para o painel. Silencioso: se falhar, o cliente não percebe. */
+export function abrirPlaca(token: string) { if (supabase) void supabase.rpc('plate_open', { p_token: token }).then(() => undefined, () => undefined) }

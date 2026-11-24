@@ -119,3 +119,9 @@ export async function desempenho(t: string, desdeIso: string, desdeDia: string):
     pontosPorAcao: [...acoes].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([acao, pontos]) => ({ acao, pontos })),
     membros: m, voltaram: [...cont.values()].filter(n => n >= 2).length }
 }
+
+export type Pessoa = { user_id: string; email: string; role: 'owner' | 'manager' | 'staff' | 'kitchen' }
+export const equipeLista = async (t: string) => ler<Pessoa[]>(await db().rpc('owner_team_list', { p_tenant: t }))
+export const equipeDar = async (t: string, email: string, role: string) => ler<string>(await db().rpc('owner_team_set', { p_tenant: t, p_email: email, p_role: role }))
+export const equipeTirar = async (t: string, u: string) => ler<boolean>(await db().rpc('owner_team_remove', { p_tenant: t, p_user: u }))
+export const canais = async (t: string, desdeIso: string) => ler<{ origin: 'nfc' | 'qr'; opens: number }[]>(await db().rpc('owner_channels', { p_tenant: t, p_since: desdeIso }))

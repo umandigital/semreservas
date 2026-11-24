@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { useRota, setMesa, setToken, setSlug, getMesa } from './lib/router'
 import { useMenuServidor } from './lib/hooks'
 import { parseRoute } from './lib/route'
-import { carregarTenant, resolverPlaca } from './lib/supabase'
+import { abrirPlaca, carregarTenant, resolverPlaca } from './lib/supabase'
 import { avisar, useMembro, useSelecao, useToast } from './lib/mockStore'
 import { Home } from './screens/Home'
 import { Cardapio } from './screens/Cardapio'
@@ -54,7 +54,7 @@ export function App() {
         if (r.kind === 'placa') {
           const p = await resolverPlaca(r.token)
           if (!p) return setBoot({ fase: 'placa-invalida' })
-          setMesa(p.table_label); setToken(r.token); setSlug(p.tenant_slug); history.replaceState(null, '', import.meta.env.BASE_URL + '#/')
+          abrirPlaca(r.token); setMesa(p.table_label); setToken(r.token); setSlug(p.tenant_slug); history.replaceState(null, '', import.meta.env.BASE_URL + '#/')
           return setBoot({ fase: 'ok', nome: p.tenant_name })
         }
         const t = await carregarTenant((import.meta.env.VITE_DEFAULT_TENANT as string) || 'gastropub')

@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { CATEGORIAS, ITENS } from '../data/cardapio'
 import { ROTULO, type Kind } from '../lib/api'
 import { calcularMetricas, fmtDuracao, type Metricas } from '../lib/metricas'
-import { AlertaChamados, AparenciaSec, ClubeSec, ClientesSec, ComentariosSec, ConfigSec, DesempenhoSec, ExtrasSec, MolduraSec, PrecosSec, ResumoSec } from './PainelSecoes'
+import { AlertaChamados, AparenciaSec, ClubeSec, ClientesSec, ComentariosSec, ConfigSec, DesempenhoSec, EquipeSec, ExtrasSec, MolduraSec, PrecosSec, ResumoSec } from './PainelSecoes'
 import { chamadosDesde, entrar, esgotadosDoEstab, linkDaEquipe, marcarEsgotado, meusEstabelecimentos, sair, trocarLinkDaEquipe, urlDoPainel, useSessao, type Estab } from '../lib/dono'
 
-type Aba = 'resumo' | 'atendimento' | 'desempenho' | 'clube' | 'comentarios' | 'clientes' | 'molduras' | 'cardapio' | 'aparencia' | 'extras' | 'config'
-const MENU: [Aba, string][] = [['resumo', 'Resumo'], ['atendimento', 'Atendimento'], ['desempenho', 'Desempenho'], ['clube', 'Clube'], ['comentarios', 'Comentários'], ['clientes', 'Clientes'], ['molduras', 'Molduras'], ['cardapio', 'Cardápio'], ['aparencia', 'Aparência'], ['extras', 'Roleta e aniversário'], ['config', 'Configurações']]
+type Aba = 'resumo' | 'atendimento' | 'desempenho' | 'clube' | 'comentarios' | 'clientes' | 'molduras' | 'equipe' | 'cardapio' | 'aparencia' | 'extras' | 'config'
+const MENU: [Aba, string][] = [['resumo', 'Resumo'], ['atendimento', 'Atendimento'], ['desempenho', 'Desempenho'], ['clube', 'Clube'], ['comentarios', 'Comentários'], ['clientes', 'Clientes'], ['molduras', 'Molduras'], ['equipe', 'Equipe'], ['cardapio', 'Cardápio'], ['aparencia', 'Aparência'], ['extras', 'Roleta e aniversário'], ['config', 'Configurações']]
 const PERIODOS = [{ k: 'hoje', t: 'Hoje', dias: 0 }, { k: '7', t: '7 dias', dias: 7 }, { k: '30', t: '30 dias', dias: 30 }] as const
 
 export default function Dono() {
@@ -52,6 +52,7 @@ function Painel({ email }: { email: string }) {
         {aba === 'comentarios' && <ComentariosSec est={est} />}
         {aba === 'clientes' && <ClientesSec est={est} />}
         {aba === 'molduras' && <MolduraSec est={est} />}
+        {aba === 'equipe' && <EquipeSec est={est} />}
         {aba === 'cardapio' && <><div className="abas-p" role="tablist">{([['precos', 'Preços e itens'], ['esgotado', 'Acabou hoje']] as const).map(([k, t]) => <button key={k} role="tab" aria-selected={cardAba === k} className={cardAba === k ? 'on' : ''} onClick={() => setCardAba(k)}>{t}</button>)}</div>
           {cardAba === 'precos' ? <PrecosSec est={est} /> : <Esgotado est={est} />}</>}
         {aba === 'aparencia' && <AparenciaSec />}

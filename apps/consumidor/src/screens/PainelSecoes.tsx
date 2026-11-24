@@ -377,6 +377,8 @@ export function DesempenhoSec({ est }: { est: Estab }) {
   const [per, setPer] = useState('7'); const dias = Number(per)
   const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - dias)
   const [r, e] = useCarga(() => P.desempenho(est.tenant_id, d.toISOString(), d.toISOString().slice(0, 10)), [est.tenant_id, per])
+  const [ch] = useCarga(() => P.canais(est.tenant_id, d.toISOString()), [est.tenant_id, per])
+  const nfc = Number(ch?.find(x => x.origin === 'nfc')?.opens ?? 0), qr = Number(ch?.find(x => x.origin === 'qr')?.opens ?? 0)
   const pico = r ? r.chamadosPorHora.indexOf(Math.max(...r.chamadosPorHora)) : -1
   const dicas: string[] = []
   if (r) {
@@ -391,6 +393,7 @@ export function DesempenhoSec({ est }: { est: Estab }) {
       <div className="grade-p"><div className="card-p"><small>Tempo típico até assumir</small><b className="txt">{minTxt(r.medianaAssumirMin, r.assumirN)}</b><em>mediana, {r.assumirN} chamados</em></div>
         <div className="card-p"><small>Tempo típico até concluir</small><b className="txt">{minTxt(r.medianaConcluirMin, r.concluirN)}</b><em>mediana, {r.concluirN} chamados</em></div>
         <div className="card-p"><small>Voltaram ao restaurante</small><b className="txt">{r.membros >= MIN ? `${Math.round((r.voltaram / r.membros) * 100)}%` : 'dados insuficientes'}</b><em>{r.voltaram} de {r.membros} do Clube (2 ou mais visitas)</em></div></div>
+      <div className="cartao-p"><h2>Como as pessoas chegam</h2>{nfc + qr > 0 ? <Barras rotulo="Aberturas por canal" itens={[{ r: 'Placa NFC', n: nfc }, { r: 'QR Code', n: qr }]} /> : <p className="nota">Ainda sem aberturas contadas neste período.</p>}<p className="nota">Cada vez que alguém abre o app pela placa conta uma abertura. A contagem começa quando esta versão entra no ar; antes disso não há registro.</p></div>
       <div className="cartao-p"><h2>Visitas por dia</h2>{r.visitasPorDia.length ? <Barras rotulo="Visitas por dia" itens={r.visitasPorDia.map(x => ({ r: x.dia.split('-').reverse().slice(0, 2).join('/'), n: x.n }))} /> : <p className="nota">Sem visitas neste período.</p>}</div>
       <div className="cartao-p"><h2>Chamados por horário</h2>{r.chamadosN ? <Barras rotulo="Chamados por hora do dia" itens={r.chamadosPorHora.map((n, h) => ({ r: `${h}h`, n })).filter(x => x.n > 0)} /> : <p className="nota">Sem chamados neste período.</p>}</div>
       <div className="cartao-p"><h2>Mesas que mais chamam</h2>{r.topMesas.length ? <Barras rotulo="Chamados por mesa" itens={r.topMesas.map(x => ({ r: `Mesa ${x.mesa}`, n: x.n }))} /> : <p className="nota">Sem chamados neste período.</p>}</div>
@@ -398,4 +401,23 @@ export function DesempenhoSec({ est }: { est: Estab }) {
       <p className="nota">Mostramos o que o app registra. Não medimos faturamento, seguidores ganhos nem avaliações publicadas.</p>
     </>}
   </section>
+}
+
+const PAPEIS: [string, string, string][] = [['manager', 'Gerente', 'Vê tudo e muda o cardápio, prêmios e regras. Não gerencia a equipe.'], ['staff', 'Garçom', 'Só atende chamados.'], ['kitchen', 'Cozinha', 'Só vê os pedidos.']]
+const NOME_PAPEL: Record<string, string> = { owner: 'Dono', manager: 'Gerente', staff: 'Garçom', kitchen: 'Cozinha' }
+
+/** Equipe com acesso ao painel. Só o dono vê e muda. A pessoa precisa já ter entrado no app uma vez. */
+export function EquipeSec({ est }: { est: Estab }) {
+  const t = est.tenant_id; const [msg, setMsg] = useState(''); const [ps, e] = useCarga(() => P.equipeLista(t), [t, msg])
+  const [email, setEmail] = useState(''); const [papel, setPapel] = useState('staff')
+  if (est.role !== 'owner') return <section><p className="nota">Só o dono do restaurante gerencia a equipe.</p></section>
+  const dar = async () => { try { const r = await P.equipeDar(t, email, papel); setMsg(r === 'ok' ? 'Acesso liberado.' : r === 'not_found' ? 'Essa pessoa ainda não entrou no app. Peça para ela entrar uma vez com esse e-mail e tente de novo.' : 'Não foi possível: confira o e-mail e o papel.'); if (r === 'ok') setEmail('') } catch { setMsg('Não foi possível salvar. Tente de novo.') } }
+  const tirar = async (p: P.Pessoa) => { if (!confirm(`Tirar o acesso de ${p.email}?`)) return; try { setMsg(await P.equipeTirar(t, p.user_id) ? 'Acesso removido.' : 'Não foi possível remover.') } catch { setMsg('Não foi possível salvar. Tente de novo.') } }
+  return <section><p>Quem pode entrar neste painel e o que cada papel faz.</p><Aviso e={e} />{msg && <p role="status" className="nota">{msg}</p>}{!ps && !e && <Carregando />}
+    {ps && <table className="tabela"><thead><tr><th>E-mail</th><th>Papel</th><th></th></tr></thead><tbody>{ps.map(p => <tr key={p.user_id}><td>{p.email}</td><td>{NOME_PAPEL[p.role] ?? p.role}</td><td>{p.role !== 'owner' && <button className="sec peq-p" onClick={() => tirar(p)}>Tirar acesso</button>}</td></tr>)}</tbody></table>}
+    <div className="cartao-p"><h2>Dar acesso a alguém</h2>
+      <Linha t="E-mail da pessoa"><input className="campo-p" type="email" value={email} onChange={ev => setEmail(ev.target.value)} /></Linha>
+      <Linha t="Papel"><select className="campo-p" value={papel} onChange={ev => setPapel(ev.target.value)}>{PAPEIS.map(([k, n]) => <option key={k} value={k}>{n}</option>)}</select></Linha>
+      <p className="nota">{PAPEIS.find(x => x[0] === papel)?.[2]}</p>
+      <button className="primario" disabled={!/^\S+@\S+\.\S+$/.test(email.trim())} onClick={dar}>Dar acesso</button></div></section>
 }
