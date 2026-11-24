@@ -4,8 +4,22 @@ export const PADRAO: PadraoAlerta = { volume: 10, interval_s: 4, escalate_s: 60 
 let ctx: AudioContext | null = null
 export const alertaAtivo = () => !!ctx && ctx.state === 'running'
 export const contexto = () => ctx
+let viva = false
 export async function ativarAlerta(volume = 10): Promise<boolean> {
-  try { ctx = ctx ?? new AudioContext(); await ctx.resume(); tocar(false, volume); return ctx.state === 'running' } catch { return false }
+  try {
+    ctx = ctx ?? new AudioContext(); await ctx.resume()
+    if (!viva) {   // som contínuo quase inaudível: ajuda o navegador a não adormecer a aba quando a janela está minimizada ou coberta
+      const o = ctx.createOscillator(), g = ctx.createGain(); g.gain.value = 0.0001; o.frequency.value = 40; o.connect(g); g.connect(ctx.destination); o.start(); viva = true
+    }
+    tocar(false, volume); return ctx.state === 'running'
+  } catch { return false }
+}
+/** Relógio em Web Worker: não sofre a pausa que os navegadores aplicam a abas em segundo plano (minimizadas ou cobertas). */
+export function relogio(cb: () => void): () => void {
+  try {
+    const w = new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(1),1000)'], { type: 'text/javascript' })))
+    w.onmessage = cb; return () => w.terminate()
+  } catch { const t = setInterval(cb, 1000); return () => clearInterval(t) }
 }
 /** Chamado novo: três toques agudos seguidos. Sem atendimento (urgente): sirene grave e mais longa. Volume de 1 a 10. */
 export function tocar(urgente: boolean, volume = 10) {

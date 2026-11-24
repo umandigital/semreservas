@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { instalavel, instalar, jaInstalado, ehIos, registrarPwa } from '../lib/pwa'
 import { ApiError, painelAlertas, painelFila, painelInfo, painelItens, painelMudar, painelTrote, ROTULO, type ItemPedido, type Pedido } from '../lib/api'
-import { ativarAlerta, contexto, PADRAO, tocar } from '../lib/alerta'
+import { ativarAlerta, PADRAO, relogio, tocar } from '../lib/alerta'
 
 // Painel da equipe: abre pelo link, um toque para ativar e fica funcionando. Só serve para a fila.
 const TOKEN_KEY = 'sr-painel'
@@ -11,13 +11,6 @@ const ICONE_ALERTA = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 const lerToken = (url?: string) => { if (url) return url; try { return localStorage.getItem(TOKEN_KEY) } catch { return null } }
 const mudarIcone = (href: string) => { let l = document.querySelector<HTMLLinkElement>('link[rel~=icon]'); if (!l) { l = document.createElement('link'); l.rel = 'icon'; document.head.appendChild(l) } l.href = href }
 
-/** Relógio em Web Worker: não sofre a pausa que os navegadores aplicam a abas em segundo plano. */
-function relogio(cb: () => void): () => void {
-  try {
-    const w = new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(1),1000)'], { type: 'text/javascript' })))
-    w.onmessage = cb; return () => w.terminate()
-  } catch { const t = setInterval(cb, 1000); return () => clearInterval(t) }
-}
 
 export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
   const token = lerToken(tokenUrl)
@@ -85,9 +78,7 @@ export function Equipe({ tokenUrl }: { tokenUrl?: string }) {
 
   async function pedirTela() { try { lock.current = await (navigator as unknown as { wakeLock?: { request(t: string): Promise<{ release(): Promise<void> }> } }).wakeLock?.request('screen') ?? null } catch { /* sem suporte */ } }
   async function iniciar() {
-    await ativarAlerta(cfgAl.current.volume); const c = contexto(); if (!c) return
-    // som quase inaudível e contínuo: mantém a aba "viva" quando minimizada
-    const o = c.createOscillator(), g = c.createGain(); g.gain.value = 0.0001; o.frequency.value = 40; o.connect(g); g.connect(c.destination); o.start()
+    await ativarAlerta(cfgAl.current.volume)
     await pedirTela()
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') { try { setNotif(await Notification.requestPermission()) } catch { /* ignora */ } }
     setFase('ativo')

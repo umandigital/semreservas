@@ -3,7 +3,7 @@ import { brl } from '../data/cardapio'
 import { CLUBE, REGRAS } from '../data/clube'
 import { TEMA } from '../data/tema'
 import * as P from '../lib/painel'
-import { alertaAtivo, ativarAlerta, tocar } from '../lib/alerta'
+import { alertaAtivo, ativarAlerta, relogio, tocar } from '../lib/alerta'
 import type { Estab } from '../lib/dono'
 
 const ROT: Record<string, string> = Object.fromEntries(REGRAS.map(r => [r.action, r.rotulo]))
@@ -225,21 +225,21 @@ export function AlertaChamados({ est }: { est: Estab }) {
       for (const x of l) if (x.status === 'PENDING' && !vistos.has(x.id)) { vistos.add(x.id); if (typeof Notification !== 'undefined' && Notification.permission === 'granted') { try { new Notification(`Mesa ${x.table_label} · ${ROTK2[x.kind] ?? x.kind}`, { tag: x.id, requireInteraction: true, body: 'Chamado aguardando atendimento' }) } catch { /* ignora */ } } }
     }).catch(() => { if (vivo && Date.now() - ultimoOk > 9000) setOffline(true) })
     void ler()
-    const i = setInterval(() => { n++; setAgora(Date.now()); if (n % 3 === 0) void ler() }, 1000)
-    return () => { vivo = false; clearInterval(i); document.title = titulo }
+    const parar = relogio(() => { n++; setAgora(Date.now()); if (n % 3 === 0) void ler() })
+    return () => { vivo = false; parar(); document.title = titulo }
   }, [t])   // eslint-disable-line react-hooks/exhaustive-deps
   const pend = fila.filter(x => x.status === 'PENDING'); const urgentes = pend.filter(x => (agora - Date.parse(x.created_at)) / 1000 > cfg.escalate_s)
   const ref = useRef({ pend: 0, urg: 0, n: 0 }).current
   ref.pend = pend.length; ref.urg = urgentes.length
   useEffect(() => {   // som a cada 3 s enquanto houver chamado sem atendimento; título pisca
-    const i = setInterval(() => { ref.n++
+    const parar = relogio(() => { ref.n++
       if (ref.pend > 0) {
         document.title = ref.n % 2 ? `🔴 ${ref.pend} CHAMADO${ref.pend > 1 ? 'S' : ''}!` : '⚠️ ATENDER · SemReservas'
         const periodo = ref.urg > 0 ? Math.max(2, Math.round(cfgRef.interval_s / 2)) : cfgRef.interval_s    // urgente soa com o dobro da frequência
         if (cfgRef.owner_sound && ref.n % periodo === 0) tocar(ref.urg > 0, cfgRef.volume)
       }
-      else document.title = titulo }, 1000)
-    return () => clearInterval(i)
+      else document.title = titulo })
+    return () => parar()
   }, [])   // eslint-disable-line react-hooks/exhaustive-deps
   const assumir = async (x: P.Fila, quem: string | null) => {
     setBusy(x.id); setMsg('')
