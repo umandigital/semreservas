@@ -77,7 +77,7 @@ export function useClube() {
     enviarCodigo: async (email: string) => { if (CLUBE_REAL) { const { error } = await supabase!.auth.signInWithOtp({ email }); if (error) throw error } },
     confirmarCodigo: (email: string, cod: string) => acao(async () => {
       if (CLUBE_REAL) { const { error } = await supabase!.auth.verifyOtp({ email, token: cod, type: 'email' }); if (error) throw error } else { localStorage.setItem(AUTH, email) } entrarLegado(email) }),
-    entrarGoogle: async () => { if (CLUBE_REAL) { await supabase!.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.href } }) } else { localStorage.setItem(AUTH, 'ana.souza@gmail.com'); entrarLegado('ana.souza@gmail.com'); emit() } },
+    entrarGoogle: async () => { if (CLUBE_REAL) { await supabase!.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + import.meta.env.BASE_URL } }) } else { localStorage.setItem(AUTH, 'ana.souza@gmail.com'); entrarLegado('ana.souza@gmail.com'); emit() } },
     sair: () => acao(async () => { if (CLUBE_REAL) await supabase!.auth.signOut(); else localStorage.removeItem(AUTH); sairLegado() }),
     cadastrar: (nome: string, nasc: string, publicidade: boolean) => acao(async () => {
       if (CLUBE_REAL) { const { error } = await supabase!.rpc('club_join', { p_token: getToken(), p_name: nome, p_birth: nasc, p_regulation: 'v1', p_publicity: publicidade, p_ref: lerIndicacao() }); if (error) throw error }
