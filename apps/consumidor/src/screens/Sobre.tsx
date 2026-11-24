@@ -5,6 +5,7 @@ export function Sobre({ ir }: { ir?: (r: string) => void }) {
   return (
     <section className="tela-int">
       <h1>Sobre</h1>
+      <button className="sec grande" onClick={() => ir?.('/conta')}>Minha conta</button>
       <div className="cartao-i">
         <img className="logo-sr" src={import.meta.env.BASE_URL + TEMA.logo} alt={TEMA.nome} />
         <p><b>{TEMA.nome}</b></p>

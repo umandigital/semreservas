@@ -6,18 +6,29 @@ import { IconEstrela } from '../ui/Icons'
 
 /** "Como foi a visita?": um fluxo só. 1) estrelas, 2) o que gostou e comentário (opcional), 3) enviar. */
 export function Visita({ ir }: { ir: (r: string) => void }) {
-  const c = useClube(); const v = c.v; const [nota, setNota] = useState(0); const [txt, setTxt] = useState(''); const [gostei, setGostei] = useState<string[]>([]); const [busy, setBusy] = useState(false)
+  const c = useClube(); const v = c.v; const [nota, setNota] = useState(0); const [txt, setTxt] = useState(''); const [gostei, setGostei] = useState<string[]>([]); const [busy, setBusy] = useState(false); const [ok, setOk] = useState<number | null>(null)
   const pratos = ITENS.filter(i => lerSelecao().qtd[i.id]).map(i => i.nome)
   if (!v) return <section className="tela-int"><p>Carregando…</p></section>
   if (!v.membro) return (
     <section className="tela-int"><h1>Como foi a visita?</h1><p>Entre no Clube para contar como foi e ganhar pontos.</p>
       <button className="primario grande" onClick={() => ir('/entrar')}>Entrar ou cadastrar</button></section>)
+  if (ok !== null) {   // confirmação: pontos ganhos e quanto falta para o próximo prêmio
+    const m = v.membro; const prox = v.premios.find(p => p.custo > m.saldo)
+    return (
+      <section className="tela-int confirma">
+        <h1>Avaliação enviada!</h1><p>Obrigado por contar como foi.</p>
+        <div className="bloco-c pontos">{ok > 0 ? <><small>Você ganhou</small><b>+{ok} pontos</b></> : <small>Seus pontos de hoje já estavam completos.</small>}</div>
+        <div className="bloco-c"><p>Agora: <b>{m.saldo} pontos</b></p>{prox ? <><div className="marcos" aria-hidden="true"><i style={{ width: `${Math.min(100, (m.saldo / prox.custo) * 100)}%` }} /></div><p>Faltam {prox.custo - m.saldo} pontos para {prox.nome.split(' (')[0]}.</p></> : <p>Você já pode trocar qualquer prêmio.</p>}</div>
+        {txt.trim().length > 0 && <p className="nota">Comentários aparecem depois da aprovação do restaurante.</p>}
+        <button className="primario grande" onClick={() => ir('/clube')}>Ver meu Clube</button><button className="sec grande" onClick={() => ir('/')}>Até a próxima</button>
+      </section>)
+  }
   if (v.hoje.opinou) return (
     <section className="tela-int"><h1>Obrigado!</h1><p>Você já contou como foi a sua visita de hoje.</p><button className="primario grande" onClick={() => ir('/clube')}>Ver meus pontos</button></section>)
   const pts = (a: string) => v.regras.find(r => r.action === a)?.points ?? 0
   const enviar = async () => {
     setBusy(true)
-    try { const g = await c.opinar(nota, txt, gostei); avisar(g ? `Obrigado! Você ganhou +${g} pontos.` : 'Obrigado por contar como foi!'); ir('/clube') }
+    try { const g = await c.opinar(nota, txt, gostei); setOk(g) }
     catch (e) { c.avisarErro(e) } finally { setBusy(false) }
   }
   return (

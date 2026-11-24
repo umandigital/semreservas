@@ -42,8 +42,8 @@ export function Clube({ ir }: Ir) {
       <button className="sec grande" onClick={() => ir('/clube/ganhar')}>Como ganhar pontos</button>
       {m && <button className="link" onClick={() => setIntro(true)}>Como o Clube funciona</button>}
       {m && <button className="sec grande" onClick={() => ir('/clube/indicar')}>Indicar um amigo</button>}
-      {m && <div className="links-c"><button className="link" onClick={() => ir('/clube/extrato')}>Meu extrato</button><button className="link" onClick={async () => { await c.sair(); avisar('Você saiu do Clube.') }}>Sair</button></div>}
-      {m && <button className="link apagar" onClick={async () => { if (!window.confirm('Excluir sua conta?\n\nSeus pontos, trocas, prêmios e dados serão apagados e não podem ser recuperados.')) return; try { await c.excluirConta(); avisar('Sua conta foi excluída.'); ir('/') } catch (e) { c.avisarErro(e) } }}>Excluir minha conta</button>}
+      {m && <div className="links-c"><button className="link" onClick={() => ir('/clube/extrato')}>Meu extrato</button><button className="link" onClick={() => ir('/conta')}>Minha conta</button></div>}
+
     </section>
   )
 }

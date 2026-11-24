@@ -55,8 +55,8 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
           <Servico icone={<IconWifi />} t="Wi-Fi" onClick={() => setWifi(!wifi)} />
           <Servico icone={<IconConta />} t="Pedir a conta" onClick={conta} />
           <Servico icone={<IconCamera />} t="Foto com moldura" onClick={() => ir('/fotos')} />
-          <Servico icone={<IconInsta />} t="Instagram" onClick={() => externo(CONFIG.instagram, 'Instagram', 'instagram_follow')} />
-          <Servico icone={<IconEstrela />} t="Avalie no Google" onClick={() => externo(CONFIG.googleAvaliacao, 'Google', 'google_open')} />
+          <Servico icone={<IconInsta />} t="Instagram" onClick={() => ir('/instagram')} />
+          <Servico icone={<IconEstrela />} t="Avalie no Google" onClick={() => ir('/google')} />
           <Servico icone={<IconPesquisa />} t="Como foi a visita?" onClick={() => ir('/visita')} />
         </div>
         {wifi && <div className="wifi"><p>Rede: <b>{CONFIG.wifi.ssid}</b></p><p>Senha: <b>{CONFIG.wifi.senha}</b></p>

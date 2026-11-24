@@ -13,6 +13,9 @@ import { Cadastro, Entrar } from './screens/Entrar'
 import { Clube, ClubeGanhar, Extrato, Indicar, Troca } from './screens/Clube'
 import { Visita } from './screens/Visita'
 import { Legal } from './screens/Legal'
+import { Conta } from './screens/Conta'
+import { Social } from './screens/Social'
+import { MetaAtingida } from './screens/MetaAtingida'
 import { Aniversario, AvisoPremio, ExtraComprovante, Roleta } from './screens/Extras'
 import { Comentarios } from './screens/Comentarios'
 import { Fotos } from './screens/Fotos'
@@ -79,6 +82,9 @@ export function App() {
     if (rota === '/clube/indicar') return <Indicar ir={ir} />
     if (rota === '/regulamento' || rota === '/privacidade' || rota === '/termos') return <Legal id={rota.slice(1)} ir={ir} />
     if (rota === '/roleta') return <Roleta ir={ir} />
+    if (rota === '/conta') return <Conta ir={ir} />
+    if (rota === '/instagram') return <Social ir={ir} canal="instagram" />
+    if (rota === '/google') return <Social ir={ir} canal="google" />
     if (rota === '/aniversario') return <Aniversario ir={ir} />
     if (rota.startsWith('/extra/')) return <ExtraComprovante id={rota.slice(7)} ir={ir} />
     if (rota === '/sobre' || rota === '/servicos' || rota === '/contato') return <Sobre ir={ir} />
@@ -97,12 +103,13 @@ export function App() {
       <main className={rota === '/cardapio' ? 'cheio' : ''}>{tela}</main>
       <Toast />
       {rota === '/' && <AvisoPremio ir={ir} />}
+      {(rota === '/' || rota === '/clube') && <MetaAtingida ir={ir} />}
       <nav className="rodape" aria-label="Principal">
         <Aba on={rota === '/'} onClick={() => ir('/')} icone={<IconHome />} t="Início" />
         <Aba on={rota === '/cardapio' || rota.startsWith('/comentarios/')} onClick={() => ir('/cardapio')} icone={<IconGarfoFaca />} t="Cardápio" />
         <Aba on={rota === '/pedido'} onClick={() => ir('/pedido')} icone={<IconPrancheta />} t="Pedido" n={total} />
         <Aba on={rota === '/clube' || rota.startsWith('/clube/') || rota === '/entrar' || rota === '/cadastro' || rota.startsWith('/troca/')} onClick={() => ir('/clube')} icone={<IconCartao />} t="Clube" />
-        <Aba on={['/sobre', '/servicos', '/contato'].includes(rota)} onClick={() => ir('/sobre')} icone={<IconInfo />} t="Sobre" />
+        <Aba on={['/sobre', '/servicos', '/contato', '/conta'].includes(rota)} onClick={() => ir('/sobre')} icone={<IconInfo />} t="Sobre" />
       </nav>
     </Casca>
   )

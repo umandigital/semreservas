@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { ApiError, MENSAGEM_ERRO, mesasDaPlaca, type Kind } from '../lib/api'
 import { corrigirMesa, pedirAtendimento } from '../lib/atendimento'
 import { getMesa, getToken } from '../lib/router'
+import { SessaoVencida } from '../ui/SessaoVencida'
+import { IconConta, IconSino, IconBalao } from '../ui/Icons'
 
-const MOTIVOS: { rotulo: string; kind: Kind }[] = [
-  { rotulo: 'Conta', kind: 'bill' }, { rotulo: 'Dúvida', kind: 'question' },
-  { rotulo: 'Fazer pedido', kind: 'order' }, { rotulo: 'Outro', kind: 'other' },
+const MOTIVOS: { rotulo: string; sub: string; kind: Kind; icone: ReactNode }[] = [
+  { rotulo: 'Chamar garçom', sub: 'Preciso de atendimento na mesa', kind: 'waiter', icone: <IconSino /> },
+  { rotulo: 'Pedir a conta', sub: 'Quero fechar meu consumo', kind: 'bill', icone: <IconConta /> },
+  { rotulo: 'Tirar uma dúvida', sub: 'Quero falar com alguém da equipe', kind: 'question', icone: <IconBalao /> },
 ]
 
 export function Chamar({ ir }: { ir: (r: string) => void }) {
@@ -15,9 +18,7 @@ export function Chamar({ ir }: { ir: (r: string) => void }) {
   useEffect(() => { if (token) mesasDaPlaca(token).then(setMesas).catch(() => setMesas([])) }, [token])
 
   if (!token) return (
-    <section className="tela-int"><h1>Chamar garçom</h1>
-      <div className="aviso">Para chamar o garçom, <b>aproxime o celular da placa da sua mesa</b> (ou leia o QR). Assim a equipe sabe exatamente onde você está.</div>
-      <p className="nota">Se a placa não funcionar, chame alguém do salão.</p></section>
+    <><SessaoVencida titulo="Chamar garçom" /><p className="nota" style={{ textAlign: 'center' }}>Se a placa não funcionar, chame alguém do salão.</p></>
   )
   const enviar = async (kind: Kind) => {
     setBusy(true); setErro('')
@@ -34,11 +35,12 @@ export function Chamar({ ir }: { ir: (r: string) => void }) {
   )
   return (
     <section className="tela-int">
-      <h1>Chamar garçom</h1>
-      <p className="mesa-g">Mesa {mesa} <button className="link" onClick={() => setTrocando(true)}>Não é esta mesa?</button></p>
+      <h1>Atendimento · Mesa {mesa}</h1>
+      <p className="mesa-g"><button className="link" onClick={() => setTrocando(true)}>Não é esta mesa?</button></p>
       <p>Como podemos ajudar?</p>
       <p className="nota">Para confirmar que você está no restaurante, o navegador pode pedir a localização do aparelho. Usamos só nesse momento e <b>não guardamos</b> a sua posição.</p>
-      <div className="motivos">{MOTIVOS.map(m => <button key={m.kind} className="primario grande" disabled={busy} onClick={() => enviar(m.kind)}>{m.rotulo}</button>)}</div>
+      <div className="motivos-l">{MOTIVOS.map(m => <button key={m.kind} className="linha-motivo" disabled={busy} onClick={() => enviar(m.kind)}><span className="ic">{m.icone}</span><span><b>{m.rotulo}</b><small>{m.sub}</small></span><span aria-hidden="true">›</span></button>)}</div>
+      <p className="nota">O chamado será enviado para a equipe desta unidade.</p>
       {erro && <p className="alerta" role="alert">{erro}</p>}
     </section>
   )
