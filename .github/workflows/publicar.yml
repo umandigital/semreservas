@@ -45,6 +45,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           VITE_DEFAULT_TENANT: gastropub
+          VITE_CLUBE_REAL: '1'
           BASE_PATH: /semreservas/
         run: |
           npm ci
