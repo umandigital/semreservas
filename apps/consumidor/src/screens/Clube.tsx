@@ -3,20 +3,25 @@ import { CLUBE, textoLimite, type Grupo } from '../data/clube'
 import { avisar } from '../lib/mockStore'
 import { useClube } from '../lib/clube'
 import { IconCartao, IconCheck } from '../ui/Icons'
+import { INTRO_KEY, IntroClube } from './IntroClube'
 
 type Ir = { ir: (r: string) => void }
 const dataBR = (t: number) => new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
 /** Clube em 4 blocos: seus pontos, prêmios, como ganhar, extrato. */
 export function Clube({ ir }: Ir) {
-  const c = useClube(); const v = c.v
+  const c = useClube(); const v = c.v; const [intro, setIntro] = useState(false)
   useEffect(() => { if (v?.logado && !v.membro) ir('/cadastro') }, [v?.logado, v?.membro])
+  // primeira vez no Clube (só quem é do Clube): abre a introdução; fechou ou viu, não abre de novo sozinha
+  useEffect(() => { if (v?.membro) { try { if (!localStorage.getItem(INTRO_KEY + ':' + v.email)) setIntro(true) } catch { /* ignora */ } } }, [v?.membro?.nome])
+  const fecharIntro = () => { try { if (v) localStorage.setItem(INTRO_KEY + ':' + v.email, '1') } catch { /* ignora */ } setIntro(false) }
   if (!v) return <section className="tela-int"><p>Carregando…</p></section>
   const m = v.membro
   const proximo = v.premios.find(p => !m || p.custo > m.saldo)
   const trocar = async (id: string) => { try { ir('/troca/' + await c.trocar(id)) } catch (e) { c.avisarErro(e) } }
   return (
     <section className="tela-int clube">
+      {intro && <IntroClube fechar={fecharIntro} ir={ir} />}
       <h1>{CLUBE.nome}</h1>
       {!m ? (
         <div className="bloco-c"><h2>Entre e ganhe pontos</h2><p>Cada visita e cada ação no app dão pontos. Troque por sorvete, bebida, desconto e pizza.</p>
@@ -35,6 +40,7 @@ export function Clube({ ir }: Ir) {
             {pode ? <button className="primario" onClick={() => trocar(p.id)}>Trocar</button> : <span className="falta">{m ? `faltam ${Math.max(0, p.custo - m.saldo)}` : ''}</span>}</li>
         })}</ul></div>
       <button className="sec grande" onClick={() => ir('/clube/ganhar')}>Como ganhar pontos</button>
+      {m && <button className="link" onClick={() => setIntro(true)}>Como o Clube funciona</button>}
       {m && <button className="sec grande" onClick={() => ir('/clube/indicar')}>Indicar um amigo</button>}
       {m && <div className="links-c"><button className="link" onClick={() => ir('/clube/extrato')}>Meu extrato</button><button className="link" onClick={async () => { await c.sair(); avisar('Você saiu do Clube.') }}>Sair</button></div>}
     </section>

@@ -192,3 +192,24 @@ main.cheio { padding-bottom:0; }
 .estrelas { display:flex; gap:6px; } .estrelas button { background:none; border:0; color:var(--laranja); min-width:56px; min-height:56px; padding:0; } .estrelas svg { width:44px; height:44px; }
 .chips-g { display:flex; flex-wrap:wrap; gap:8px; } .cod-g.claro { color:var(--txt); }
 textarea.campo { resize:vertical; min-height:96px; }
+
+/* ── Introdução do Clube (S da marca como guia; só CSS e SVG) ── */
+.intro { position:fixed; inset:0; z-index:50; background:var(--bg); display:flex; flex-direction:column; max-width:520px; margin:0 auto; padding:env(safe-area-inset-top) 16px calc(12px + env(safe-area-inset-bottom)); overflow-y:auto; }
+.intro-topo { display:flex; align-items:center; gap:10px; min-height:56px; } .intro-x { width:48px; height:48px; border-radius:50%; border:1px solid var(--borda); background:var(--bg2); font-size:1.1rem; }
+.pontinhos { flex:1; display:flex; gap:4px; justify-content:center; } .pontinhos i { width:8px; height:8px; border-radius:50%; background:var(--bg3); } .pontinhos i.ok { background:var(--borda); } .pontinhos i.on { background:var(--laranja); }
+.intro-corpo { flex:1; display:flex; flex-direction:column; gap:12px; padding:8px 0; animation:entra .35s ease both; } .intro h2 { margin:0; font-size:1.5rem; }
+.palco-i { background:var(--bg2); border:1px solid var(--borda); border-radius:var(--r); min-height:210px; padding:14px; display:flex; align-items:center; gap:12px; position:relative; } .palco-i.abre { justify-content:center; min-height:240px; }
+.intro-txt { margin:0; font-size:1.15rem; } .resumo { margin:0; background:var(--bg2); border-left:4px solid var(--laranja); padding:10px 12px; border-radius:8px; } .exemplo { color:var(--mut); }
+.itens-i { flex:1; display:grid; gap:8px; } .item-i { display:flex; align-items:center; gap:10px; background:var(--bg3); border-radius:12px; padding:8px 12px; min-height:48px; animation:pop .45s ease both; opacity:0; }
+.item-i .ic { color:var(--laranja); display:grid; } .item-i b { flex:1; font-weight:600; } .item-i em { font-style:normal; color:var(--laranja); font-weight:800; font-size:1.1rem; animation:sobe-n 1.6s ease-in-out 1s infinite; }
+.s-guia { width:76px; height:76px; flex:none; overflow:visible; } .s-guia.grande { width:170px; height:170px; }
+.s-traco { fill:none; stroke:var(--txt); stroke-width:10; stroke-linecap:round; stroke-dasharray:180; stroke-dashoffset:180; animation:desenha 1.2s ease forwards; }
+.onda { fill:none; stroke:var(--laranja); stroke-width:6; stroke-linecap:round; opacity:0; animation:onda 1.8s ease-out infinite; } .onda.o2 { animation-delay:.35s; }
+.intro-pe { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding-top:8px; } .intro-pe button { min-height:56px; font-size:1.05rem; }
+.intro-lista { list-style:none; padding:0; margin:8px 0; display:grid; gap:8px; } .intro-lista button { width:100%; min-height:52px; text-align:left; background:var(--bg2); border:1px solid var(--borda); border-radius:12px; color:var(--txt); padding:0 14px; font-size:1.05rem; }
+.duvidas { list-style:none; padding:0; margin:0; display:grid; gap:8px; } .duvidas button { width:100%; min-height:52px; text-align:left; background:var(--bg2); border:1px solid var(--borda); border-radius:12px; color:var(--txt); padding:8px 14px; font-weight:700; } .duvidas p { margin:6px 4px 0; }
+.marca-i { text-align:center; color:var(--mut); margin:8px 0 0; font-size:.9rem; }
+@keyframes desenha { to { stroke-dashoffset:0; } } @keyframes onda { 0% { opacity:0; } 30% { opacity:1; } 100% { opacity:0; transform:translate(4px,-4px); } }
+@keyframes pop { 0% { opacity:0; transform:translateY(10px) scale(.96); } 100% { opacity:1; transform:none; } } @keyframes entra { from { opacity:0; transform:translateX(14px); } to { opacity:1; transform:none; } }
+@keyframes sobe-n { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-3px); } }
+@media (prefers-reduced-motion:reduce) { .intro *, .intro-corpo { animation:none !important; } .item-i { opacity:1; } .s-traco { stroke-dashoffset:0; } .onda { opacity:.7; } }
