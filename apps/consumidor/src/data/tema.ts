@@ -4,6 +4,9 @@ export const TEMA = {
   nome: 'SemReservas GastroPub',
   logo: 'media/marca/gastropub-logo.webp',
   slogan: 'Um toque. Infinitas possibilidades.',
+  /** Fotos do ambiente que passam no topo da Início (WebP pequeno em public/media/ambiente). A primeira é a que aparece sem animação. */
+  ambiente: ['media/ambiente/fachada.webp', 'media/ambiente/mesa.webp', 'media/ambiente/bar.webp', 'media/ambiente/salao.webp'],
+  ambienteTitulo: 'Uma experiência para viver aqui',
   cores: {
     '--bg': '#380818', '--bg0': '#1f0510', '--bg2': '#4a1226', '--bg3': '#5e1b34', '--borda': '#7a3050',
     '--laranja': '#e09060', '--txt': '#f8e8c8', '--mut': '#ecd5b0',
@@ -14,9 +17,9 @@ export function aplicarTema(raiz: HTMLElement = document.documentElement) {
 }
 
 /** Molduras de foto do restaurante: textos são dados. Se existir `png` (arte SEM TEXTO, com janela transparente para a foto, em public/media/molduras), ela é usada no lugar do desenho e o app escreve título, frase e nome por cima (cor em `corTexto`). */
-export type MolduraCfg = { id: string; nome: string; titulo: string[]; rodape: string; estilo: 'quadro' | 'placa' | 'vitral'; png?: string; corTexto?: string }
+export type MolduraCfg = { id: string; nome: string; titulo: string[]; rodape: string; estilo: 'quadro' | 'placa' | 'vitral'; png?: string; corTexto?: string; corRodape?: string; corNome?: string; layout?: Partial<{ tituloY: number; tituloPasso: number; tituloTam: number; rodapeY: number; rodapeTam: number; nomeY: number; nomeTam: number }> }
 export const MOLDURAS: MolduraCfg[] = [
-  { id: 'demos', nome: 'Demos prejuízo', titulo: ['Demos', 'prejuízo!'], rodape: 'E ainda pedimos a saideira.', estilo: 'quadro' },
+  { id: 'demos', nome: 'Demos prejuízo', titulo: ['Demos', 'prejuízo!'], rodape: 'E ainda pedimos a saideira.', estilo: 'quadro', png: 'media/molduras/demos.webp', corTexto: '#f3e8d0', layout: { tituloY: 215, tituloPasso: 95, tituloTam: 86, rodapeY: 1104, rodapeTam: 40, nomeY: 1268, nomeTam: 42 } },
   { id: 'mesa', nome: 'À mesa', titulo: ['O melhor da vida', 'acontece à mesa.'], rodape: 'E a nossa foi aqui.', estilo: 'placa' },
   { id: 'saideira', nome: 'Saideira', titulo: ['Era só uma', 'saideira.'], rodape: 'Virou história.', estilo: 'vitral' },
 ]

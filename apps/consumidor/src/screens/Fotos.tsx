@@ -7,6 +7,7 @@ import { MOLDURAS, TEMA, type MolduraCfg } from '../data/tema'
 
 const W = 900, H = 1350, JAN = { x: 60, y: 430, w: 780, h: 600 }   // janela da foto (tudo em proporção: a arte pronta, se existir, usa a mesma)
 const C = TEMA.cores, TXT = C['--txt'], OURO = '#d9b36a', LAR = C['--laranja']
+const LAYOUT_PADRAO = { tituloY: 200, tituloPasso: 100, tituloTam: 90, rodapeY: 1150, rodapeTam: 46, nomeY: H - 78, nomeTam: 44 }
 const SERIF = 'Georgia, "Times New Roman", serif'
 
 function retArred(x: CanvasRenderingContext2D, a: number, b: number, w: number, h: number, r: number) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath() }
@@ -24,7 +25,12 @@ function faixa(x: CanvasRenderingContext2D, t: string, fundo: string, cor: strin
 /** Desenha a moldura (procedural) ou usa a arte pronta; a foto fica sempre por baixo da janela. */
 function pintar(c: HTMLCanvasElement, img: HTMLImageElement, m: MolduraCfg, arte: HTMLImageElement | null) {
   const x = c.getContext('2d')!; x.clearRect(0, 0, W, H)
-  if (arte) { x.fillStyle = C['--bg']; x.fillRect(0, 0, W, H); const r = Math.max(JAN.w / img.width, JAN.h / img.height), w = img.width * r, h = img.height * r; x.save(); x.beginPath(); x.rect(JAN.x, JAN.y, JAN.w, JAN.h); x.clip(); x.drawImage(img, JAN.x + (JAN.w - w) / 2, JAN.y + (JAN.h - h) / 2, w, h); x.restore(); x.drawImage(arte, 0, 0, W, H); const cor = m.corTexto ?? '#f3e8d0'; m.titulo.forEach((l, i) => texto(x, l, W / 2, 200 + i * 100, 90, cor)); texto(x, m.rodape, W / 2, 1150, 46, cor); texto(x, TEMA.nome, W / 2, H - 78, 44, cor, 'normal 800'); return }
+  if (arte) {   // arte pronta: a foto vai por baixo (um pouco maior que a janela; a arte, opaca nas bordas, cobre o excesso) e o app escreve os textos por cima
+    const A = { x: JAN.x - 24, y: JAN.y - 24, w: JAN.w + 48, h: JAN.h + 48 }
+    x.fillStyle = C['--bg']; x.fillRect(0, 0, W, H); const r = Math.max(A.w / img.width, A.h / img.height), w = img.width * r, h = img.height * r
+    x.save(); x.beginPath(); x.rect(A.x, A.y, A.w, A.h); x.clip(); x.drawImage(img, A.x + (A.w - w) / 2, A.y + (A.h - h) / 2, w, h); x.restore(); x.drawImage(arte, 0, 0, W, H)
+    const L = { ...LAYOUT_PADRAO, ...m.layout }, cor = m.corTexto ?? '#f3e8d0'
+    m.titulo.forEach((l, i) => texto(x, l, W / 2, L.tituloY + i * L.tituloPasso, L.tituloTam, cor)); texto(x, m.rodape, W / 2, L.rodapeY, L.rodapeTam, m.corRodape ?? cor); texto(x, TEMA.nome, W / 2, L.nomeY, L.nomeTam, m.corNome ?? OURO, 'normal 800'); return }
   if (m.estilo === 'quadro') {            // madeira + quadro-negro
     const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#7a4524'); g.addColorStop(1, '#4a2813'); x.fillStyle = g; retArred(x, 0, 0, W, H, 40); x.fill()
     x.strokeStyle = 'rgba(0,0,0,.18)'; x.lineWidth = 2; for (let i = 20; i < H; i += 26) { x.beginPath(); x.moveTo(0, i); x.lineTo(W, i + (i % 3)); x.stroke() }

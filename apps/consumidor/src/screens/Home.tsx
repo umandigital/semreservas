@@ -31,9 +31,12 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
   return (
     <section className="home">
       <div className="bloco hero-cartao">
-        <h1>{nome}</h1>
-        <p>{mesa ? `Você está na Mesa ${mesa}` : TEMA.slogan}</p>
-        <button className="primario grande" onClick={() => ir('/cardapio')}><IconCardapio /> Ver cardápio</button>
+        {TEMA.ambiente.length > 0 && <div className="hero-fotos" aria-hidden="true">{TEMA.ambiente.map((f, i) => <img key={f} src={import.meta.env.BASE_URL + f} alt="" loading={i === 0 ? 'eager' : 'lazy'} style={{ animationDelay: `${i * 6}s` }} />)}</div>}
+        <div className="hero-texto">
+          <h1>{nome}</h1>
+          <p>{mesa ? `Você está na Mesa ${mesa}` : TEMA.ambienteTitulo}</p>
+          <button className="primario grande" onClick={() => ir('/cardapio')}><IconCardapio /> Ver cardápio</button>
+        </div>
       </div>
       <div className="bloco duplo">
         <button className="cartao-link" onClick={() => ir('/pedido')}>
