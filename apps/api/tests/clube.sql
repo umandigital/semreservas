@@ -19,6 +19,13 @@ create temp table ctx as select (select token from access_point_tokens where ten
   (select id from club_rewards where tenant_id = '00000000-0000-0000-0000-00000000a001' and cost_points = 1000) as rw1000;
 grant select on ctx to anon, authenticated;
 
+-- 0) Só as ações que o app cumpre ficam ligadas (restaurante novo e GastroPub)
+do $$ begin
+  if (select enabled from club_action_rules where tenant_id = '00000000-0000-0000-0000-00000000a0c2' and action = 'install_app') then raise exception 'FALHA: ação não construída nasceu ligada'; end if;
+  if not (select enabled from club_action_rules where tenant_id = '00000000-0000-0000-0000-00000000a0c2' and action = 'checkin') then raise exception 'FALHA: check-in deveria estar ligado'; end if;
+  if exists (select 1 from club_rules((select tok_a from ctx)) where action in ('ar_used','install_app','order_via_app','share_app','suggestion','channel_tiktok')) then raise exception 'FALHA: o GastroPub lista ações que o app não cumpre'; end if;
+  if not exists (select 1 from club_rules((select tok_a from ctx)) where action = 'checkin') then raise exception 'FALHA: o GastroPub não lista o check-in'; end if;
+end $$;
 -- 1) Anônimo: sem acesso a tabelas, nenhuma função de cliente/dono; só vê regras e catálogo da própria mesa
 set local role anon;
 do $$ declare tok text := (select tok_a from ctx); begin
@@ -55,8 +62,9 @@ do $$ declare tok text := (select tok_a from ctx); r jsonb; begin
   r := club_earn(tok,'google_open');      if (r->>'credited')::int <> 20 then raise exception 'FALHA: google deveria dar 20: %', r; end if;
   begin perform club_earn(tok,'checkin'); raise exception 'FALHA: o app pediu check-in direto'; exception when raise_exception then if sqlerrm <> 'action_not_claimable' then raise; end if; end;
   begin perform club_earn(tok,'referral'); raise exception 'FALHA: o app pediu indicação direto'; exception when raise_exception then if sqlerrm <> 'action_not_claimable' then raise; end if; end;
-  r := club_earn(tok,'ar_used'); r := club_earn(tok,'ar_used'); r := club_earn(tok,'ar_used');
-  r := club_earn(tok,'ar_used'); if (r->>'credited')::int <> 0 then raise exception 'FALHA: RA passou do limite de 3 por dia: %', r; end if;
+  r := club_earn(tok,'photo_frame'); if (r->>'credited')::int <> 15 then raise exception 'FALHA: foto com moldura deveria dar 15: %', r; end if;
+  r := club_earn(tok,'photo_frame'); if (r->>'credited')::int <> 0 then raise exception 'FALHA: foto com moldura passou do limite de 1 por dia: %', r; end if;
+  begin perform club_earn(tok,'ar_used'); if (club_me(tok)->>'balance')::int <> 105 then raise exception 'FALHA: ação desligada pagou pontos'; end if; end;
   if (club_me(tok)->>'balance')::int <> 105 then raise exception 'FALHA: saldo esperado 105, veio %', club_me(tok); end if;
 end $$;
 

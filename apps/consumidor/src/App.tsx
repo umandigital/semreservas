@@ -30,6 +30,11 @@ export function App() {
 
   useEffect(() => { aplicarTema(); guardarIndicacao() }, [])
   const clube = useClube()
+  // Voltou do login (Google ou código): quem ainda não completou o cadastro vai direto para "Falta só um passo"
+  useEffect(() => {
+    const v = clube.v; if (!v?.logado) return
+    try { if (localStorage.getItem('sr-entrando')) { localStorage.removeItem('sr-entrando'); ir(v.membro ? '/' : '/cadastro') } } catch { /* ignora */ }
+  }, [clube.v?.logado, clube.v?.membro])
   // Visita do dia: ao abrir o app na mesa, quem é do Clube ganha o check-in sem fazer nada (1 por dia)
   useEffect(() => {
     const v = clube.v; if (!v?.membro || v.hoje.visitou || !getMesa()) return

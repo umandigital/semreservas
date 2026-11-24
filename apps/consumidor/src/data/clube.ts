@@ -24,6 +24,9 @@ export const REGRAS: Regra[] = [
   R('google_open', 'Abrir a página do Google', 'divulgar', 20, 'once', 1, true, false),
   R('referral', 'Indicar um amigo', 'indicar', 100, 'unlimited', 1, false, false),
 ]
+/** Ações que ainda NÃO existem no app: ficam fora da lista e da introdução até serem construídas (o cliente só vê o que consegue ganhar). */
+export const NAO_IMPLEMENTADAS = new Set(['install_app', 'enable_notifications', 'order_via_app', 'ar_used', 'rate_dish', 'suggestion', 'share_app', 'campaign_checkin'])
+export const REGRAS_ATIVAS: Regra[] = REGRAS.filter(r => !NAO_IMPLEMENTADAS.has(r.action))
 export type Premio = { id: string; nome: string; custo: number; minVisitas: number; porPessoaMes: number | null }
 export const PREMIOS: Premio[] = [
   { id: 'sorvete', nome: 'Sorvete com 2 bolas', custo: 200, minVisitas: 0, porPessoaMes: 4 },

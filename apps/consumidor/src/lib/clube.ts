@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { supabase } from './supabase'
 import { getToken } from './router'
 import { avisar, entrar as entrarLegado, sair as sairLegado } from './mockStore'
-import { REGRAS, PREMIOS, type Regra } from '../data/clube'
+import { REGRAS_ATIVAS, PREMIOS, type Limite, type Regra } from '../data/clube'
 import * as D from './clubeDemo'
 
 export const guardarIndicacao = () => { try { const r = new URLSearchParams(location.search).get('ref'); if (r && /^[A-Z0-9]{4,8}$/i.test(r)) localStorage.setItem('sr-ref', r.toUpperCase()) } catch { /* ignora */ } }
@@ -29,21 +29,27 @@ const demoVisao = (): Visao => {
   const e = lerD(); const email = lerEmail()
   return { logado: !!email, email, membro: e.membro ? { nome: e.membro.nome, saldo: D.saldo(e), total: D.total(e), ref: e.membro.ref, visitas: D.visitas(e) } : null,
     extrato: [...e.ledger].reverse().map(l => ({ em: l.em, delta: l.delta, kind: l.kind, action: l.action })),
-    trocas: [...e.trocas].reverse().map(t => ({ id: t.id, nome: t.nome, code: t.code, em: t.em, expira: t.expira, status: t.status, custo: t.custo })), regras: REGRAS, premios: PREMIOS,
+    trocas: [...e.trocas].reverse().map(t => ({ id: t.id, nome: t.nome, code: t.code, em: t.em, expira: t.expira, status: t.status, custo: t.custo })), regras: REGRAS_ATIVAS, premios: PREMIOS,
     hoje: { visitou: D.visitouHoje(e), opinou: D.opinouHoje(e) } }
+}
+/** Regras que o servidor deixou ligadas, com os pontos e limites dele, e que o app já sabe cumprir. */
+const regrasDoServidor = (rg: unknown): Regra[] => {
+  const lista = (Array.isArray(rg) ? rg : []) as { action: string; points: number; limit_kind: Limite; limit_n: number }[]
+  if (!lista.length) return REGRAS_ATIVAS
+  return REGRAS_ATIVAS.flatMap(r => { const x = lista.find(l => l.action === r.action); return x ? [{ ...r, points: x.points, limit: x.limit_kind, n: x.limit_n }] : [] })
 }
 const realVisao = async (): Promise<Visao> => {
   const tok = getToken(); const { data: s } = await supabase!.auth.getSession(); const email = s.session?.user.email ?? ''
-  if (!email || !tok) return { logado: !!email, email, membro: null, extrato: [], trocas: [], regras: REGRAS, premios: PREMIOS, hoje: SEM_HOJE }
+  if (!email || !tok) return { logado: !!email, email, membro: null, extrato: [], trocas: [], regras: REGRAS_ATIVAS, premios: PREMIOS, hoje: SEM_HOJE }
   const { data: me } = await supabase!.rpc('club_me', { p_token: tok })
   const m = me as { member?: boolean; name?: string; balance?: number; lifetime?: number; referral_code?: string } | null
-  if (!m?.member) return { logado: true, email, membro: null, extrato: [], trocas: [], regras: REGRAS, premios: PREMIOS, hoje: SEM_HOJE }
-  const [{ data: ex }, { data: tr }, { data: cat }, { data: hj }] = await Promise.all([supabase!.rpc('club_my_ledger', { p_token: tok, p_limit: 100 }), supabase!.rpc('club_my_redemptions', { p_token: tok }), supabase!.rpc('club_catalog', { p_token: tok }), supabase!.rpc('club_today', { p_token: tok })])
+  if (!m?.member) return { logado: true, email, membro: null, extrato: [], trocas: [], regras: REGRAS_ATIVAS, premios: PREMIOS, hoje: SEM_HOJE }
+  const [{ data: ex }, { data: tr }, { data: cat }, { data: hj }, { data: rg }] = await Promise.all([supabase!.rpc('club_my_ledger', { p_token: tok, p_limit: 100 }), supabase!.rpc('club_my_redemptions', { p_token: tok }), supabase!.rpc('club_catalog', { p_token: tok }), supabase!.rpc('club_today', { p_token: tok }), supabase!.rpc('club_rules', { p_token: tok })])
   const h = hj as { visited?: boolean; feedback?: boolean; visits?: number } | null
   return { logado: true, email, membro: { nome: m.name ?? '', saldo: m.balance ?? 0, total: m.lifetime ?? 0, ref: m.referral_code ?? '', visitas: h?.visits ?? 0 },
     extrato: ((ex ?? []) as { created_at: string; delta: number; kind: string; action: string }[]).map(l => ({ em: Date.parse(l.created_at), delta: l.delta, kind: l.kind, action: l.action })),
     trocas: ((tr ?? []) as { id: string; reward_name: string; code: string; created_at: string; expires_at: string; status: string }[]).map(t => ({ id: t.id, nome: t.reward_name, code: t.code, em: Date.parse(t.created_at), expira: Date.parse(t.expires_at), status: t.status })),
-    regras: REGRAS, premios: ((cat ?? []) as { id: string; name: string; cost_points: number; min_visits: number }[]).map(c => ({ id: c.id, nome: c.name, custo: c.cost_points, minVisitas: c.min_visits, porPessoaMes: null })),
+    regras: regrasDoServidor(rg), premios: ((cat ?? []) as { id: string; name: string; cost_points: number; min_visits: number }[]).map(c => ({ id: c.id, nome: c.name, custo: c.cost_points, minVisitas: c.min_visits, porPessoaMes: null })),
     hoje: { visitou: !!h?.visited, opinou: !!h?.feedback } }
 }
 
@@ -57,7 +63,11 @@ export const textoErro = (e: unknown) => MSG[erro(e)] ?? 'Sem conexão agora. Te
 export function useClube() {
   const [v, setV] = useState<Visao | null>(CLUBE_REAL ? null : demoVisao())
   const recarregar = useCallback(async () => { setV(CLUBE_REAL ? await realVisao().catch(() => demoVisao()) : demoVisao()) }, [])
-  useEffect(() => { void recarregar(); const f = () => { void recarregar() }; subs.add(f); return () => { subs.delete(f) } }, [recarregar])
+  useEffect(() => {
+    void recarregar(); const f = () => { void recarregar() }; subs.add(f)
+    const a = CLUBE_REAL ? supabase!.auth.onAuthStateChange(() => { void recarregar() }) : null
+    return () => { subs.delete(f); a?.data.subscription.unsubscribe() }
+  }, [recarregar])
   useSyncExternalStore(f => { subs.add(f); return () => { subs.delete(f) } }, () => 0)
   const acao = async <T,>(f: () => Promise<T> | T): Promise<T> => { const r = await f(); await recarregar(); return r }
   return {
@@ -65,8 +75,9 @@ export function useClube() {
     // login: em produção, Supabase Auth (código por e-mail ou Google); na simulação, qualquer código de 6 dígitos
     enviarCodigo: async (email: string) => { if (CLUBE_REAL) { const { error } = await supabase!.auth.signInWithOtp({ email }); if (error) throw error } },
     confirmarCodigo: (email: string, cod: string) => acao(async () => {
+      try { localStorage.setItem('sr-entrando', '1') } catch { /* ignora */ }
       if (CLUBE_REAL) { const { error } = await supabase!.auth.verifyOtp({ email, token: cod, type: 'email' }); if (error) throw error } else { localStorage.setItem(AUTH, email) } entrarLegado(email) }),
-    entrarGoogle: async () => { if (CLUBE_REAL) { await supabase!.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + import.meta.env.BASE_URL } }) } else { localStorage.setItem(AUTH, 'ana.souza@gmail.com'); entrarLegado('ana.souza@gmail.com'); emit() } },
+    entrarGoogle: async () => { try { localStorage.setItem('sr-entrando', '1') } catch { /* ignora */ } if (CLUBE_REAL) { await supabase!.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + import.meta.env.BASE_URL } }) } else { localStorage.setItem(AUTH, 'ana.souza@gmail.com'); entrarLegado('ana.souza@gmail.com'); emit() } },
     sair: () => acao(async () => { if (CLUBE_REAL) await supabase!.auth.signOut(); else localStorage.removeItem(AUTH); sairLegado() }),
     cadastrar: (nome: string, nasc: string, publicidade: boolean) => acao(async () => {
       if (CLUBE_REAL) { const { error } = await supabase!.rpc('club_join', { p_token: getToken(), p_name: nome, p_birth: nasc, p_regulation: 'v1', p_publicity: publicidade, p_ref: lerIndicacao() }); if (error) throw error }
