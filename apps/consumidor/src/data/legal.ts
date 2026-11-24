@@ -3,7 +3,7 @@
 import { CLUBE } from './clube'
 import { TEMA } from './tema'
 
-export const LEGAL = { versao: 'v1', atualizado: '24/11/2026', controlador: 'Uman Digital (SemReservas), operadora da plataforma SemReservas', contato: '' as string }
+export const LEGAL = { versao: 'v1', atualizado: '24/11/2026', controlador: 'Uman Digital (SemReservas), operadora da plataforma SemReservas', contato: 'luciano@semreservas.com.br' as string }
 export type Doc = { id: 'regulamento' | 'privacidade' | 'termos'; titulo: string; secoes: { t: string; p: string[] }[] }
 const demo = `${TEMA.nome} é um restaurante de demonstração e, durante a fase de testes, os prêmios não têm valor real.`
 
