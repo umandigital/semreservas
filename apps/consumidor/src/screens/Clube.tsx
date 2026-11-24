@@ -40,7 +40,7 @@ export function Clube({ ir }: Ir) {
             {pode ? <button className="primario" onClick={() => trocar(p.id)}>Trocar</button> : <span className="falta">{m ? `faltam ${Math.max(0, p.custo - m.saldo)}` : ''}</span>}</li>
         })}</ul></div>
       <button className="sec grande" onClick={() => ir('/clube/ganhar')}>Como ganhar pontos</button>
-      {m && <button className="link" onClick={() => setIntro(true)}>Como o Clube funciona</button>}
+      <button className="link" onClick={() => setIntro(true)}>Ver como o Clube funciona (1 minuto)</button>
       {m && <button className="sec grande" onClick={() => ir('/clube/indicar')}>Indicar um amigo</button>}
       {m && <div className="links-c"><button className="link" onClick={() => ir('/clube/extrato')}>Meu extrato</button><button className="link" onClick={() => ir('/conta')}>Minha conta</button></div>}
 
