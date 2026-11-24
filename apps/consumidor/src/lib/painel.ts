@@ -26,13 +26,19 @@ export async function resumo(t: string, desdeIso: string, desdeDia: string): Pro
     opiniaoN: f.length, opiniaoMediana: mediana(f.map(x => x.rating)), pedidosN: s.length, subtotalMediana: mediana(s.map(x => x.subtotal_cents)) }
 }
 
-export type Fila = { id: string; table_label: string; kind: string; status: string; created_at: string; itens?: { name: string; qty: number; obs: string | null }[]; subtotal?: number }
+export type Fila = { id: string; table_label: string; kind: string; status: string; created_at: string; handled_by_label?: string | null; handled_at?: string | null; itens?: { name: string; qty: number; obs: string | null }[]; subtotal?: number }
 export async function filaAgora(t: string): Promise<Fila[]> {
-  const f = ler<Fila[]>(await db().from('service_requests').select('id,table_label,kind,status,created_at').eq('tenant_id', t).in('status', ['PENDING', 'ACKNOWLEDGED']).order('created_at'))
+  const f = ler<Fila[]>(await db().from('service_requests').select('id,table_label,kind,status,created_at,handled_by_label,handled_at').eq('tenant_id', t).in('status', ['PENDING', 'ACKNOWLEDGED']).order('created_at'))
   if (!f.length) return []
   const o = ler<{ request_id: string; items: { name: string; qty: number; obs: string | null }[]; subtotal_cents: number }[]>(await db().from('order_snapshots').select('request_id,items,subtotal_cents').in('request_id', f.map(x => x.id)))
   return f.map(x => { const s = o.find(y => y.request_id === x.id); return s ? { ...x, itens: s.items, subtotal: s.subtotal_cents } : x })
 }
+
+export const assumirChamado = async (t: string, id: string, quem: string | null) => ler<boolean>(await db().rpc('owner_request_take', { p_tenant: t, p_id: id, p_label: quem }))
+export const concluirChamado = async (t: string, id: string) => ler<boolean>(await db().rpc('owner_request_resolve', { p_tenant: t, p_id: id }))
+export type Garcom = { id: string; name: string; active: boolean }
+export const garcons = async (t: string) => ler<Garcom[]>(await db().from('staff_roster').select('id,name,active').eq('tenant_id', t).order('name'))
+export const salvarGarcom = async (t: string, name: string, active: boolean) => ler<boolean>(await db().rpc('owner_roster_set', { p_tenant: t, p_name: name, p_active: active }))
 
 export type RegraDono = { action: string; points: number; enabled: boolean; limit_kind: string; limit_n: number }
 export const regras = async (t: string) => ler<RegraDono[]>(await db().from('club_action_rules').select('action,points,enabled,limit_kind,limit_n').eq('tenant_id', t).order('points', { ascending: false }))

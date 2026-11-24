@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { CATEGORIAS, ITENS } from '../data/cardapio'
 import { ROTULO, type Kind } from '../lib/api'
 import { calcularMetricas, fmtDuracao, type Metricas } from '../lib/metricas'
-import { AparenciaSec, ClubeSec, ConfigSec, ExtrasSec, FilaSec, PrecosSec, ResumoSec } from './PainelSecoes'
+import { AlertaChamados, AparenciaSec, ClubeSec, ConfigSec, ExtrasSec, PrecosSec, ResumoSec } from './PainelSecoes'
 import { chamadosDesde, entrar, esgotadosDoEstab, linkDaEquipe, marcarEsgotado, meusEstabelecimentos, sair, trocarLinkDaEquipe, urlDoPainel, useSessao, type Estab } from '../lib/dono'
 
 type Aba = 'resumo' | 'atendimento' | 'clube' | 'cardapio' | 'aparencia' | 'extras' | 'config'
@@ -44,9 +44,9 @@ function Painel({ email }: { email: string }) {
       <aside className="painel-nav"><div className="marca-p"><b>{est.name}</b><small>Painel do proprietário</small></div>
         <nav aria-label="Seções">{MENU.map(([k, t]) => <button key={k} className={aba === k ? 'on' : ''} aria-current={aba === k ? 'page' : undefined} onClick={() => setAba(k)}>{t}</button>)}</nav>
         <div className="rodape-p"><small>{email}</small><button className="sec" onClick={() => sair()}>Sair</button></div></aside>
-      <main className="painel-corpo"><h1>{MENU.find(m => m[0] === aba)![1]}</h1>
+      <main className="painel-corpo"><AlertaChamados est={est} /><h1>{MENU.find(m => m[0] === aba)![1]}</h1>
         {aba === 'resumo' && <ResumoSec est={est} />}
-        {aba === 'atendimento' && <><FilaSec est={est} /><h2 className="sub">Números do atendimento</h2><Geral est={est} /></>}
+        {aba === 'atendimento' && <><p className="nota">Os chamados em aberto aparecem no topo de qualquer tela, com som e alerta, até alguém assumir.</p><Geral est={est} /></>}
         {aba === 'clube' && <ClubeSec est={est} />}
         {aba === 'cardapio' && <><div className="abas-p" role="tablist">{([['precos', 'Preços e itens'], ['esgotado', 'Acabou hoje']] as const).map(([k, t]) => <button key={k} role="tab" aria-selected={cardAba === k} className={cardAba === k ? 'on' : ''} onClick={() => setCardAba(k)}>{t}</button>)}</div>
           {cardAba === 'precos' ? <PrecosSec est={est} /> : <Esgotado est={est} />}</>}

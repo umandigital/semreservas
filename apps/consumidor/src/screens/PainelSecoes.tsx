@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { brl } from '../data/cardapio'
 import { CLUBE, REGRAS } from '../data/clube'
 import { TEMA } from '../data/tema'
 import * as P from '../lib/painel'
+import { alertaAtivo, ativarAlerta, bip } from '../lib/alerta'
 import type { Estab } from '../lib/dono'
 
 const ROT: Record<string, string> = Object.fromEntries(REGRAS.map(r => [r.action, r.rotulo]))
@@ -54,7 +55,7 @@ export function FilaSec({ est }: { est: Estab }) {
   return (
     <section><h2 className="sub">Chamados agora</h2><Aviso e={e} />{!f && !e && <Carregando />}
       {f && !f.length && <p className="vazio">Nenhum chamado em aberto. Tudo em dia.</p>}
-      {f?.map(x => <div key={x.id} className="cartao-p"><div className="lin"><b>Mesa {x.table_label} · {ROTK[x.kind] ?? x.kind}</b><span>{dh(x.created_at)} · {x.status === 'PENDING' ? 'aguardando' : 'em atendimento'}</span></div>
+      {f?.map(x => <div key={x.id} className="cartao-p"><div className="lin"><b>Mesa {x.table_label} · {ROTK[x.kind] ?? x.kind}</b><span>{dh(x.created_at)} · {x.status === 'PENDING' ? 'aguardando' : `com ${x.handled_by_label ?? 'a equipe'}`}</span></div>
         {x.itens && <ul className="itens-p">{x.itens.map((i, k) => <li key={k}>{i.qty} × {i.name}{i.obs ? ` (${i.obs})` : ''}</li>)}<li><b>Subtotal: {brl(x.subtotal ?? 0)}</b></li></ul>}</div>)}
       <p className="nota">Quem atende usa o painel da equipe (link em Configurações). Esta lista atualiza sozinha a cada 5 segundos.</p>
     </section>)
@@ -170,7 +171,7 @@ function ExtrasLista({ t }: { t: string }) {
 /** 7. Configurações: placas, horário e presença (o link da equipe vem do painel já existente). */
 export function ConfigSec({ est, equipe }: { est: Estab; equipe: ReactNode }) {
   const t = est.tenant_id
-  return <section>{equipe}<PlacasSec t={t} /><HorarioSec t={t} /><PresencaSec t={t} /></section>
+  return <section>{equipe}<GarconsSec t={t} /><PlacasSec t={t} /><HorarioSec t={t} /><PresencaSec t={t} /></section>
 }
 function PlacasSec({ t }: { t: string }) {
   const [p, e] = useCarga(() => P.placas(t), [t]); const [msg, setMsg] = useState('')
@@ -207,3 +208,68 @@ function PresencaSec({ t }: { t: string }) {
     <button className="sec" onClick={aqui}>Usar a localização deste aparelho</button> <button className="primario" onClick={async () => { try { setMsg(await P.salvarPresenca(t, v) ? 'Salvo.' : 'Dados inválidos (latitude e longitude juntas; raio de 30 a 2000 m).') } catch { setMsg('Não foi possível salvar.') } }}>Salvar</button>{msg && <p role="status" className="nota">{msg}</p>}</div>
 }
 export { useCallback }
+
+const ROTK2: Record<string, string> = { waiter: 'Chamar garçom', bill: 'Pedir a conta', order: 'Pedido', question: 'Dúvida', other: 'Outro', kitchen_item: 'Item da cozinha' }
+const ESCALA_S = 60   // sem atendimento há mais que isto: alerta urgente (o dono direciona ou assume)
+const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+
+/** Aviso de chamados em QUALQUER seção do painel: som e visual, ativo até alguém assumir. Se ninguém assume, o dono direciona ou assume. */
+export function AlertaChamados({ est }: { est: Estab }) {
+  const t = est.tenant_id; const [fila, setFila] = useState<P.Fila[]>([]); const [ok, setOk] = useState(alertaAtivo()); const [agora, setAgora] = useState(Date.now()); const [offline, setOffline] = useState(false)
+  const [equipe, setEquipe] = useState<P.Garcom[]>([]); const [busy, setBusy] = useState<string | null>(null); const [msg, setMsg] = useState('')
+  const vistos = useRef(new Set<string>()).current; const titulo = useRef(document.title).current
+  useEffect(() => { P.garcons(t).then(l => setEquipe(l.filter(g => g.active))).catch(() => undefined) }, [t])
+  useEffect(() => {
+    let n = 0; let vivo = true; let ultimoOk = Date.now()
+    const ler = () => P.filaAgora(t).then(l => { if (!vivo) return; ultimoOk = Date.now(); setOffline(false); setFila(l)
+      for (const x of l) if (x.status === 'PENDING' && !vistos.has(x.id)) { vistos.add(x.id); if (typeof Notification !== 'undefined' && Notification.permission === 'granted') { try { new Notification(`Mesa ${x.table_label} · ${ROTK2[x.kind] ?? x.kind}`, { tag: x.id, requireInteraction: true, body: 'Chamado aguardando atendimento' }) } catch { /* ignora */ } } }
+    }).catch(() => { if (vivo && Date.now() - ultimoOk > 9000) setOffline(true) })
+    void ler()
+    const i = setInterval(() => { n++; setAgora(Date.now()); if (n % 3 === 0) void ler() }, 1000)
+    return () => { vivo = false; clearInterval(i); document.title = titulo }
+  }, [t])   // eslint-disable-line react-hooks/exhaustive-deps
+  const pend = fila.filter(x => x.status === 'PENDING'); const urgentes = pend.filter(x => (agora - Date.parse(x.created_at)) / 1000 > ESCALA_S)
+  const ref = useRef({ pend: 0, urg: 0, n: 0 }).current
+  ref.pend = pend.length; ref.urg = urgentes.length
+  useEffect(() => {   // som a cada 3 s enquanto houver chamado sem atendimento; título pisca
+    const i = setInterval(() => { ref.n++
+      if (ref.pend > 0) { document.title = ref.n % 2 ? `🔴 ${ref.pend} CHAMADO${ref.pend > 1 ? 'S' : ''}!` : '⚠️ ATENDER · SemReservas'; if (ref.n % 3 === 0) bip(ref.urg > 0) }
+      else document.title = titulo }, 1000)
+    return () => clearInterval(i)
+  }, [])   // eslint-disable-line react-hooks/exhaustive-deps
+  const assumir = async (x: P.Fila, quem: string | null) => {
+    setBusy(x.id); setMsg('')
+    try { setMsg(await P.assumirChamado(t, x.id, quem) ? '' : 'Não foi possível assumir (outra pessoa já assumiu ou sem permissão).'); setFila(await P.filaAgora(t)) } catch { setMsg('Sem conexão. Tente de novo.') }
+    setBusy(null)
+  }
+  const concluir = async (x: P.Fila) => { setBusy(x.id); try { await P.concluirChamado(t, x.id); setFila(await P.filaAgora(t)) } catch { setMsg('Sem conexão. Tente de novo.') } setBusy(null) }
+  const ativar = async () => { setOk(await ativarAlerta()); if (typeof Notification !== 'undefined' && Notification.permission === 'default') { try { await Notification.requestPermission() } catch { /* ignora */ } } }
+  const andamento = fila.filter(x => x.status === 'ACKNOWLEDGED')
+  return (
+    <div className="alerta-ch" aria-live="assertive">
+      {!ok && <div className="ativar-som"><span>Ative o alerta sonoro para ser avisado dos chamados, mesmo em outra aba.</span><button className="primario" onClick={ativar}>Ativar alerta sonoro</button></div>}
+      {offline && <div className="ch-offline" role="alert">SEM CONEXÃO. Chamados podem não aparecer. Verifique a internet.</div>}
+      {msg && <p className="alerta" role="alert">{msg}</p>}
+      {pend.map(x => { const seg = Math.max(0, Math.floor((agora - Date.parse(x.created_at)) / 1000)); const urg = seg > ESCALA_S; return (
+        <div key={x.id} className={'ch-novo' + (urg ? ' urg' : '')} role="alert">
+          <div className="ch-topo"><b>Mesa {x.table_label} · {ROTK2[x.kind] ?? x.kind}</b><span>aguardando há {mmss(seg)}</span></div>
+          {urg && <p className="ch-urg">Ninguém assumiu há mais de {ESCALA_S} segundos. Direcione a um garçom ou assuma você.</p>}
+          {x.itens && <ul className="itens-p">{x.itens.map((i, k) => <li key={k}>{i.qty} × {i.name}{i.obs ? ` (${i.obs})` : ''}</li>)}</ul>}
+          <div className="ch-acoes">
+            <button className="primario" disabled={busy === x.id} onClick={() => assumir(x, null)}>Eu assumo</button>
+            {equipe.length > 0 && <select className="campo-p" aria-label="Direcionar para um garçom" disabled={busy === x.id} value="" onChange={e => { if (e.target.value) void assumir(x, e.target.value) }}><option value="">Direcionar para…</option>{equipe.map(g => <option key={g.id} value={g.name}>{g.name}</option>)}</select>}
+          </div></div>) })}
+      {andamento.map(x => <div key={x.id} className="ch-and"><span><b>Mesa {x.table_label} · {ROTK2[x.kind] ?? x.kind}</b> · com <b>{x.handled_by_label ?? 'a equipe'}</b>{x.handled_at ? ` desde ${new Date(x.handled_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+        <button className="sec peq-p" disabled={busy === x.id} onClick={() => concluir(x)}>Concluir</button></div>)}
+    </div>
+  )
+}
+
+/** Lista de garçons para direcionar (nomes, não contas de acesso). */
+export function GarconsSec({ t }: { t: string }) {
+  const [g, e, rec] = useCarga(() => P.garcons(t), [t]); const [nome, setNome] = useState(''); const [msg, setMsg] = useState('')
+  const salvar = async (n: string, a: boolean) => { try { setMsg(await P.salvarGarcom(t, n, a) ? '' : 'Não foi possível salvar.'); rec() } catch { setMsg('Sem conexão. Tente de novo.') } }
+  return <div className="cartao-p"><h2>Garçons</h2><p>Nomes para direcionar chamados quando ninguém assumir. Aparecem na lista "Direcionar para…".</p><Aviso e={e} />{msg && <p role="status" className="nota">{msg}</p>}
+    {g && g.map(x => <label key={x.id} className="sw"><input type="checkbox" role="switch" checked={x.active} onChange={ev => salvar(x.name, ev.target.checked)} /><span>{x.name}{x.active ? '' : ' (inativo)'}</span></label>)}
+    <div className="form-p"><input className="campo-p" placeholder="Nome do garçom" maxLength={40} value={nome} onChange={e => setNome(e.target.value)} /><button className="primario" disabled={!nome.trim()} onClick={async () => { await salvar(nome.trim(), true); setNome('') }}>Adicionar</button></div></div>
+}
