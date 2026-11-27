@@ -1,3 +1,4 @@
+import { celularValido, mascaraCelular } from '../data/telefone'
 import { useEffect, useState } from 'react'
 import { CLUBE } from '../data/clube'
 import { avisar } from '../lib/mockStore'
@@ -36,11 +37,11 @@ export function Entrar({ ir, volta }: { ir: (r: string) => void; volta: string }
 export function Cadastro({ ir }: { ir: (r: string) => void }) {
   const c = useClube(); const v = c.v
   const [lei, setLei] = useState<string | null>(null)
-  const [nome, setNome] = useState(''); const [d, setD] = useState(''); const [m, setM] = useState(''); const [a, setA] = useState(''); const [aceite, setAceite] = useState(false); const [pub, setPub] = useState(false); const [busy, setBusy] = useState(false)
+  const [nome, setNome] = useState(''); const [d, setD] = useState(''); const [m, setM] = useState(''); const [a, setA] = useState(''); const [aceite, setAceite] = useState(false); const [pub, setPub] = useState(false); const [cel, setCel] = useState(''); const [msgs, setMsgs] = useState(false); const [busy, setBusy] = useState(false)
   useEffect(() => { if (v && !v.logado) ir('/entrar'); if (v?.membro) ir('/') }, [v?.logado, v?.membro])
   useEffect(() => { if (v?.email && !nome) setNome(v.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, x => x.toUpperCase())) }, [v?.email])
   const nasc = `${a.padStart(4, '0')}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
-  const ok = nome.trim().length >= 2 && d && m && a.length === 4 && !isNaN(Date.parse(nasc)) && aceite
+  const ok = nome.trim().length >= 2 && d && m && a.length === 4 && !isNaN(Date.parse(nasc)) && aceite && celularValido(cel)
   return (
     <section className="tela-int entrar">
       {lei && <Legal id={lei} fechar={() => setLei(null)} />}
@@ -53,9 +54,14 @@ export function Cadastro({ ir }: { ir: (r: string) => void }) {
           <label className="rot">Mês<input className="campo" inputMode="numeric" maxLength={2} value={m} onChange={e => setM(e.target.value.replace(/\D/g, ''))} placeholder="08" /></label>
           <label className="rot">Ano<input className="campo" inputMode="numeric" maxLength={4} value={a} onChange={e => setA(e.target.value.replace(/\D/g, ''))} placeholder="1985" /></label></div>
         <p className="nota">É para o seu presente de aniversário. Depois de salvo, só o atendimento pode mudar.</p></div>
+      <div className="bloco-c"><h2>Seu celular</h2>
+        <label className="rot">Celular com DDD<input className="campo" type="tel" inputMode="tel" autoComplete="tel" value={cel} onChange={e => setCel(mascaraCelular(e.target.value))} placeholder="(11) 91234-5678" aria-invalid={!!cel && !celularValido(cel)} /></label>
+        {!!cel && !celularValido(cel) && <p className="alerta" role="alert">Confira o número: DDD e 9 dígitos.</p>}
+        <p className="nota">Só você e o atendimento do Clube usam este número, para falar sobre o seu cadastro e os seus prêmios.</p>
+        <label className="check"><input type="checkbox" checked={msgs} onChange={e => setMsgs(e.target.checked)} /><span>Quero receber avisos e promoções deste restaurante por WhatsApp ou SMS. <small>Opcional. Você desiste quando quiser em Minha conta.</small></span></label></div>
       <label className="check"><input type="checkbox" checked={aceite} onChange={e => setAceite(e.target.checked)} /><span>Li e aceito o <button type="button" className="link" onClick={() => setLei('regulamento')}>regulamento do Clube</button>, os <button type="button" className="link" onClick={() => setLei('termos')}>termos de uso</button> e a <button type="button" className="link" onClick={() => setLei('privacidade')}>política de privacidade</button>.</span></label>
       <label className="check"><input type="checkbox" checked={pub} onChange={e => setPub(e.target.checked)} /><span>Aceito que o restaurante divulgue meu nome se eu for cliente do mês. <small>Opcional.</small></span></label>
-      <button className="primario grande" disabled={!ok || busy} onClick={async () => { setBusy(true); try { await c.cadastrar(nome, nasc, pub); avisar('Cadastro concluído! Você ganhou 50 pontos.'); ir('/') } catch (e) { avisar(textoErro(e)) } finally { setBusy(false) } }}>Concluir cadastro</button>
+      <button className="primario grande" disabled={!ok || busy} onClick={async () => { setBusy(true); try { await c.cadastrar(nome, nasc, pub, cel, msgs); avisar('Cadastro concluído! Você ganhou 50 pontos.'); ir('/') } catch (e) { avisar(textoErro(e)) } finally { setBusy(false) } }}>Concluir cadastro</button>
       <p className="nota">Você ganha 50 pontos ao concluir.</p>
     </section>
   )

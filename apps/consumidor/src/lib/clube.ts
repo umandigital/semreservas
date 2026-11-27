@@ -26,6 +26,9 @@ const KEY = 'sr-clube-v1', AUTH = 'sr-clube-auth'
 const subs = new Set<() => void>(); const emit = () => subs.forEach(f => f())
 const lerD = (): D.Estado => { try { const r = localStorage.getItem(KEY); return r ? D.migrar(JSON.parse(r) as Partial<D.Estado>) : D.vazio() } catch { return D.vazio() } }
 const gravarD = (e: D.Estado) => { try { localStorage.setItem(KEY, JSON.stringify(e)) } catch { /* ignora */ } emit() }
+export type Contato = { phone: string; messaging: boolean }
+const lerContatoDemo = (): Contato => { try { const r = localStorage.getItem('sr-clube-contato'); return r ? JSON.parse(r) as Contato : { phone: '', messaging: false } } catch { return { phone: '', messaging: false } } }
+const gravarContatoDemo = (c: Contato) => { try { localStorage.setItem('sr-clube-contato', JSON.stringify(c)) } catch { /* ignora */ } }
 const lerEmail = () => { try { return localStorage.getItem(AUTH) ?? '' } catch { return '' } }
 
 const demoVisao = (): Visao => {
@@ -90,9 +93,18 @@ export function useClube() {
       if (CLUBE_REAL) { const { error } = await supabase!.auth.verifyOtp({ email, token: cod, type: 'email' }); if (error) throw error } else { localStorage.setItem(AUTH, email) } entrarLegado(email) }),
     entrarGoogle: async () => { try { localStorage.setItem('sr-entrando', '1') } catch { /* ignora */ } if (CLUBE_REAL) { await supabase!.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + import.meta.env.BASE_URL } }) } else { localStorage.setItem(AUTH, 'ana.souza@gmail.com'); entrarLegado('ana.souza@gmail.com'); emit() } },
     sair: () => acao(async () => { if (CLUBE_REAL) await supabase!.auth.signOut(); else localStorage.removeItem(AUTH); sairLegado() }),
-    cadastrar: (nome: string, nasc: string, publicidade: boolean) => acao(async () => {
-      if (CLUBE_REAL) { const { error } = await supabase!.rpc('club_join', { p_token: getToken(), p_name: nome, p_birth: nasc, p_regulation: 'v1', p_publicity: publicidade, p_ref: lerIndicacao() }); if (error) throw error }
-      else gravarD(D.cadastrar(lerD(), nome, nasc)) }),
+    cadastrar: (nome: string, nasc: string, publicidade: boolean, celular?: string, mensagens?: boolean) => acao(async () => {
+      if (CLUBE_REAL) {
+        const { error } = await supabase!.rpc('club_join', { p_token: getToken(), p_name: nome, p_birth: nasc, p_regulation: 'v1', p_publicity: publicidade, p_ref: lerIndicacao() }); if (error) throw error
+        if (celular) { try { await supabase!.rpc('club_contact_set', { p_token: getToken(), p_phone: celular, p_messaging: !!mensagens }) } catch { /* o cadastro já valeu: a pessoa completa em Minha conta */ } }
+      } else { gravarD(D.cadastrar(lerD(), nome, nasc)); if (celular) gravarContatoDemo({ phone: celular, messaging: !!mensagens }) } }),
+    /** Celular e consentimento da própria pessoa (só ela lê). */
+    contato: async (): Promise<Contato> => {
+      if (CLUBE_REAL) { const { data, error } = await supabase!.rpc('club_my_contact', { p_token: getToken() }); if (error) throw error; const d = data as { phone: string | null; messaging: boolean } | null; return { phone: d?.phone ?? '', messaging: !!d?.messaging } }
+      return lerContatoDemo() },
+    salvarContato: (celular: string, mensagens: boolean) => acao(async () => {
+      if (CLUBE_REAL) { const { error } = await supabase!.rpc('club_contact_set', { p_token: getToken(), p_phone: celular, p_messaging: mensagens }); if (error) throw error }
+      else gravarContatoDemo({ phone: celular, messaging: celular ? mensagens : false }) }),
     ganhar: (action: string) => acao(async () => {
       if (CLUBE_REAL) { const { data, error } = await supabase!.rpc('club_earn', { p_token: getToken(), p_action: action }); if (error) throw error; return (data as { credited: number }).credited }
       const [e, g] = D.ganhar(lerD(), action); gravarD(e); return g }),

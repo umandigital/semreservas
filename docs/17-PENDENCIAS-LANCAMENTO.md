@@ -27,3 +27,7 @@ Lista viva do que falta antes de abrir o SemReservas GastroPub a clientes reais 
 - [ ] Delivery e clube por pedidos (módulo futuro).
 - [ ] Notificação push para o proprietário (aviso mesmo com o computador em repouso).
 - [ ] Validade dos pontos e aviso 30 dias antes; alertas de abuso; rotina de retenção.
+
+## Celular e mensagens (27/11/2026)
+- Cadastro coleta o **celular (obrigatório)** e o **aceite opcional** de avisos e promoções do restaurante (migração 0018; Conta permite mudar, tirar o aceite ou apagar). Política de privacidade atualizada (rascunho, falta revisão jurídica).
+- **Para enviar mensagens direcionadas falta:** função do dono/Master que liste só quem **aceitou**, provedor de WhatsApp Business/SMS (custos, modelos aprovados), opção de sair em toda mensagem, limite de envios e registro de cada envio.
