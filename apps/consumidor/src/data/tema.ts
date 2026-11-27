@@ -1,13 +1,14 @@
 // Tema do restaurante: tudo é dado (cores, logo, textos). Trocar aqui não exige mexer nas telas.
 // GastroPub (teste): vinho, terracota e creme, com texto creme sobre vinho (contraste alto).
-/** Slide do carrossel da Início. Foto: ocupa tudo. Banner: arte pronta com texto, mostrada como cartão. `quem` limita a quem aparece; `rota` (no app) ou `link` (fora) é para onde o toque leva. */
-export type Slide = { img: string; alt?: string; link?: string; rota?: string; tipo?: 'foto' | 'banner'; quem?: 'visitante' | 'clube' | 'todos' }
+/** Slide do carrossel da Início. Foto: ocupa tudo. Banner: arte pronta com texto (10:3), mostrada como cartão. Cheio: arte pronta com texto que ocupa o espaço todo (proporção de 1,8:1). `prato` leva ao prato no cardápio; `ate` (AAAA-MM-DD) esconde o slide depois dessa data. `quem` limita a quem aparece; `rota` (no app) ou `link` (fora) é para onde o toque leva. */
+export type Slide = { img: string; alt?: string; link?: string; rota?: string; prato?: string; ate?: string; tipo?: 'foto' | 'banner' | 'cheio'; quem?: 'visitante' | 'clube' | 'todos' }
 export const TEMA = {
   nome: 'SemReservas GastroPub',
   logo: 'media/marca/gastropub-logo.webp',
   slogan: 'Um toque. Infinitas possibilidades.',
   /** Fotos do ambiente que passam no topo da Início (WebP pequeno em public/media/ambiente). A primeira é a que aparece sem animação. */
   ambiente: [
+    { img: 'media/banners/promo-pizza-calabresa.webp', tipo: 'cheio', prato: 'p2', ate: '2026-11-27', alt: 'Só hoje: 25% de desconto na pizza de calabresa. Toque para ver o prato.' },   // promoção do dia (sai do ar depois da data)
     { img: 'media/ambiente/bar.webp' },
     { img: 'media/banners/clube.webp', tipo: 'banner', quem: 'visitante', rota: '/clube', alt: 'Clube de benefícios: junte, troque, aproveite. Toque para entrar.' },   // banner pronto (1200x360, com texto): vira cartão no carrossel
     { img: 'media/ambiente/mesa.webp' }, { img: 'media/ambiente/fachada.webp' }, { img: 'media/ambiente/salao.webp' },

@@ -26,8 +26,9 @@ function Carrossel({ fotos, ir, aoMudar }: { fotos: Slide[]; ir: (r: string) => 
     <div className="n2-slides" ref={ref} onScroll={e => { const el = e.currentTarget; setI(Math.round(el.scrollLeft / el.clientWidth)) }} onPointerDown={segurar} onMouseEnter={segurar} onTouchStart={segurar} role="group" aria-roledescription="carrossel" aria-label="Destaques do restaurante">
       {fotos.map((f, k) => {
         const im = <img src={import.meta.env.BASE_URL + f.img} alt={f.alt ?? ''} draggable={false} loading={k === 0 ? 'eager' : 'lazy'} />
-        const corpo = f.rota ? <button className="n2-slide-b" onClick={() => ir(f.rota!)}>{im}</button> : f.link ? <a href={f.link} target="_blank" rel="noopener">{im}</a> : im
-        return <div key={f.img} className={'n2-slide' + (f.tipo === 'banner' ? ' banner' : '')} role="group" aria-label={`${k + 1} de ${n}`}>{corpo}</div>
+        const vai_ = () => { if (f.prato) { try { sessionStorage.setItem('sr-ir-prato', f.prato) } catch { /* ignora */ } ir('/cardapio') } else if (f.rota) ir(f.rota) }
+        const corpo = f.rota || f.prato ? <button className="n2-slide-b" onClick={vai_}>{im}</button> : f.link ? <a href={f.link} target="_blank" rel="noopener">{im}</a> : im
+        return <div key={f.img} className={'n2-slide' + (f.tipo === 'banner' ? ' banner' : f.tipo === 'cheio' ? ' cheio' : '')} role="group" aria-label={`${k + 1} de ${n}`}>{corpo}</div>
       })}
     </div>
     {n > 1 && <div className="n2-pontos" role="tablist" aria-label="Escolher destaque">{fotos.map((f, k) => <button key={f.img} role="tab" aria-selected={k === i} aria-label={`Destaque ${k + 1}`} className={k === i ? 'on' : ''} onClick={() => { segurar(); vai(k) }} />)}</div>}
@@ -41,13 +42,13 @@ const Atalho = ({ icone, t, onClick, ponto, i }: { icone: ReactNode; t: string; 
 export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
   const mesa = getMesa(); const clube = useClube(); const cv = clube.v; const m = cv?.membro
   const mesaTxt = useMemo(() => mesa ? (/^\d+$/.test(mesa) ? mesa.padStart(2, '0') : mesa) : null, [mesa])
-  const slides = useMemo(() => TEMA.ambiente.filter(x => !x.quem || x.quem === 'todos' || (x.quem === 'clube' ? !!m : !m)), [m])
+  const slides = useMemo(() => { const hoje = new Date(); const hojeTxt = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`; return TEMA.ambiente.filter(x => (!x.ate || hojeTxt <= x.ate) && (!x.quem || x.quem === 'todos' || (x.quem === 'clube' ? !!m : !m))) }, [m])
   const [ativo, setAtivo] = useState<Slide | null>(null)
   const temBannerClube = slides.some(x => x.rota === '/clube')   // com o banner do Clube no carrossel, o espaço de baixo não repete o convite
   const entrarOu = (rota: string) => () => ir(m ? rota : '/clube')   // roleta e aniversário são do Clube: quem ainda não entrou vê o convite
   return (
     <section className="home n2-home">
-      <div className={'n2-hero n2-in' + (ativo?.tipo === 'banner' ? ' so-banner' : '')} style={{ '--i': 0 } as CSSProperties}>
+      <div className={'n2-hero n2-in' + (ativo?.tipo === 'banner' || ativo?.tipo === 'cheio' ? ' so-banner' : '')} style={{ '--i': 0 } as CSSProperties}>
         <Carrossel fotos={slides} ir={ir} aoMudar={setAtivo} />
         <div className="n2-hero-topo">
           <img className="n2-logo" src={import.meta.env.BASE_URL + TEMA.logoTransp} alt={nome} />

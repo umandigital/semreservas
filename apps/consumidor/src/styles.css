@@ -538,3 +538,8 @@ main { padding-bottom:104px; } main.cheio { padding-bottom:0; }
 .n2-slide-b { display:block; width:100%; border:0; background:none; padding:0; border-radius:22px; transition:transform .16s, filter .2s; } .n2-slide-b:hover { transform:translateY(-3px); filter:brightness(1.06); } .n2-slide-b:active { transform:scale(.98); }
 .n2-hero.so-banner .n2-hero-nome, .n2-hero.so-banner .n2-logo { opacity:0; pointer-events:none; } .n2-logo, .n2-hero-nome { transition:opacity .3s; }
 .n2-hero.so-banner::after { background:linear-gradient(to bottom, rgba(14,3,8,.5) 0%, rgba(14,3,8,0) 30%); }
+
+/* banner de promoção que ocupa o slide todo (arte pronta com texto, proporção ~1,8:1) */
+.n2-slide.cheio { background:#220a14; } .n2-slide.cheio img { object-fit:cover; object-position:left 62%; transform:none !important; -webkit-mask-image:none; mask-image:none; } .n2-hero:hover .n2-slide.cheio img { transform:none; }
+.n2-slide.cheio .n2-slide-b { height:100%; border-radius:0; } .n2-slide.cheio .n2-slide-b img { width:100%; height:100%; }
+.n2-hero.so-banner:has(.n2-slide.cheio:hover)::after { opacity:0; }

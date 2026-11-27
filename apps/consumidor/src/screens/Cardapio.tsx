@@ -26,6 +26,12 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
     medir(); addEventListener('resize', medir); return () => removeEventListener('resize', medir)
   }, [])
   useEffect(() => { rolo.current?.scrollTo({ top: 0 }) }, [cat, q, lista])
+  // veio de um aviso da Início (promoção): abre direto no prato indicado
+  useEffect(() => {
+    let id: string | null = null; try { id = sessionStorage.getItem('sr-ir-prato'); sessionStorage.removeItem('sr-ir-prato') } catch { /* ignora */ }
+    if (!id) return; const k = itens.findIndex(x => x.id === id); if (k < 0) return
+    const t = setTimeout(() => { const el = rolo.current; if (el) el.scrollTo({ top: k * el.clientHeight }) }, 350); return () => clearTimeout(t)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // vídeo toca só quando o prato está na tela
   useEffect(() => {
