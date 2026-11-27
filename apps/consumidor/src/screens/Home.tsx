@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { TEMA } from '../data/tema'
+import { brl, ITENS } from '../data/cardapio'
+import { useSelecao } from '../lib/mockStore'
 import { useClube } from '../lib/clube'
 import { getMesa } from '../lib/router'
-import { IcCarteira, IcDir, IcBolo, IcCloche, IcClube, IcFoto, IcG, IcEstrela, IcInsta, IcRoleta, IcSeta, IcBaixo } from '../ui/IconsV2'
+import { IcCarteira, IcDir, IcPedido, IcBolo, IcCloche, IcClube, IcFoto, IcG, IcEstrela, IcInsta, IcRoleta, IcSeta, IcBaixo } from '../ui/IconsV2'
 
 const reduz = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false } }
 
@@ -56,10 +58,20 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
           <Atalho i={8} icone={<IcRoleta />} t="Roleta do Chef" onClick={entrarOu('/roleta')} ponto={!!cv?.roleta && cv.roleta.grants > 0} />
           <Atalho i={9} icone={<IcBolo />} t="Meu aniversário" onClick={entrarOu('/aniversario')} ponto={!!cv?.aniv?.canClaim} />
         </div>
-        <FaixaClube ir={ir} i={10} />
+        <ResumoPedido ir={ir} i={10} />
+        <FaixaClube ir={ir} i={11} />
       </div>
     </section>
   )
+}
+/** Resumo da seleção do cliente (só aparece quando há itens): quantidade e total dos pratos escolhidos, com atalho para o Pedido. */
+function ResumoPedido({ ir, i }: { ir: (r: string) => void; i: number }) {
+  const sel = useSelecao(); const linhas = ITENS.filter(x => sel.qtd[x.id]); const n = linhas.reduce((a, x) => a + sel.qtd[x.id], 0); const total = linhas.reduce((a, x) => a + x.preco * sel.qtd[x.id], 0)
+  if (!n) return null
+  return <button className="n2-faixa n2-pedido n2-in" style={{ '--i': i } as CSSProperties} onClick={() => ir('/pedido')}>
+    <span className="n2-faixa-t"><IcPedido /><b>{n}</b><span>{n === 1 ? 'item escolhido' : 'itens escolhidos'}</span></span>
+    <span className="n2-faixa-c">Total: {brl(total)}<span className="n2-ver">Ver pedido<IcDir /></span></span>
+  </button>
 }
 /** Faixa do Clube: sócio vê saldo e quanto falta para o próximo prêmio; quem ainda não entrou vê a barra zerada e o convite. */
 function FaixaClube({ ir, i }: { ir: (r: string) => void; i: number }) {
