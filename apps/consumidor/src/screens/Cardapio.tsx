@@ -142,6 +142,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
         <div className="sombra">
           <div className="linha-nome"><h2>{i.nome}</h2><span className="preco">{brl(i.preco)}</span></div>
           <p className={aberto ? '' : 'desc1'}>{i.desc}</p>
+          {m && <small className="n2-nota">{m.nota.split('.')[0]} · {m.medidas}</small>}
           {aberto && <ul className="ingr">{i.ingredientes.map(x => <li key={x}>{x}</li>)}{i.tags?.map(t => <li key={t} className="tag">{t}</li>)}</ul>}
           <button className="link" style={{ textAlign: 'left', padding: 0 }} onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Recolher' : 'Ver ingredientes'}</button>
         </div>

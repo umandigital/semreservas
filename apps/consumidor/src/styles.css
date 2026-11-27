@@ -495,3 +495,6 @@ main { padding-bottom:104px; } main.cheio { padding-bottom:0; }
 .n2-hero-nome { text-shadow:0 2px 4px rgba(0,0,0,.8), 0 4px 16px rgba(0,0,0,.7); }
 .n2-pontos button::before { background:rgba(255,255,255,.7); box-shadow:0 1px 4px rgba(0,0,0,.6); }
 .n2-pedido { border-color:rgba(233,147,97,.55); background:linear-gradient(145deg, rgba(233,147,97,.28), rgba(233,147,97,.07)); } .n2-ver { display:inline-flex; align-items:center; gap:4px; font-weight:700; color:var(--ativo); white-space:nowrap; }
+
+/* a nota do 3D ("imagem ilustrativa...") sai de cima da foto e fica junto da descrição, onde não atrapalha nada */
+.n2-card .reel .nota3d { display:none; } .n2-nota { color:var(--mut); font-size:.85rem; line-height:1.3; }
