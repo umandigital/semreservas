@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useRota, setMesa, setToken, setSlug, getMesa } from './lib/router'
 import { useMenuServidor } from './lib/hooks'
+import { IcEstrela, IcGarfo, IcInfo, IcInicio, IcPedido } from './ui/IconsV2'
 import { parseRoute } from './lib/route'
 import { abrirPlaca, carregarTenant, resolverPlaca } from './lib/supabase'
 import { avisar, useMembro, useSelecao, useToast } from './lib/mockStore'
@@ -97,21 +98,21 @@ export function App() {
   })()
   return (
     <Casca>
-      <header className="topo">
+      {!['/', '/cardapio', '/clube'].includes(rota) && <header className="topo">
         <img className="topo-logo" src={import.meta.env.BASE_URL + TEMA.logo} alt={nome} />
         {getMesa() && <span className="mesa-chip">Mesa {getMesa()}</span>}
         <button className="chamar" onClick={() => ir('/chamar')}><IconSino /><span>Chamar garçom</span></button>
-      </header>
+      </header>}
       <main className={rota === '/cardapio' ? 'cheio' : ''}>{tela}</main>
       <Toast />
       {rota === '/' && <AvisoPremio ir={ir} />}
       {(rota === '/' || rota === '/clube') && <MetaAtingida ir={ir} />}
       <nav className="rodape" aria-label="Principal">
-        <Aba on={rota === '/'} onClick={() => ir('/')} icone={<IconHome />} t="Início" />
-        <Aba on={rota === '/cardapio' || rota.startsWith('/comentarios/')} onClick={() => ir('/cardapio')} icone={<IconGarfoFaca />} t="Cardápio" />
-        <Aba on={rota === '/pedido'} onClick={() => ir('/pedido')} icone={<IconPrancheta />} t="Pedido" n={total} />
-        <Aba on={rota === '/clube' || rota.startsWith('/clube/') || rota === '/entrar' || rota === '/cadastro' || rota.startsWith('/troca/')} onClick={() => ir('/clube')} icone={<IconCartao />} t="Clube" />
-        <Aba on={['/sobre', '/servicos', '/contato', '/conta'].includes(rota)} onClick={() => ir('/sobre')} icone={<IconInfo />} t="Sobre" />
+        <Aba on={rota === '/'} onClick={() => ir('/')} icone={<IcInicio f={rota === '/'} />} t="Início" />
+        <Aba on={rota === '/cardapio' || rota.startsWith('/comentarios/')} onClick={() => ir('/cardapio')} icone={<IcGarfo />} t="Cardápio" />
+        <Aba on={rota === '/pedido'} onClick={() => ir('/pedido')} icone={<IcPedido />} t="Pedido" n={total} />
+        <Aba on={rota === '/clube' || rota.startsWith('/clube/') || rota === '/entrar' || rota === '/cadastro' || rota.startsWith('/troca/')} onClick={() => ir('/clube')} icone={<IcEstrela f={rota === '/clube' || rota.startsWith('/clube/')} />} t="Clube" />
+        <Aba on={['/sobre', '/servicos', '/contato', '/conta'].includes(rota)} onClick={() => ir('/sobre')} icone={<IcInfo />} t="Sobre" />
       </nav>
     </Casca>
   )

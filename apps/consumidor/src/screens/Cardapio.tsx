@@ -5,7 +5,8 @@ import { avisar, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib
 import { useRaAberta, definirRaAberta } from '../lib/raAberta'
 import { abrirRa, baseCurtidas, media, webxrArDisponivel } from '../lib/util'
 import type { ModeloEl } from '../ui/model-viewer'
-import { IconBusca, IconCubo, IconEnviar, IconEstrela, IconMais } from '../ui/Icons'
+import { IconBusca, IconMais } from '../ui/Icons'
+import { IcBalao, IcCima, IcCoracao, IcEnviar, IcTela } from '../ui/IconsV2'
 
 // O 3D (e a biblioteca dele) só baixa quando um prato em 3D chega perto da tela.
 const Modelo3D = lazy(() => import('./Modelo3D'))
@@ -21,7 +22,7 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
 
   // a área do feed ocupa a tela toda entre o cabeçalho e a barra de baixo, seja qual for o aparelho
   useLayoutEffect(() => {
-    const medir = () => { const t = wrap.current?.getBoundingClientRect().top ?? 0; const nav = document.querySelector('.rodape')?.getBoundingClientRect().height ?? 64; setH(Math.max(320, Math.round(innerHeight - t - nav))) }
+    const medir = () => { const t = wrap.current?.getBoundingClientRect().top ?? 0; setH(Math.max(320, Math.round(innerHeight - t))) }
     medir(); addEventListener('resize', medir); return () => removeEventListener('resize', medir)
   }, [])
   useEffect(() => { rolo.current?.scrollTo({ top: 0 }) }, [cat, q, lista])
@@ -35,27 +36,28 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
   const rolou = () => { if (dica) { setDica(false); try { localStorage.setItem('sr-dica', '1') } catch { /* ignora */ } } }
 
   return (
-    <div className="reels-wrap" ref={wrap} style={{ ...(h ? { height: h } : { minHeight: '70dvh' }), '--fundo-3d': CONFIG.fundo3d } as unknown as CSSProperties}>
+    <div className={'reels-wrap n2-card' + (lista ? ' modo-lista' : '')} ref={wrap} style={{ ...(h ? { height: h } : { minHeight: '70dvh' }), '--fundo-3d': CONFIG.fundo3d } as unknown as CSSProperties}>
       <div className="card-topo">
-        {buscando ? (
+        {lista && (buscando ? (
           <div className="linha-t">
             <label className="busca"><IconBusca /><input autoFocus placeholder="Buscar no cardápio" value={q} onChange={e => { setQ(e.target.value); setCat('Todos') }} aria-label="Buscar no cardápio" /></label>
             <button className="busca-b" onClick={() => { setBuscando(false); setQ('') }}>Fechar</button>
           </div>
         ) : (
-          <div className="linha-t"><h1>Cardápio</h1><button className="busca-b" onClick={() => setBuscando(true)}><IconBusca /> Busca</button></div>
-        )}
+          <div className="linha-t"><button className="busca-b" onClick={() => setBuscando(true)}><IconBusca /> Buscar no cardápio</button></div>
+        ))}
+        {!lista && <h1 className="n2-tit">Cardápio</h1>}
         <div className="seg" role="tablist" aria-label="Como ver o cardápio">
           <button role="tab" aria-selected={!lista} className={!lista ? 'on' : ''} onClick={() => setLista(false)}>Explorar</button>
           <button role="tab" aria-selected={lista} className={lista ? 'on' : ''} onClick={() => setLista(true)}>Lista</button>
         </div>
-        <div className="chips" role="tablist" aria-label="Categorias">
+        {lista && <div className="chips" role="tablist" aria-label="Categorias">
           {['Todos', ...CATEGORIAS].map(c => <button key={c} role="tab" aria-selected={cat === c} className={'chip' + (c === cat ? ' on' : '')} onClick={() => setCat(c)}>{c}</button>)}
-        </div>
+        </div>}
       </div>
       <div className="area-feed">
       {itens.length === 0 ? <p className="vazio-reel">Nada encontrado. Tente outra palavra.</p> : lista ? (
-        <div className="lista lista-wrap" ref={rolo} style={{ position: 'absolute', inset: 0, paddingTop: 8, paddingBottom: 16, background: 'var(--bg)' }}>
+        <div className="lista lista-wrap" ref={rolo} style={{ position: 'absolute', inset: 0, paddingTop: 8, paddingBottom: 104, background: 'var(--bg)' }}>
           {itens.map(i => <LinhaItem key={i.id} i={i} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />)}
         </div>
       ) : (
@@ -63,7 +65,6 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
           {itens.map((i, n) => <Reel key={i.id} ir={ir} i={i} n={n + 1} de={itens.length} base={base} esgotado={soldOut.includes(i.id)} qtd={sel.qtd[i.id] ?? 0} />)}
         </div>
       )}
-      {dica && !lista && itens.length > 1 && <div className="dica-deslize" aria-hidden="true">↑ Deslize para o próximo</div>}
       </div>
     </div>
   )
@@ -133,21 +134,23 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
       <span className="selo">{m ? '◆ 3D · gire com o dedo' : i.video ? '▶ Vídeo' : '● Foto'}</span>
       <span className="contador" aria-hidden="true">{n}/{de}</span>
       <div className="lateral">
-        <button onClick={() => { salvar(i.id); avisar(salvo ? 'Removido dos salvos.' : membro ? 'Salvo na sua conta e disponível em outros aparelhos.' : 'Salvo só neste aparelho. Entre para guardar em qualquer lugar.') }} aria-pressed={salvo} aria-label={`Salvar ${i.nome}`}><IconEstrela cheio={salvo} /></button>
-        <button onClick={enviar} aria-label={`Enviar ${i.nome}`}><IconEnviar /></button>
+        <button onClick={() => { salvar(i.id); avisar(salvo ? 'Removido dos salvos.' : membro ? 'Salvo na sua conta e disponível em outros aparelhos.' : 'Salvo só neste aparelho. Entre para guardar em qualquer lugar.') }} aria-pressed={salvo} aria-label={`Salvar ${i.nome}`}><IcCoracao f={salvo} /></button>
+        <button onClick={() => ir('/comentarios/' + i.id)} aria-label={`Comentários sobre ${i.nome}`}><IcBalao /></button>
+        <button onClick={enviar} aria-label={`Enviar ${i.nome}`}><IcEnviar /></button>
       </div>
       <div className="base">
         <div className="sombra">
           <div className="linha-nome"><h2>{i.nome}</h2><span className="preco">{brl(i.preco)}</span></div>
           <p className={aberto ? '' : 'desc1'}>{i.desc}</p>
           {aberto && <ul className="ingr">{i.ingredientes.map(x => <li key={x}>{x}</li>)}{i.tags?.map(t => <li key={t} className="tag">{t}</li>)}</ul>}
-          <button className="link" style={{ textAlign: 'left', padding: 0 }} onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Recolher ↓' : 'Ver ingredientes ↑'}</button>
+          <button className="link" style={{ textAlign: 'left', padding: 0 }} onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Recolher' : 'Ver ingredientes'}</button>
         </div>
         {msgRa && <p className="status-ra" role="status">{msgRa}</p>}
         <div className="acao-reel">
-          {m && <button className="sec cta-ar" disabled={!(ra || webxrAr) || esgotado} onClick={projetar} title={carregado && !ra && !webxrAr ? 'Disponível no celular' : undefined}><IconCubo /> Projete na mesa</button>}
-          <Acao i={i} esgotado={esgotado} qtd={qtd} curto={!!m} />
+          {m && <button className="sec cta-ar" disabled={!(ra || webxrAr) || esgotado} onClick={projetar} title={carregado && !ra && !webxrAr ? 'Disponível no celular' : undefined}><IcTela /> Projete na mesa</button>}
+          <Acao i={i} esgotado={esgotado} qtd={qtd} curto={false} />
         </div>
+        {n < de && <div className="n2-desliza" aria-hidden="true"><IcCima />Deslize para ver mais</div>}
       </div>
     </article>
   )

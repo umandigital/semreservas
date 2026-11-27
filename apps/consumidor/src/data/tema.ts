@@ -5,11 +5,14 @@ export const TEMA = {
   logo: 'media/marca/gastropub-logo.webp',
   slogan: 'Um toque. Infinitas possibilidades.',
   /** Fotos do ambiente que passam no topo da Início (WebP pequeno em public/media/ambiente). A primeira é a que aparece sem animação. */
-  ambiente: ['media/ambiente/fachada.webp', 'media/ambiente/mesa.webp', 'media/ambiente/bar.webp', 'media/ambiente/salao.webp'],
+  ambiente: [{ img: 'media/ambiente/bar.webp' }, { img: 'media/ambiente/mesa.webp' }, { img: 'media/ambiente/fachada.webp' }, { img: 'media/ambiente/salao.webp' }] as { img: string; link?: string; alt?: string }[],   // link opcional: vira um slide promocional
   ambienteTitulo: 'Uma experiência para viver aqui',
+  heroTitulo: 'Sem Reservas', heroSub: 'GASTROPUB',
+  logoTransp: 'media/marca/logo-transparente.webp', chapeu: 'media/marca/chapeu.webp',
   cores: {
-    '--bg': '#380818', '--bg0': '#1f0510', '--bg2': '#4a1226', '--bg3': '#5e1b34', '--borda': '#7a3050',
-    '--laranja': '#e09060', '--txt': '#f8e8c8', '--mut': '#ecd5b0',
+    // Design system v2 (tokens do tema GastroPub): canvas, superfície, divisor, ação, texto
+    '--bg': '#290f19', '--bg0': '#1d0911', '--bg2': '#3a1a24', '--bg3': '#4d2733', '--borda': '#775462',
+    '--laranja': '#e99361', '--txt': '#f7e9d0', '--mut': '#e2c3bd', '--ativo': '#ffb58c', '--acao2': '#994d31', '--vidro': 'rgb(62 30 40 / 78%)', '--vidro-solido': '#3e1e28', '--pontos': '#ffcf6f', '--ok-t': '#a8edc0',
   } as Record<string, string>,
 }
 export function aplicarTema(raiz: HTMLElement = document.documentElement) {

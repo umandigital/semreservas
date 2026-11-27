@@ -76,7 +76,7 @@ export const brl = (c: number) => (c / 100).toLocaleString('pt-BR', { style: 'cu
 // Configuração do estabelecimento (teste). Campo vazio = ação não aparece (nunca inventar destino).
 export const CONFIG = {
   // Fundo padrão do restaurante para os pratos em 3D (qualquer CSS de background: cor, gradiente ou imagem).
-  fundo3d: 'radial-gradient(ellipse 85% 70% at 50% 46%, #fbf8f3 0%, #eee6da 52%, #d3c7b6 100%)',
+  fundo3d: 'radial-gradient(ellipse 80% 60% at 50% 36%, #7a4528 0%, #3b1c12 52%, #1d0911 100%)',
   wifi: { ssid: 'GastroPub-Guest', senha: 'teste1234' },
   instagram: 'https://www.instagram.com/semreservasgastropub/' as string,
   googleAvaliacao: 'https://g.page/r/CSVWk2-qgiadECE/review' as string,  // teste: perfil da Uman Digital (restaurante fictício não tem perfil no Google)

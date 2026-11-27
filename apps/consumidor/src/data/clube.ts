@@ -39,3 +39,7 @@ export const textoLimite = (r: Regra) => r.limit === 'once' ? 'uma vez' : r.limi
 // Extras do restaurante (fora do Clube): padrão e modo sem banco. Em produção valem os da configuração do restaurante.
 export const ROLETA = { passos: ['Panela', 'Faca', 'Fogão', 'Forno', 'Prato'], minCents: 8000, janelaDias: 60, premio: 'Pizza à escolha', validadeDias: 30, demo: true }
 export const ANIV = { beneficio: 'Sobremesa da casa', pctConvidados: 50, minConvidados: 5, validadeDias: 2, demo: true }
+
+/** Foto de cada prêmio na lista do Clube (pela palavra no nome; sem foto, o app mostra um ícone). Dado do restaurante. */
+export const FOTOS_PREMIO: [RegExp, string][] = [[/sorvete|gelato|sobremesa/i, 'media/gelato.webp'], [/pizza/i, 'media/pizza.webp'], [/refri|bebida|drink|suco/i, 'media/drink.webp'], [/hamb|burger/i, 'media/burger.webp'], [/batata|por[cç]/i, 'media/fries.webp']]
+export const fotoDoPremio = (nome: string): string | null => FOTOS_PREMIO.find(([r]) => r.test(nome))?.[1] ?? null

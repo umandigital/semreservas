@@ -1,71 +1,63 @@
-import { useState, type ReactNode } from 'react'
-import { CONFIG } from '../data/cardapio'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { TEMA } from '../data/tema'
-import { avisar, useSelecao } from '../lib/mockStore'
 import { useClube } from '../lib/clube'
-import { ApiError, MENSAGEM_ERRO } from '../lib/api'
-import { pedirAtendimento } from '../lib/atendimento'
-import { getMesa, getToken } from '../lib/router'
-import { IconCamera, IconCardapio, IconCartao, IconCubo, IconPresente, IconConta, IconEstrela, IconInsta, IconPesquisa, IconPrancheta, IconWifi } from '../ui/Icons'
+import { getMesa } from '../lib/router'
+import { IcBolo, IcCloche, IcClube, IcFoto, IcG, IcEstrela, IcInsta, IcRoleta, IcSeta, IcBaixo } from '../ui/IconsV2'
 
-const Servico = ({ icone, t, onClick }: { icone: ReactNode; t: string; onClick: () => void }) =>
-  <button className="servico" onClick={onClick}>{icone}<span>{t}</span></button>
+const reduz = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false } }
 
-/** Início em 4 blocos: (1) cabeçalho, (2) Ver cardápio, (3) Meu pedido e Clube, (4) Serviços. */
+/** Carrossel da mídia do ambiente: arrasta com o dedo (rolagem com encaixe), avança sozinho, pausa ao tocar e tem pontos clicáveis. Slide com link vira promoção. */
+function Carrossel() {
+  const fotos = TEMA.ambiente; const n = fotos.length; const ref = useRef<HTMLDivElement>(null); const [i, setI] = useState(0); const pausa = useRef(0)
+  const vai = (k: number) => { const el = ref.current; if (el) el.scrollTo({ left: ((k % n) + n) % n * el.clientWidth, behavior: reduz() ? 'auto' : 'smooth' }) }
+  useEffect(() => {
+    if (n < 2 || reduz()) return
+    const t = setInterval(() => { if (document.hidden || Date.now() < pausa.current) return; const el = ref.current; if (el) vai(Math.round(el.scrollLeft / el.clientWidth) + 1) }, 5000)
+    return () => clearInterval(t)
+  }, [n]) // eslint-disable-line react-hooks/exhaustive-deps
+  const segurar = () => { pausa.current = Date.now() + 9000 }
+  return <div className="n2-car">
+    <div className="n2-slides" ref={ref} onScroll={e => { const el = e.currentTarget; setI(Math.round(el.scrollLeft / el.clientWidth)) }} onPointerDown={segurar} onMouseEnter={segurar} onTouchStart={segurar} role="group" aria-roledescription="carrossel" aria-label="Fotos do restaurante">
+      {fotos.map((f, k) => { const im = <img src={import.meta.env.BASE_URL + f.img} alt={f.alt ?? ''} draggable={false} loading={k === 0 ? 'eager' : 'lazy'} />; return <div key={f.img} className="n2-slide" role="group" aria-label={`${k + 1} de ${n}`}>{f.link ? <a href={f.link} target="_blank" rel="noopener">{im}</a> : im}</div> })}
+    </div>
+    {n > 1 && <div className="n2-pontos" role="tablist" aria-label="Escolher foto">{fotos.map((f, k) => <button key={f.img} role="tab" aria-selected={k === i} aria-label={`Foto ${k + 1}`} className={k === i ? 'on' : ''} onClick={() => { segurar(); vai(k) }} />)}</div>}
+  </div>
+}
+
+const Atalho = ({ icone, t, onClick, ponto, i }: { icone: ReactNode; t: string; onClick: () => void; ponto?: boolean; i: number }) =>
+  <button className="n2-atalho n2-in" style={{ '--i': i } as CSSProperties} onClick={onClick}><span className="n2-ic">{icone}</span><span className="n2-rot">{t}</span>{ponto && <i className="n2-ponto" aria-label="Novidade" />}</button>
+
+/** Início: mídia do ambiente (carrossel) com a marca e a mesa, "Explorar cardápio", dois botões grandes e seis atalhos. */
 export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
-  const mesa = getMesa(); const clube = useClube(); const cv = clube.v; const m = cv?.membro; const sel = useSelecao()
-  const [wifi, setWifi] = useState(false); const [copiado, setCopiado] = useState(false)
-  const itens = Object.values(sel.qtd).reduce((a, b) => a + b, 0)
-  const copiar = async () => { try { await navigator.clipboard.writeText(CONFIG.wifi.senha); setCopiado(true); avisar('Senha copiada. Abra os Ajustes de Wi-Fi do aparelho.') } catch { avisar('Copie a senha manualmente.') } }
-  const conta = async () => {
-    if (!getMesa() || !getToken()) return ir('/chamar')
-    try { ir('/chamado/' + await pedirAtendimento('bill')) } catch (e) { avisar(MENSAGEM_ERRO[e instanceof ApiError ? e.code : 'rede']) }
-  }
-  const externo = async (url: string, o: string, action: string) => {
-    if (m) {   // pontos só pelo toque que abre a página; o app pergunta antes (o cliente escolhe)
-      const pts = clube.v?.regras.find(r => r.action === action)?.points ?? 0
-      if (pts && window.confirm(`Abrir o ${o} e ganhar +${pts} pontos?`)) { try { const g = await clube.ganhar(action); avisar(g ? `+${g} pontos no seu Clube!` : 'Você já ganhou os pontos desta ação.') } catch { /* sem pontos, abre mesmo assim */ } }
-    }
-    if (url) window.open(url, '_blank', 'noopener'); else avisar(`O link do ${o} ainda não foi configurado.`)
-  }
+  const mesa = getMesa(); const clube = useClube(); const cv = clube.v; const m = cv?.membro
+  const mesaTxt = useMemo(() => mesa ? (/^\d+$/.test(mesa) ? mesa.padStart(2, '0') : mesa) : null, [mesa])
+  const entrarOu = (rota: string) => () => ir(m ? rota : '/clube')   // roleta e aniversário são do Clube: quem ainda não entrou vê o convite
   return (
-    <section className="home">
-      <div className="bloco hero-cartao">
-        {TEMA.ambiente.length > 0 && <div className="hero-fotos" aria-hidden="true">{TEMA.ambiente.map((f, i) => <img key={f} src={import.meta.env.BASE_URL + f} alt="" loading={i === 0 ? 'eager' : 'lazy'} style={{ animationDelay: `${i * 6}s` }} />)}</div>}
-        <div className="hero-texto">
-          <h1>{nome}</h1>
-          <p>{mesa ? `Você está na Mesa ${mesa}` : TEMA.ambienteTitulo}</p>
-          <button className="primario grande" onClick={() => ir('/cardapio')}><IconCardapio /> Ver cardápio</button>
+    <section className="home n2-home">
+      <div className="n2-hero n2-in" style={{ '--i': 0 } as CSSProperties}>
+        <Carrossel />
+        <div className="n2-hero-topo">
+          <img className="n2-logo" src={import.meta.env.BASE_URL + TEMA.logoTransp} alt={nome} />
+          {mesaTxt && <button className="n2-mesa" onClick={() => ir('/chamar')} aria-label={`Mesa ${mesaTxt}. Trocar de mesa`}><IconMesa /> Mesa {mesaTxt} <IcBaixo /></button>}
         </div>
+        <div className="n2-hero-nome" aria-hidden="true"><b>{TEMA.heroTitulo}</b><span>{TEMA.heroSub}</span></div>
       </div>
-      <div className="bloco duplo">
-        <button className="cartao-link" onClick={() => ir('/pedido')}>
-          <span className="topo-c"><IconPrancheta /><b>Meu pedido</b></span>
-          <span>{itens ? `${itens} ${itens === 1 ? 'item' : 'itens'}` : 'Escolha seus pratos'}</span>
-        </button>
-        <button className="cartao-link" onClick={() => ir('/clube')}>
-          <span className="topo-c"><IconCartao /><b>Clube</b></span>
-          <span>{m ? `${m.saldo} pontos` : 'Entrar e ganhar pontos'}</span>
-        </button>
-      </div>
-      {m && (cv?.roleta?.enabled || cv?.aniv?.enabled) && <div className="bloco duplo">
-        {cv?.roleta?.enabled && <button className="cartao-link" onClick={() => ir('/roleta')}><span className="topo-c"><IconCubo /><b>Roleta do Chef</b></span><span>{cv.roleta.grants > 0 ? 'Você tem um giro!' : `${cv.roleta.got.length} de ${cv.roleta.steps.length} etapas`}</span></button>}
-        {cv?.aniv?.enabled && <button className="cartao-link" onClick={() => ir('/aniversario')}><span className="topo-c"><IconPresente /><b>Meu aniversário</b></span><span>{cv.aniv.canClaim ? 'Pegue seu presente!' : cv.aniv.diasAte === 1 ? 'É amanhã!' : cv.aniv.diasAte >= 0 && cv.aniv.diasAte < 999 ? `Faltam ${cv.aniv.diasAte} dias` : 'Seu presente'}</span></button>}
-      </div>}
-      <div className="bloco">
-        <h2 className="sub">Serviços</h2>
-        <div className="servicos">
-          <Servico icone={<IconWifi />} t="Wi-Fi" onClick={() => setWifi(!wifi)} />
-          <Servico icone={<IconConta />} t="Pedir a conta" onClick={conta} />
-          <Servico icone={<IconCamera />} t="Foto com moldura" onClick={() => ir('/fotos')} />
-          <Servico icone={<IconInsta />} t="Instagram" onClick={() => ir('/instagram')} />
-          <Servico icone={<IconEstrela />} t="Avalie no Google" onClick={() => ir('/google')} />
-          <Servico icone={<IconPesquisa />} t="Como foi a visita?" onClick={() => ir('/visita')} />
+      <div className="n2-corpo">
+        <button className="n2-explorar n2-in" style={{ '--i': 1 } as CSSProperties} onClick={() => ir('/cardapio')}>Explorar cardápio <IcSeta /></button>
+        <div className="n2-duo">
+          <button className="n2-grande n2-in" style={{ '--i': 2 } as CSSProperties} onClick={() => ir('/chamar')}><IcCloche /><b>Chamar o garçom</b></button>
+          <button className="n2-grande n2-in" style={{ '--i': 3 } as CSSProperties} onClick={() => ir('/clube')}><IcClube /><b>Meu Clube</b></button>
         </div>
-        {wifi && <div className="wifi"><p>Rede: <b>{CONFIG.wifi.ssid}</b></p><p>Senha: <b>{CONFIG.wifi.senha}</b></p>
-          <button className="sec" onClick={copiar}>{copiado ? 'Copiado' : 'Copiar senha'}</button>
-          <p className="nota">O site não conecta o celular sozinho. Abra Ajustes e escolha a rede.</p></div>}
+        <div className="n2-grade">
+          <Atalho i={4} icone={<IcFoto />} t="Fotos com moldura" onClick={() => ir('/fotos')} />
+          <Atalho i={5} icone={<IcInsta />} t="Siga-nos no Instagram" onClick={() => ir('/instagram')} />
+          <Atalho i={6} icone={<IcG />} t="Avalie-nos no Google" onClick={() => ir('/google')} />
+          <Atalho i={7} icone={<IcEstrela />} t="Pesquisa de satisfação" onClick={() => ir('/visita')} />
+          <Atalho i={8} icone={<IcRoleta />} t="Roleta do Chef" onClick={entrarOu('/roleta')} ponto={!!cv?.roleta && cv.roleta.grants > 0} />
+          <Atalho i={9} icone={<IcBolo />} t="Meu aniversário" onClick={entrarOu('/aniversario')} ponto={!!cv?.aniv?.canClaim} />
+        </div>
       </div>
     </section>
   )
 }
+const IconMesa = () => <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 9h14M7 9v10M17 9v10M3 9l1.5-4h15L21 9" /></svg>
