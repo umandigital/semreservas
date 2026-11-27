@@ -7,11 +7,13 @@ export const TEMA = {
   logo: 'media/marca/gastropub-logo.webp',
   slogan: 'Um toque. Infinitas possibilidades.',
   /** Fotos do ambiente que passam no topo da Início (WebP pequeno em public/media/ambiente). A primeira é a que aparece sem animação. */
+  // Ordem do carrossel (para a apresentação; depois o dono administra): 1º institucional, 2º e 3º promocionais, o resto institucional.
   ambiente: [
-    { img: 'media/banners/promo-pizza-calabresa.webp', tipo: 'cheio', prato: 'p2', ate: '2026-11-27', alt: 'Só hoje: 25% de desconto na pizza de calabresa. Toque para ver o prato.' },   // promoção do dia (sai do ar depois da data)
-    { img: 'media/ambiente/bar.webp' },
-    { img: 'media/banners/clube.webp', tipo: 'banner', quem: 'visitante', rota: '/clube', alt: 'Clube de benefícios: junte, troque, aproveite. Toque para entrar.' },   // banner pronto (1200x360, com texto): vira cartão no carrossel
-    { img: 'media/ambiente/mesa.webp' }, { img: 'media/ambiente/fachada.webp' }, { img: 'media/ambiente/salao.webp' },
+    { img: 'media/ambiente/bar.webp' },                                                                                       // 1º institucional
+    { img: 'media/banners/promo-pizza-calabresa.webp', tipo: 'cheio', prato: 'p2', alt: 'Promoção: 25% de desconto na pizza de calabresa. Toque para ver o prato.' },   // 2º promocional (exemplo)
+    // 3º promocional: chope em dobro às quintas, das 19h às 21h (entra aqui quando a arte estiver pronta: { img: 'media/banners/promo-chope-quintas.webp', tipo: 'cheio', prato: 'b1', alt: '...' })
+    { img: 'media/banners/clube.webp', tipo: 'banner', quem: 'visitante', rota: '/clube', alt: 'Clube de benefícios: junte, troque, aproveite. Toque para entrar.' },   // institucional, só para quem não é do Clube
+    { img: 'media/ambiente/mesa.webp' }, { img: 'media/ambiente/fachada.webp' }, { img: 'media/ambiente/salao.webp' },        // institucionais
   ] as Slide[],
   /** Banner do convite ao Clube (1200x360, sem texto; opcional). O texto e o botão são escritos pelo app. */
   bannerClube: '' as string, bannerClubeTexto: '#f7e9d0',
