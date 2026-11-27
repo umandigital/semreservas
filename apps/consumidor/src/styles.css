@@ -546,3 +546,16 @@ main { padding-bottom:104px; } main.cheio { padding-bottom:0; }
 /* banner pronto: sem escurecimento por cima (ele já tem o próprio contraste) */
 .n2-hero::after { transition:opacity .3s; } .n2-hero.so-banner::after { opacity:0; }
 .n2-hero-topo::before { transition:opacity .3s; } .n2-hero.so-banner .n2-hero-topo::before { opacity:0; }
+
+/* Cardápio: altura pela tela (volta inteira depois da RA); curtir e comentar logo acima do texto, com contagem */
+.n2-card { height:100vh; height:100dvh; }
+.n2-card .reel .lateral { align-self:end; margin:0 14px 14px 0; gap:10px; } .lat-i { display:grid; justify-items:center; gap:2px; }
+.n2-cont { font-size:.9rem; font-weight:700; text-shadow:0 1px 6px rgba(0,0,0,.8); }
+.n2-curtir { display:inline-flex; align-items:center; gap:8px; min-height:48px; padding:0 16px; border-radius:99px; border:1px solid var(--borda); background:var(--bg2); color:var(--txt); transition:transform .16s, border-color .2s; } .n2-curtir:hover { transform:translateY(-2px); border-color:var(--laranja); } .n2-curtir.on { color:var(--laranja); border-color:var(--laranja); }
+.coment li > p { margin:2px 0 4px; } .coment .quando { display:inline; }
+/* curtir, comentar e enviar: logo acima do bloco de texto do prato, seja qual for a altura da tela */
+.n2-card .reel .lateral { grid-row:3; grid-column:1; align-self:start; justify-self:end; transform:translateY(calc(-100% - 6px)); margin:0 14px 0 0; }
+.n2-card .reel > * { grid-column:1; }
+
+.n2-links { display:flex; gap:18px; align-items:center; } .n2-links .link { display:inline-flex; align-items:center; gap:6px; } .n2-links svg { width:20px; height:20px; }
+@media (max-height:700px) { .n2-nota, .n2-desliza { display:none; } .n2-card .reel .base { padding-bottom:calc(88px + env(safe-area-inset-bottom)); } .n2-card .reel .sombra h2 { font-size:1.6rem; } }

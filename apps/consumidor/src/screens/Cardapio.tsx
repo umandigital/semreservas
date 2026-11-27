@@ -1,7 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { brl, CATEGORIAS, CONFIG, ITENS_FEED, type Item } from '../data/cardapio'
 import { useEsgotados } from '../lib/hooks'
-import { avisar, salvar, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
+import { avisar, curtir, setQtd, useMembro, useSelecao, useSocial } from '../lib/mockStore'
+import { comentariosDe } from '../data/exemplos'
 import { useRaAberta, definirRaAberta } from '../lib/raAberta'
 import { abrirRa, baseCurtidas, media, webxrArDisponivel } from '../lib/util'
 import type { ModeloEl } from '../ui/model-viewer'
@@ -16,15 +17,10 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
   const soldOut = useEsgotados(); const sel = useSelecao()
   const [cat, setCat] = useState<string>('Todos'); const [q, setQ] = useState(''); const [buscando, setBuscando] = useState(false); const [lista, setLista] = useState(false)
   const [dica, setDica] = useState(() => { try { return !localStorage.getItem('sr-dica') } catch { return true } })
-  const [h, setH] = useState<number | null>(null); const wrap = useRef<HTMLDivElement>(null); const rolo = useRef<HTMLDivElement>(null)
+  const wrap = useRef<HTMLDivElement>(null); const rolo = useRef<HTMLDivElement>(null)
   const base = import.meta.env.BASE_URL
   const itens = useMemo(() => ITENS_FEED.filter(i => (cat === 'Todos' || i.cat === cat) && (!q || norm(i.nome + ' ' + i.desc + ' ' + i.ingredientes.join(' ')).includes(norm(q)))), [cat, q])
 
-  // a área do feed ocupa a tela toda entre o cabeçalho e a barra de baixo, seja qual for o aparelho
-  useLayoutEffect(() => {
-    const medir = () => { const t = wrap.current?.getBoundingClientRect().top ?? 0; setH(Math.max(320, Math.round(innerHeight - t))) }
-    medir(); addEventListener('resize', medir); return () => removeEventListener('resize', medir)
-  }, [])
   useEffect(() => { rolo.current?.scrollTo({ top: 0 }) }, [cat, q, lista])
   // veio de um aviso da Início (promoção): abre direto no prato indicado
   useEffect(() => {
@@ -42,7 +38,7 @@ export function Cardapio({ ir }: { ir: (r: string) => void }) {
   const rolou = () => { if (dica) { setDica(false); try { localStorage.setItem('sr-dica', '1') } catch { /* ignora */ } } }
 
   return (
-    <div className={'reels-wrap n2-card' + (lista ? ' modo-lista' : '')} ref={wrap} style={{ ...(h ? { height: h } : { minHeight: '70dvh' }), '--fundo-3d': CONFIG.fundo3d } as unknown as CSSProperties}>
+    <div className={'reels-wrap n2-card' + (lista ? ' modo-lista' : '')} ref={wrap} style={{ '--fundo-3d': CONFIG.fundo3d } as unknown as CSSProperties}>
       <div className="card-topo">
         {lista && (buscando ? (
           <div className="linha-t">
@@ -97,7 +93,8 @@ function useVisibilidade(ref: React.RefObject<HTMLElement | null>, ligado: boole
 function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: number; base: string; esgotado: boolean; qtd: number; ir: (r: string) => void }) {
   const [aberto, setAberto] = useState(false)
   const soc = useSocial(); const membro = useMembro()
-  const salvo = soc.saved.includes(i.id)
+  const curtido = soc.likes.includes(i.id); const nCurtidas = baseCurtidas(i.id) + (curtido ? 1 : 0)
+  const nComent = comentariosDe(i.id, i.cat).length + soc.comments.filter(c => c.produto === i.id).length
   const reduzir = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
   const ref = useRef<HTMLElement>(null); const mv = useRef<ModeloEl | null>(null)
   const { perto, ativo } = useVisibilidade(ref, !!i.modelo)
@@ -140,9 +137,8 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
       <span className="selo">{m ? '◆ 3D · gire com o dedo' : i.video ? '▶ Vídeo' : '● Foto'}</span>
       <span className="contador" aria-hidden="true">{n}/{de}</span>
       <div className="lateral">
-        <button onClick={() => { salvar(i.id); avisar(salvo ? 'Removido dos salvos.' : membro ? 'Salvo na sua conta e disponível em outros aparelhos.' : 'Salvo só neste aparelho. Entre para guardar em qualquer lugar.') }} aria-pressed={salvo} aria-label={`Salvar ${i.nome}`}><IcCoracao f={salvo} /></button>
-        <button onClick={() => ir('/comentarios/' + i.id)} aria-label={`Comentários sobre ${i.nome}`}><IcBalao /></button>
-        <button onClick={enviar} aria-label={`Enviar ${i.nome}`}><IcEnviar /></button>
+        <div className="lat-i"><button onClick={() => curtir(i.id)} aria-pressed={curtido} aria-label={`${curtido ? 'Descurtir' : 'Curtir'} ${i.nome}. ${nCurtidas} curtidas`}><IcCoracao f={curtido} /></button><span className="n2-cont" aria-hidden="true">{nCurtidas}</span></div>
+        <div className="lat-i"><button onClick={() => ir('/comentarios/' + i.id)} aria-label={`Comentários sobre ${i.nome}: ${nComent}`}><IcBalao /></button><span className="n2-cont" aria-hidden="true">{nComent}</span></div>
       </div>
       <div className="base">
         <div className="sombra">
@@ -150,7 +146,7 @@ function Reel({ i, n, de, base, esgotado, qtd, ir }: { i: Item; n: number; de: n
           <p className={aberto ? '' : 'desc1'}>{i.desc}</p>
           {m && <small className="n2-nota">{m.nota.split('.')[0]} · {m.medidas}</small>}
           {aberto && <ul className="ingr">{i.ingredientes.map(x => <li key={x}>{x}</li>)}{i.tags?.map(t => <li key={t} className="tag">{t}</li>)}</ul>}
-          <button className="link" style={{ textAlign: 'left', padding: 0 }} onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Recolher' : 'Ver ingredientes'}</button>
+          <div className="n2-links"><button className="link" style={{ textAlign: 'left', padding: 0 }} onClick={() => setAberto(!aberto)} aria-expanded={aberto}>{aberto ? 'Recolher' : 'Ver ingredientes'}</button><button className="link" onClick={enviar}><IcEnviar /> Compartilhar</button></div>
         </div>
         {msgRa && <p className="status-ra" role="status">{msgRa}</p>}
         <div className="acao-reel">
