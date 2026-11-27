@@ -543,3 +543,6 @@ main { padding-bottom:104px; } main.cheio { padding-bottom:0; }
 .n2-slide.cheio { background:#220a14; } .n2-slide.cheio img { object-fit:cover; object-position:left 62%; transform:none !important; -webkit-mask-image:none; mask-image:none; } .n2-hero:hover .n2-slide.cheio img { transform:none; }
 .n2-slide.cheio .n2-slide-b { height:100%; border-radius:0; } .n2-slide.cheio .n2-slide-b img { width:100%; height:100%; }
 .n2-hero.so-banner:has(.n2-slide.cheio:hover)::after { opacity:0; }
+/* banner pronto: sem escurecimento por cima (ele já tem o próprio contraste) */
+.n2-hero::after { transition:opacity .3s; } .n2-hero.so-banner::after { opacity:0; }
+.n2-hero-topo::before { transition:opacity .3s; } .n2-hero.so-banner .n2-hero-topo::before { opacity:0; }

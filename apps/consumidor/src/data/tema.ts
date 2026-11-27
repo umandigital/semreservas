@@ -11,7 +11,7 @@ export const TEMA = {
   ambiente: [
     { img: 'media/ambiente/bar.webp' },                                                                                       // 1º institucional
     { img: 'media/banners/promo-pizza-calabresa.webp', tipo: 'cheio', prato: 'p2', alt: 'Promoção: 25% de desconto na pizza de calabresa. Toque para ver o prato.' },   // 2º promocional (exemplo)
-    // 3º promocional: chope em dobro às quintas, das 19h às 21h (entra aqui quando a arte estiver pronta: { img: 'media/banners/promo-chope-quintas.webp', tipo: 'cheio', prato: 'b1', alt: '...' })
+    { img: 'media/banners/promo-chope-quintas.webp', tipo: 'cheio', prato: 'b1', alt: 'Promoção: chope em dobro às quintas, das 19h às 21h. Toque para ver o chope.' },   // 3º promocional (exemplo)
     { img: 'media/banners/clube.webp', tipo: 'banner', quem: 'visitante', rota: '/clube', alt: 'Clube de benefícios: junte, troque, aproveite. Toque para entrar.' },   // institucional, só para quem não é do Clube
     { img: 'media/ambiente/mesa.webp' }, { img: 'media/ambiente/fachada.webp' }, { img: 'media/ambiente/salao.webp' },        // institucionais
   ] as Slide[],
