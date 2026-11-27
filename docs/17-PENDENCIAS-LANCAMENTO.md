@@ -27,3 +27,6 @@ Lista viva do que falta antes de abrir o SemReservas GastroPub a clientes reais 
 - [ ] Delivery e clube por pedidos (módulo futuro).
 - [ ] Notificação push para o proprietário (aviso mesmo com o computador em repouso).
 - [ ] Validade dos pontos e aviso 30 dias antes; alertas de abuso; rotina de retenção.
+
+## Planos e mídia (27/11/2026)
+- Decisão de planos e mídia registrada em `docs/18-PLANOS-E-MIDIA.md`. Falta: respostas às 5 perguntas em aberto, **envio de foto do prato pelo dono** (Storage), módulos `media_*` com cota e o portal Master para vídeo e RA.
