@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 import { TEMA } from '../data/tema'
 import { useClube } from '../lib/clube'
 import { getMesa } from '../lib/router'
-import { IcBolo, IcCloche, IcClube, IcFoto, IcG, IcEstrela, IcInsta, IcRoleta, IcSeta, IcBaixo } from '../ui/IconsV2'
+import { IcCarteira, IcDir, IcBolo, IcCloche, IcClube, IcFoto, IcG, IcEstrela, IcInsta, IcRoleta, IcSeta, IcBaixo } from '../ui/IconsV2'
 
 const reduz = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false } }
 
@@ -56,8 +56,19 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
           <Atalho i={8} icone={<IcRoleta />} t="Roleta do Chef" onClick={entrarOu('/roleta')} ponto={!!cv?.roleta && cv.roleta.grants > 0} />
           <Atalho i={9} icone={<IcBolo />} t="Meu aniversário" onClick={entrarOu('/aniversario')} ponto={!!cv?.aniv?.canClaim} />
         </div>
+        <FaixaClube ir={ir} i={10} />
       </div>
     </section>
   )
+}
+/** Faixa do Clube: sócio vê saldo e quanto falta para o próximo prêmio; quem ainda não entrou vê a barra zerada e o convite. */
+function FaixaClube({ ir, i }: { ir: (r: string) => void; i: number }) {
+  const v = useClube().v; const m = v?.membro; const proximo = v?.premios.find(p => !m || p.custo > m.saldo)
+  const frac = m && proximo ? Math.min(100, Math.round((m.saldo / Math.max(1, proximo.custo)) * 100)) : m ? 100 : 0
+  return <button className="n2-faixa n2-in" style={{ '--i': i } as CSSProperties} onClick={() => ir('/clube')}>
+    <span className="n2-faixa-t"><IcCarteira /><b>{m ? m.saldo : 0}</b><span>pontos</span></span>
+    <span className="n2-barra" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={frac} aria-label="Progresso para o próximo prêmio"><i style={{ width: frac + '%' }} /></span>
+    <span className="n2-faixa-c">{m ? (proximo ? `Faltam ${Math.max(0, proximo.custo - m.saldo)} pontos para ${proximo.nome.split(' (')[0]}` : 'Você já pode trocar qualquer prêmio') : 'Entre no Clube e ganhe seus primeiros pontos'}<IcDir /></span>
+  </button>
 }
 const IconMesa = () => <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 9h14M7 9v10M17 9v10M3 9l1.5-4h15L21 9" /></svg>
