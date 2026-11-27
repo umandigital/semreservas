@@ -6,6 +6,9 @@ export const TEMA = {
   slogan: 'Um toque. Infinitas possibilidades.',
   /** Fotos do ambiente que passam no topo da Início (WebP pequeno em public/media/ambiente). A primeira é a que aparece sem animação. */
   ambiente: [{ img: 'media/ambiente/bar.webp' }, { img: 'media/ambiente/mesa.webp' }, { img: 'media/ambiente/fachada.webp' }, { img: 'media/ambiente/salao.webp' }] as { img: string; link?: string; alt?: string }[],   // link opcional: vira um slide promocional
+  /** Banner do convite ao Clube (1200x360, sem texto; opcional). O texto e o botão são escritos pelo app. */
+  bannerClube: '' as string, bannerClubeTexto: '#f7e9d0',
+  conviteTitulo: 'Seu próximo prato por nossa conta',
   ambienteTitulo: 'Uma experiência para viver aqui',
   heroTitulo: 'Sem Reservas', heroSub: 'GASTROPUB',
   logoTransp: 'media/marca/logo-transparente.webp', chapeu: 'media/marca/chapeu.webp',

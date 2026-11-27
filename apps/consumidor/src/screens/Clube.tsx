@@ -17,6 +17,8 @@ export function Clube({ ir }: Ir) {
   useEffect(() => { if (v?.logado && !v.membro) ir('/cadastro') }, [v?.logado, v?.membro])
   // primeira vez no Clube (só quem é do Clube): abre a introdução; fechou ou viu, não abre de novo sozinha
   useEffect(() => { if (v?.membro) { try { if (!localStorage.getItem(INTRO_KEY + ':' + v.email)) setIntro(true) } catch { /* ignora */ } } }, [v?.membro?.nome])
+  // Como funciona, tocado na Início: abre o vídeo ao chegar aqui
+  useEffect(() => { try { if (sessionStorage.getItem('sr-abrir-intro')) { sessionStorage.removeItem('sr-abrir-intro'); setIntro(true) } } catch { /* ignora */ } }, [])
   const fecharIntro = () => { try { if (v) localStorage.setItem(INTRO_KEY + ':' + v.email, '1') } catch { /* ignora */ } setIntro(false) }
   if (!v) return <section className="tela-int"><p>Carregando…</p></section>
   const m = v.membro
