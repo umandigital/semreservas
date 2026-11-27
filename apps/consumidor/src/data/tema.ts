@@ -1,11 +1,17 @@
 // Tema do restaurante: tudo é dado (cores, logo, textos). Trocar aqui não exige mexer nas telas.
 // GastroPub (teste): vinho, terracota e creme, com texto creme sobre vinho (contraste alto).
+/** Slide do carrossel da Início. Foto: ocupa tudo. Banner: arte pronta com texto, mostrada como cartão. `quem` limita a quem aparece; `rota` (no app) ou `link` (fora) é para onde o toque leva. */
+export type Slide = { img: string; alt?: string; link?: string; rota?: string; tipo?: 'foto' | 'banner'; quem?: 'visitante' | 'clube' | 'todos' }
 export const TEMA = {
   nome: 'SemReservas GastroPub',
   logo: 'media/marca/gastropub-logo.webp',
   slogan: 'Um toque. Infinitas possibilidades.',
   /** Fotos do ambiente que passam no topo da Início (WebP pequeno em public/media/ambiente). A primeira é a que aparece sem animação. */
-  ambiente: [{ img: 'media/ambiente/bar.webp' }, { img: 'media/ambiente/mesa.webp' }, { img: 'media/ambiente/fachada.webp' }, { img: 'media/ambiente/salao.webp' }] as { img: string; link?: string; alt?: string }[],   // link opcional: vira um slide promocional
+  ambiente: [
+    { img: 'media/ambiente/bar.webp' },
+    { img: 'media/banners/clube.webp', tipo: 'banner', quem: 'visitante', rota: '/clube', alt: 'Clube de benefícios: junte, troque, aproveite. Toque para entrar.' },   // banner pronto (1200x360, com texto): vira cartão no carrossel
+    { img: 'media/ambiente/mesa.webp' }, { img: 'media/ambiente/fachada.webp' }, { img: 'media/ambiente/salao.webp' },
+  ] as Slide[],
   /** Banner do convite ao Clube (1200x360, sem texto; opcional). O texto e o botão são escritos pelo app. */
   bannerClube: '' as string, bannerClubeTexto: '#f7e9d0',
   conviteTitulo: 'Seu próximo prato por nossa conta',

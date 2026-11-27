@@ -528,3 +528,13 @@ main { padding-bottom:104px; } main.cheio { padding-bottom:0; }
 .n2-conv-pr > span { width:46px; height:46px; border-radius:14px; } .n2-conv-p { gap:6px; } .n2-conv-pr em { font-size:.7rem; padding:0 6px; }
 .n2-conv-pr:nth-child(3) { display:none; } .n2-conv-t { overflow:hidden; } .n2-conv-b { flex-wrap:nowrap; gap:6px; } .n2-conv-ir { padding:0 12px; } .n2-conv-como { font-size:.85rem; }
 .n2-conv-pr { width:50px; } .n2-conv-pr > span { width:44px; height:44px; } .n2-conv-pr em { font-size:.68rem; padding:0 4px; } .n2-conv-ir { font-size:.9rem; padding:0 10px; } .n2-conv-como { font-size:.82rem; }
+
+/* slide de banner: cartão com a arte pronta (sem corte), os rótulos da marca saem para não sobrepor o texto da arte */
+.n2-car { -webkit-mask-image:none; mask-image:none; }
+.n2-slide:not(.banner) img { -webkit-mask-image:linear-gradient(to bottom,#000 68%,transparent 100%); mask-image:linear-gradient(to bottom,#000 68%,transparent 100%); }
+.n2-slide.banner { display:flex; align-items:flex-end; justify-content:center; padding:0 12px 30px; background:radial-gradient(120% 90% at 50% 40%, #3a1a24 0%, var(--bg) 70%); }
+.n2-slide.banner img { width:100%; height:auto; max-height:100%; object-fit:contain; transform:none !important; border-radius:22px; box-shadow:0 12px 30px rgba(0,0,0,.5); -webkit-mask-image:none; mask-image:none; }
+.n2-hero:hover .n2-slide.banner img { transform:none; }
+.n2-slide-b { display:block; width:100%; border:0; background:none; padding:0; border-radius:22px; transition:transform .16s, filter .2s; } .n2-slide-b:hover { transform:translateY(-3px); filter:brightness(1.06); } .n2-slide-b:active { transform:scale(.98); }
+.n2-hero.so-banner .n2-hero-nome, .n2-hero.so-banner .n2-logo { opacity:0; pointer-events:none; } .n2-logo, .n2-hero-nome { transition:opacity .3s; }
+.n2-hero.so-banner::after { background:linear-gradient(to bottom, rgba(14,3,8,.5) 0%, rgba(14,3,8,0) 30%); }

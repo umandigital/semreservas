@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { TEMA } from '../data/tema'
+import { TEMA, type Slide } from '../data/tema'
 import { brl, ITENS } from '../data/cardapio'
 import { fotoDoPremio } from '../data/clube'
 import { statusChamado, type Status } from '../lib/api'
@@ -12,20 +12,25 @@ import { IcCarteira, IcDir, IcPedido, IcBolo, IcCloche, IcClube, IcFoto, IcG, Ic
 const reduz = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false } }
 
 /** Carrossel da mídia do ambiente: arrasta com o dedo (rolagem com encaixe), avança sozinho, pausa ao tocar e tem pontos clicáveis. Slide com link vira promoção. */
-function Carrossel() {
-  const fotos = TEMA.ambiente; const n = fotos.length; const ref = useRef<HTMLDivElement>(null); const [i, setI] = useState(0); const pausa = useRef(0)
+function Carrossel({ fotos, ir, aoMudar }: { fotos: Slide[]; ir: (r: string) => void; aoMudar: (s: Slide) => void }) {
+  const n = fotos.length; const ref = useRef<HTMLDivElement>(null); const [i, setI] = useState(0); const pausa = useRef(0)
   const vai = (k: number) => { const el = ref.current; if (el) el.scrollTo({ left: ((k % n) + n) % n * el.clientWidth, behavior: reduz() ? 'auto' : 'smooth' }) }
   useEffect(() => {
     if (n < 2 || reduz()) return
     const t = setInterval(() => { if (document.hidden || Date.now() < pausa.current) return; const el = ref.current; if (el) vai(Math.round(el.scrollLeft / el.clientWidth) + 1) }, 5000)
     return () => clearInterval(t)
   }, [n]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (fotos[Math.min(i, n - 1)]) aoMudar(fotos[Math.min(i, n - 1)]) }, [i, n]) // eslint-disable-line react-hooks/exhaustive-deps
   const segurar = () => { pausa.current = Date.now() + 9000 }
   return <div className="n2-car">
-    <div className="n2-slides" ref={ref} onScroll={e => { const el = e.currentTarget; setI(Math.round(el.scrollLeft / el.clientWidth)) }} onPointerDown={segurar} onMouseEnter={segurar} onTouchStart={segurar} role="group" aria-roledescription="carrossel" aria-label="Fotos do restaurante">
-      {fotos.map((f, k) => { const im = <img src={import.meta.env.BASE_URL + f.img} alt={f.alt ?? ''} draggable={false} loading={k === 0 ? 'eager' : 'lazy'} />; return <div key={f.img} className="n2-slide" role="group" aria-label={`${k + 1} de ${n}`}>{f.link ? <a href={f.link} target="_blank" rel="noopener">{im}</a> : im}</div> })}
+    <div className="n2-slides" ref={ref} onScroll={e => { const el = e.currentTarget; setI(Math.round(el.scrollLeft / el.clientWidth)) }} onPointerDown={segurar} onMouseEnter={segurar} onTouchStart={segurar} role="group" aria-roledescription="carrossel" aria-label="Destaques do restaurante">
+      {fotos.map((f, k) => {
+        const im = <img src={import.meta.env.BASE_URL + f.img} alt={f.alt ?? ''} draggable={false} loading={k === 0 ? 'eager' : 'lazy'} />
+        const corpo = f.rota ? <button className="n2-slide-b" onClick={() => ir(f.rota!)}>{im}</button> : f.link ? <a href={f.link} target="_blank" rel="noopener">{im}</a> : im
+        return <div key={f.img} className={'n2-slide' + (f.tipo === 'banner' ? ' banner' : '')} role="group" aria-label={`${k + 1} de ${n}`}>{corpo}</div>
+      })}
     </div>
-    {n > 1 && <div className="n2-pontos" role="tablist" aria-label="Escolher foto">{fotos.map((f, k) => <button key={f.img} role="tab" aria-selected={k === i} aria-label={`Foto ${k + 1}`} className={k === i ? 'on' : ''} onClick={() => { segurar(); vai(k) }} />)}</div>}
+    {n > 1 && <div className="n2-pontos" role="tablist" aria-label="Escolher destaque">{fotos.map((f, k) => <button key={f.img} role="tab" aria-selected={k === i} aria-label={`Destaque ${k + 1}`} className={k === i ? 'on' : ''} onClick={() => { segurar(); vai(k) }} />)}</div>}
   </div>
 }
 
@@ -36,11 +41,14 @@ const Atalho = ({ icone, t, onClick, ponto, i }: { icone: ReactNode; t: string; 
 export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
   const mesa = getMesa(); const clube = useClube(); const cv = clube.v; const m = cv?.membro
   const mesaTxt = useMemo(() => mesa ? (/^\d+$/.test(mesa) ? mesa.padStart(2, '0') : mesa) : null, [mesa])
+  const slides = useMemo(() => TEMA.ambiente.filter(x => !x.quem || x.quem === 'todos' || (x.quem === 'clube' ? !!m : !m)), [m])
+  const [ativo, setAtivo] = useState<Slide | null>(null)
+  const temBannerClube = slides.some(x => x.rota === '/clube')   // com o banner do Clube no carrossel, o espaço de baixo não repete o convite
   const entrarOu = (rota: string) => () => ir(m ? rota : '/clube')   // roleta e aniversário são do Clube: quem ainda não entrou vê o convite
   return (
     <section className="home n2-home">
-      <div className="n2-hero n2-in" style={{ '--i': 0 } as CSSProperties}>
-        <Carrossel />
+      <div className={'n2-hero n2-in' + (ativo?.tipo === 'banner' ? ' so-banner' : '')} style={{ '--i': 0 } as CSSProperties}>
+        <Carrossel fotos={slides} ir={ir} aoMudar={setAtivo} />
         <div className="n2-hero-topo">
           <img className="n2-logo" src={import.meta.env.BASE_URL + TEMA.logoTransp} alt={nome} />
           {mesaTxt && <button className="n2-mesa" onClick={() => ir('/chamar')} aria-label={`Mesa ${mesaTxt}. Trocar de mesa`}><IconMesa /> Mesa {mesaTxt} <IcBaixo /></button>}
@@ -61,7 +69,7 @@ export function Home({ nome, ir }: { nome: string; ir: (r: string) => void }) {
           <Atalho i={8} icone={<IcRoleta />} t="Roleta do Chef" onClick={entrarOu('/roleta')} ponto={!!cv?.roleta && cv.roleta.grants > 0} />
           <Atalho i={9} icone={<IcBolo />} t="Meu aniversário" onClick={entrarOu('/aniversario')} ponto={!!cv?.aniv?.canClaim} />
         </div>
-        <SlotHome ir={ir} i={10} />
+        <SlotHome ir={ir} i={10} semConvite={temBannerClube} />
       </div>
     </section>
   )
@@ -85,7 +93,7 @@ function useChamadoAberto() {
 }
 
 /** O espaço de baixo da Início mostra UMA coisa, a mais útil agora: chamado aberto, prêmio ou giro esperando, seleção do pedido, pontos, ou o convite ao Clube. Altura fixa: a tela não rola. */
-function SlotHome({ ir, i }: { ir: (r: string) => void; i: number }) {
+function SlotHome({ ir, i, semConvite }: { ir: (r: string) => void; i: number; semConvite: boolean }) {
   const v = useClube().v; const m = v?.membro; const chamado = useChamadoAberto(); const sel = useSelecao()
   const linhas = ITENS.filter(x => sel.qtd[x.id]); const n = linhas.reduce((a, x) => a + sel.qtd[x.id], 0); const total = linhas.reduce((a, x) => a + x.preco * sel.qtd[x.id], 0)
   const proximo = v?.premios.find(p => !m || p.custo > m.saldo); const extra = v?.extras.filter(e => e.status === 'available').sort((a, b) => a.validade - b.validade)[0]
@@ -96,6 +104,7 @@ function SlotHome({ ir, i }: { ir: (r: string) => void; i: number }) {
   if (n) return <Slot i={i} cls="n2-pedido" onClick={() => ir('/pedido')} icone={<IcPedido />} titulo={<><b>{n}</b><span>{n === 1 ? 'item escolhido' : 'itens escolhidos'}</span></>} sub={<>Total: {brl(total)} <span className="n2-ver">· Ver pedido</span></>} />
   if (m) { const frac = proximo ? Math.min(100, Math.round((m.saldo / Math.max(1, proximo.custo)) * 100)) : 100
     return <Slot i={i} onClick={() => ir('/clube')} icone={<IcCarteira />} titulo={<><b>{m.saldo}</b><span>pontos</span></>} barra={frac} sub={proximo ? `Faltam ${Math.max(0, proximo.custo - m.saldo)} pontos para ${proximo.nome.split(' (')[0]}` : 'Você já pode trocar qualquer prêmio'} /> }
+  if (semConvite) return <Slot i={i} onClick={() => ir('/clube')} icone={<IcCarteira />} titulo={<><b>0</b><span>pontos</span></>} barra={0} sub="Ganhe seus primeiros pontos ao entrar no Clube" />
   return <Convite ir={ir} i={i} />
 }
 
